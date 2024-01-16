@@ -1,0 +1,4 @@
+rootProject.name = 'socket'
+include 'Client'
+include 'Server'
+include 'Share'
