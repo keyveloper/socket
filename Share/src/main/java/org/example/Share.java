@@ -7,8 +7,11 @@ import java.net.*;
 
 public class Share {
 
-    public static int getPacketLength(byte[] packet){
-        return packet.length;
+    public static byte[] getTypeByte(String type){
+        MessageType messageType = MessageType.valueOf(type.toUpperCase());
+        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+        buffer.putInt(messageType.ordinal());
+        return buffer.array();
     }
 
     public static byte[] getPacketLengthByte(int packLength){
@@ -17,34 +20,29 @@ public class Share {
         return buffer.array();
     }
 
-    public static byte[] getTypeByte(String type){
-        MessageType messageType = MessageType.valueOf(type.toUpperCase());
-        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
-        buffer.putInt(messageType.ordinal());
-        return buffer.array();
-    }
+    public static byte[] plusHeader(byte[] packet, String type){
+        System.out.println("start plus header packet, type " + new String(packet) + " " + type);
 
-    public static byte[] getHeader(byte[] packet, String type){
-        int packetLength = getPacketLength(packet);
+        // byte[] + byte[] + byte[]
+        int packetLength = packet.length + 8;
         byte[] packetLengthByte = getPacketLengthByte(packetLength);
-        byte[] packetTypeByte = getTypeByte(type);
+        byte[] packetTypeByte = getTypeByte(type.toUpperCase());
 
-        ByteBuffer header = ByteBuffer.allocate(8);
-        header.put(packetLengthByte);
-        header.put(packetTypeByte);
+        byte[] headerPacketByte = new byte[packetLengthByte.length + packetTypeByte.length + packet.length];
+        System.arraycopy(packetLengthByte, 0, headerPacketByte, 0, packetLengthByte.length);
+        System.arraycopy(packetTypeByte, 0, headerPacketByte, packetLengthByte.length, packetTypeByte.length);
+        System.arraycopy(packet, 0, headerPacketByte, packetLengthByte.length + packetTypeByte.length, packet.length);
 
-        return header.array();
+        System.out.print("Header plus complete, message = " + new String(headerPacketByte) );
+        return headerPacketByte;
     }
 
 }
 
-// 이미 public
+//public
 enum MessageType{
-    COMMENT,
-    NOTICE,
-    DIRECT,
-    ALARM,
     REGISTER_ID,
+    COMMENT,
     END
 }
 

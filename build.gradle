@@ -18,7 +18,8 @@ test {
     useJUnitPlatform()
 }
 
-jar{
+jar {
     manifest {
         attributes "Main-Class": "org.example.Main"
     }
+}

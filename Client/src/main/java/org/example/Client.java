@@ -8,59 +8,66 @@ import org.example.MessageType;
 import org.example.Share;
 
 
-public class Client implements Runnable{
+public class ClientCopy {
 
-    Socket socket;
-
-
-    public void run(){
+    public static void main(String[] args) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-        socket = new Socket();
-        System.out.println("\n [Request...] \n");
+        Socket socket = null;
+        Boolean register = false;
 
-        try{
+        try {
+            // Server
+            socket = new Socket();
+            System.out.println("\n[ Request ... ]");
+            // Server
             socket.connect(new InetSocketAddress("localhost", 9999));
-            System.out.println(" \n [ Success ] \n");
+            System.out.println("\n[ Success ... ]");
 
-            while(true) {
-                // 서버 대이터 출력(지속)
-                String receiveMessage = null;
-                InputStream inputStream = socket.getInputStream();
-                DataInputStream dataInputStream = new DataInputStream(inputStream);
-                int receiveLength = dataInputStream.readInt();
+            byte[] finalBBytes = null;
+            String message = null;
 
-                if(receiveLength > 0){
-                    byte[] receiveByte = new byte[receiveLength];
-                    dataInputStream.readFully(receiveByte, 0, receiveLength);
-                    receiveMessage = new String(receiveByte);
-                    System.out.println(" \n [Data Receive Success ]\n" + receiveMessage);
-                }
+            while (true) { // Socket
+                OutputStream os = socket.getOutputStream();
+                DataOutputStream dos = new DataOutputStream(os);
 
-                // 임시로 종료
-                if(receiveLength == 0){
-                    inputStream.close();
-                    socket.close();
-                    break;
-                }
-
-                // 서버로 데이터 전송(지속)
-                OutputStream outputStream = socket.getOutputStream();
-                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-                String message = bufferedReader.readLine();
+                // send bytes
+                message = bufferedReader.readLine();
                 String messageType = bufferedReader.readLine();
-                byte[] idBytes = message.getBytes();
-                byte[] finalIdBytes = Share.getHeader(idBytes, messageType);
 
-                dataOutputStream.writeInt(finalIdBytes.length);
-                dataOutputStream.write(finalIdBytes, 0, finalIdBytes.length);
-                dataOutputStream.flush();
+                byte[] messageBytes = message.getBytes();
+                byte[] finalIdBytes = Share.plusHeader(messageBytes, messageType);
 
-                System.out.println(" \n [Data send Success] \n" + message);
+                dos.writeInt(finalIdBytes.length);
+                dos.write(finalIdBytes, 0, finalIdBytes.length);
+                dos.flush();
+
+                System.out.println("\n[ Data Send Success ]\n" + message);
+
+                // Socket
+                InputStream is = socket.getInputStream();
+                DataInputStream dis = new DataInputStream(is);
+
+                // read int
+                int receiveLength = dis.readInt();
+
+                // receive bytes
+                if (receiveLength > 0) {
+                    byte receiveByte[] = new byte[receiveLength];
+                    dis.readFully(receiveByte, 0, receiveLength);
+                    message = new String(receiveByte);
+                    System.out.println("\n[ Data Receive Success ]\n" + message);
+                    register = true;
+                }
+
+                // OutputStream, InputStream close
+
+                // Socket}
+
+
             }
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
-
 }
