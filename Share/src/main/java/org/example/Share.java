@@ -7,11 +7,21 @@ import java.net.*;
 
 public class Share {
 
-    public static byte[] getTypeByte(String type){
-        MessageType messageType = MessageType.valueOf(type.toUpperCase());
-        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
-        buffer.putInt(messageType.ordinal());
-        return buffer.array();
+    public static byte[] getTypeByte(MessageType messageType){
+        int typeInt = messageType.ordinal();
+        System.out.println("type int : " + typeInt);
+        byte[] typeBytes = intToByteArray(typeInt);
+
+        return typeBytes;
+    }
+
+    private static byte[] intToByteArray(int value) {
+        return new byte[]{
+                (byte) (value >> 24),
+                (byte) (value >> 16),
+                (byte) (value >> 8),
+                (byte) value
+        };
     }
 
     public static byte[] getPacketLengthByte(int packLength){
@@ -20,13 +30,13 @@ public class Share {
         return buffer.array();
     }
 
-    public static byte[] plusHeader(byte[] packet, String type){
+    public static byte[] plusHeader(byte[] packet, MessageType type){
         System.out.println("start plus header packet, type " + new String(packet) + " " + type);
 
         // byte[] + byte[] + byte[]
-        int packetLength = packet.length + 8;
+        int packetLength = packet.length;
         byte[] packetLengthByte = getPacketLengthByte(packetLength);
-        byte[] packetTypeByte = getTypeByte(type.toUpperCase());
+        byte[] packetTypeByte = getTypeByte(type);
 
         byte[] headerPacketByte = new byte[packetLengthByte.length + packetTypeByte.length + packet.length];
         System.arraycopy(packetLengthByte, 0, headerPacketByte, 0, packetLengthByte.length);
@@ -43,6 +53,9 @@ public class Share {
 enum MessageType{
     REGISTER_ID,
     COMMENT,
-    END
+    QUIT,
+    SUCCESS,
+    REJECT,
 }
+
 

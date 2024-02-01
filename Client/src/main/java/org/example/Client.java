@@ -1,73 +1,77 @@
 package org.example;
 
-import java.awt.*;
 import java.io.*;
 import java.net.*;
-import java.util.Scanner;
-import org.example.MessageType;
-import org.example.Share;
+import java.util.*;
 
+public class Client implements Runnable {
+    private Boolean register = false;
 
-public class ClientCopy {
+    private MessageType messageType = MessageType.COMMENT;
 
-    public static void main(String[] args) throws IOException {
+    public void run(){
+        Socket socket = new Socket();
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-        Socket socket = null;
-        Boolean register = false;
-
-        try {
-            // Server
-            socket = new Socket();
+        try{
             System.out.println("\n[ Request ... ]");
-            // Server
             socket.connect(new InetSocketAddress("localhost", 9999));
-            System.out.println("\n[ Success ... ]");
+            System.out.print("\n [ Success ... ]");
 
-            byte[] finalBBytes = null;
-            String message = null;
+            while(true){
+                InputStream inputStream = socket.getInputStream();
+                DataInputStream dataInputStream = new DataInputStream(inputStream);
+                OutputStream outputStream = socket.getOutputStream();
+                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
 
-            while (true) { // Socket
-                OutputStream os = socket.getOutputStream();
-                DataOutputStream dos = new DataOutputStream(os);
+                byte[] messageBytes = null;
+                String message = null;
 
-                // send bytes
-                message = bufferedReader.readLine();
-                String messageType = bufferedReader.readLine();
+                String command = bufferedReader.readLine();
+                if (command.startsWith("/register")){
+                    message = command.substring(10);
+                    messageType = MessageType.REGISTER_ID;
+                    messageBytes = getBytePacket(message);
 
-                byte[] messageBytes = message.getBytes();
-                byte[] finalIdBytes = Share.plusHeader(messageBytes, messageType);
+                } else if(command.startsWith("/quit")){
+                    message = command.substring(6);
+                    messageType = MessageType.QUIT;
+                    messageBytes = getBytePacket(message);
 
-                dos.writeInt(finalIdBytes.length);
-                dos.write(finalIdBytes, 0, finalIdBytes.length);
-                dos.flush();
+                } else{
+                    messageType = MessageType.COMMENT;
+                    messageBytes = getBytePacket(command);
+                }
+
+                dataOutputStream.writeInt(messageBytes.length);
+                dataOutputStream.write(messageBytes, 0, messageBytes.length);
+                dataOutputStream.flush();
 
                 System.out.println("\n[ Data Send Success ]\n" + message);
 
-                // Socket
-                InputStream is = socket.getInputStream();
-                DataInputStream dis = new DataInputStream(is);
-
-                // read int
-                int receiveLength = dis.readInt();
-
-                // receive bytes
-                if (receiveLength > 0) {
+                // input
+                int receiveLength = dataInputStream.readInt();
+                if(receiveLength > 0){
+                    // type별로 나누기
                     byte receiveByte[] = new byte[receiveLength];
                     dis.readFully(receiveByte, 0, receiveLength);
-                    message = new String(receiveByte);
                     System.out.println("\n[ Data Receive Success ]\n" + message);
-                    register = true;
+                } else if(receiveLength == 0){
+                    break;
                 }
-
-                // OutputStream, InputStream close
-
-                // Socket}
-
-
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
+    }
+
+    private byte[] getHeader(byte[] packetBytes){
+        return Share.plusHeader(packetBytes, messageType);
+    }
+
+    public byte[] getBytePacket(String message){
+        byte[] messageBytes = message.getBytes();
+        byte[] finalBytes = getHeader(messageBytes);
+        return finalBytes;
     }
 }

@@ -1,83 +1,75 @@
 package org.example;
 
+import javax.swing.text.Style;
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 public class Server {
-    public static int tcpServerPort = 9999;
-    private HashMap<String, Integer> idList;
-    private HahsMap<String, Integer> messageCount;
+    public final static int tcpServerPort = 9999;
+    private MessageType messageType = MessageType.SUCCESS;
+    private final HashMap<String, Socket> idList = new HashMap<>();
+    private final HashMap<Socket, Integer> ClientMessageCount = new HashMap<>();
 
-    public static void main(String[] args) {
-        new Server(tcpServerPort);
-    }
-    public Server(int portNo){
-        tcpServerPort = portNo;
-        try{
-            ServerSocket serverSocket = new SeverSocket();
+    private Socket clientSocket = null;
+
+    public Server() {
+        try {
+            ServerSocket serverSocket = new ServerSocket();
             serverSocket.bind(new InetSocketAddress(tcpServerPort));
-            System.out.println("Starting tcp Server: ", tcpServerPort);
+            System.out.println("Starting tcp Server: " + tcpServerPort);
             System.out.println("\n [Waiting] \n");
-            while(true){
-                Socket socket = serverSocket.accept();
-                System.out.println("Connected" + socket.getLocalPort() + "Port, From" + socket.getRemoteSocketAddress() + "\n");
-                TcpServer tcpServer = new tcpServer(socket);
-                tcpServer.start();
+            while (true) {
+                clientSocket = serverSocket.accept();
+                System.out.println("Connected" + clientSocket.getLocalPort() + "Port, From" + clientSocket.getRemoteSocketAddress() + "\n");
+
+                // stream
+                OutputStream outputStream = clientSocket.getOutputStream();
+                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+                InputStream inputStream = clientSocket.getInputStream();
+                DataInputStream dataInputStream = new DataInputStream(inputStream);
+
+                // input
+                int inAllLength = dataInputStream.readInt();
+
+                // byte[4] = length(only body)
+                byte[] inLengthByte = new byte[4];
+                dataInputStream.readFully(inLengthByte);
+                int inMessageLength = ByteBuffer.wrap(inLengthByte).getInt();
+                System.out.println("message length: " + inMessageLength);
+
+                //byte[4] = type
+                byte[] inTypeByte = new byte[4];
+                dataInputStream.readFully(inTypeByte);
+                int inTypeeLength = ByteBuffer.wrap(inLengthByte).getInt();
+                int typeInt = TypeChange.byteArrayToIntLittleEndian(inTypeByte);
+                System.out.println("type length: " + inMessageLength);
+
+                //byte[n] = body
+                byte[] inMessageByte = new byte[inAllLength - 8];
+                dataInputStream.readFully(inMessageByte);
+                String receivedMessage = new String(inMessageByte);
+
+                System.out.println("receiveMessage : " + receivedMessage);
+                action(receivedMessage, typeInt);
             }
-        } catch(IOException io){
+        } catch (IOException io) {
             io.getStackTrace();
         }
     }
+    //
 
-    public class TcpServer implements Runnable{
-        private Socket socket;
-
-        public TcpServer(Socket socket){
-            this.socket = socket
-        }
-
-        public void run(){
-            try{
-                while (true){
-                    OutputStream outputStream = this.socket.getOutputStream();
-                    DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-
-                    InputStream inputStream = this.socket.getInputStream();
-                    DataInputStream dataInputStream = new DataInputStream(inputStream);
-
-                    // receive length bytes
-                    byte receivedLengthByte[] = new byte[4];
-                    dataInputStream.readFully(receivedLengthByte);
-                    int receivedLengthInt = ByteBuffer.wrap(receivedLengthByte).getInt();
-                    System.out.println("type int: " + receivedLengthInt);
-
-                    // receive Type bytes
-                    byte receivedTypeByte[] = new byte[4];
-                    int receivedTypeInt = ByteBuffer.wrap(receivedTypeByte).getInt();
-                    dataInputStream.readFully(receivedTypeByte);
-
-                    System.out.println("type int: " + receivedTypeInt);
-
-                    // receive real message
-                    byte[] receivedMessageByte = new byte[recieveLength - 8];
-                    dataInputStream.readFully(receivedMessageByte);
-                    String receiveMessage = new String(receivedMessageByte);
-                    System.out.println("receiveMessage : " + receiveMessage);
-                    System.out.println("[ Data Receive Success ]\n");
-
-                    // send bytes
-                    String sendMessage = "nice to meet you, " + receiveMessage + "!!";
-                    byte[] sendBytes = sendMessage.getBytes("UTF-8");
-                    int sendLength = sendBytes.length;
-                    dataOutputStream.writeInt(sendLength);
-                    dataOutputStream.write(sendBytes, 0, sendLength);
-                    dataOutputStream.flush();
-
-                    System.out.println("sendMessage : " + sendMessage);
-                    System.out.println("[ Data Send Success ]");
-
-                }
+    private void action(String message, int typeInt){
+        if(typeInt == 0){
+            if(idList.containsKey(message)) {
+                messageType = MessageType.REJECT;
+                return;
             }
+            idList.put(message, clientSocket);
+            messageType = MessageType.SUCCESS;
+        } else if(typeInt == 1){
+            // 저장 어떻게 할지 고민좀
         }
     }
 
