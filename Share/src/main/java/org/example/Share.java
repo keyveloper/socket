@@ -30,7 +30,7 @@ public class Share {
         return buffer.array();
     }
 
-    public static byte[] plusHeader(byte[] packet, MessageType type){
+    public static byte[] getHeaderPacketByte(byte[] packet, MessageType type){
         System.out.println("start plus header packet, type " + new String(packet) + " " + type);
 
         // byte[] + byte[] + byte[]
@@ -49,13 +49,6 @@ public class Share {
 
 }
 
-//public
-enum MessageType{
-    REGISTER_ID,
-    COMMENT,
-    QUIT,
-    SUCCESS,
-    REJECT,
-}
+
 
 
