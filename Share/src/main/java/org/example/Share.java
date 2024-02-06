@@ -9,7 +9,6 @@ public class Share {
 
     public static byte[] getTypeByte(MessageType messageType){
         int typeInt = messageType.ordinal();
-        System.out.println("type int : " + typeInt);
         byte[] typeBytes = intToByteArray(typeInt);
 
         return typeBytes;
@@ -31,8 +30,6 @@ public class Share {
     }
 
     public static byte[] getHeaderPacketByte(byte[] packet, MessageType type){
-        System.out.println("start plus header packet, type " + new String(packet) + " " + type);
-
         // byte[] + byte[] + byte[]
         int packetLength = packet.length;
         byte[] packetLengthByte = getPacketLengthByte(packetLength);
@@ -42,8 +39,6 @@ public class Share {
         System.arraycopy(packetLengthByte, 0, headerPacketByte, 0, packetLengthByte.length);
         System.arraycopy(packetTypeByte, 0, headerPacketByte, packetLengthByte.length, packetTypeByte.length);
         System.arraycopy(packet, 0, headerPacketByte, packetLengthByte.length + packetTypeByte.length, packet.length);
-
-        System.out.print("Header plus complete, message = " + new String(headerPacketByte) );
         return headerPacketByte;
     }
 

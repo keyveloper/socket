@@ -8,9 +8,9 @@ import java.util.*;
 
 public class Server {
     public final static int tcpServerPort = 9999;
-    private MessageType messageType = MessageType.SUCCESS;
+    private MessageType messageType = MessageType.COMMENT;
     private final HashMap<String, Socket> idList = new HashMap<>();
-    private final HashMap<Socket, Integer> ClientMessageCount = new HashMap<>();
+    private final HashMap<Socket, HashMap<String, Integer>> clientInfo = new HashMap<>();
 
     private ArrayList<Socket> clientSocketList = new ArrayList<>();
 
@@ -22,6 +22,7 @@ public class Server {
             System.out.println("Starting tcp Server: " + tcpServerPort);
             System.out.println("\n [Waiting] \n");
             while (true) {
+                System.out.println("Server whiling...");
                 Socket clientSocket = serverSocket.accept();
                 clientSocketList.add(clientSocket);
                 System.out.println("Connected" + clientSocket.getLocalPort() + "Port, From" + clientSocket.getRemoteSocketAddress() + "\n");
@@ -45,82 +46,125 @@ public class Server {
     //
 
     private void handleClient(Socket clientSocket) throws IOException {
+        System.out.println("start handle Client");
         try {
-            InputStream inputStream = clientSocket.getInputStream();
-            DataInputStream dataInputStream = new DataInputStream(inputStream);
+            while(true){
+                InputStream inputStream = clientSocket.getInputStream();
+                DataInputStream dataInputStream = new DataInputStream(inputStream);
 
-            // All byteLength
-            int inAllLength = dataInputStream.readInt();
+                // All byteLength
+                int inAllLength = dataInputStream.readInt();
 
-            // byte[4] = length(only body)
-            byte[] inLengthByte = new byte[4];
-            dataInputStream.readFully(inLengthByte);
-            int inMessageLength = ByteBuffer.wrap(inLengthByte).getInt();
-            System.out.println("message length: " + inMessageLength);
+                // byte[4] = length(only body)
+                byte[] inLengthByte = new byte[4];
+                dataInputStream.readFully(inLengthByte);
+                int inMessageLength = ByteBuffer.wrap(inLengthByte).getInt();
+                System.out.println("message length: " + inMessageLength);
 
-            //byte[4] = type
-            byte[] inTypeByte = new byte[4];
-            dataInputStream.readFully(inTypeByte);
-            int inTypeeLength = ByteBuffer.wrap(inLengthByte).getInt();
-            int typeInt = TypeChange.byteArrayToIntLittleEndian(inTypeByte);
-            System.out.println("type length: " + inMessageLength);
+                //byte[4] = type
+                byte[] inTypeByte = new byte[4];
+                dataInputStream.readFully(inTypeByte);
+                ByteBuffer typeBuffer = ByteBuffer.wrap(inTypeByte);
+                int typeInt = typeBuffer.getInt();
+                System.out.println("received type int :  " + typeInt);
 
-            //byte[n] = body
-            byte[] inMessageByte = new byte[inAllLength - 8];
-            dataInputStream.readFully(inMessageByte);
-            String inMessage = new String(inMessageByte);
-
-            System.out.println("receiveMessage : " + inMessage);
-            action(inMessage, typeInt, clientSocket);
+                //byte[n] = body
+                byte[] inMessageByte = new byte[inAllLength - 8];
+                dataInputStream.readFully(inMessageByte);
+                String inMessage = new String(inMessageByte);
+                actionByType(inMessage, typeInt, clientSocket);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void sendMessageToAllClient(String message){
-        for(Socket socket : clientSocketList){
+    private void sendMessageToAllClient(String message) throws IOException {
+        messageType = MessageType.COMMENT;
+        for(Socket client : clientSocketList){
+            OutputStream outputStream = client.getOutputStream();
+            DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
             try {
-                PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-                writer.println("Server broadcast: " + message);
-                writer.close();
+                byte[] outMessageByte = Share.getHeaderPacketByte(message.getBytes(), messageType);
+                dataOutputStream.writeInt(outMessageByte.length);
+                dataOutputStream.write(outMessageByte, 0, outMessageByte.length);
+                dataOutputStream.flush();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
     }
 
-    private void sendTypeOnly(Socket clientSocket){
+    private void sendTypeOnly(Socket clientSocket) throws IOException {
+        OutputStream outputStream = clientSocket.getOutputStream();
+        DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
         try{
-            String outMessage = null;
+            String outMessage = "";
             byte[] outMessageByte = Share.getHeaderPacketByte(outMessage.getBytes(), messageType);
-            PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
-            writer.println("Server send only type" + messageType);
-            writer.close();
+            dataOutputStream.writeInt(outMessageByte.length);
+            dataOutputStream.write(outMessageByte, 0, outMessageByte.length);
+            dataOutputStream.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
     }
 
-    private void action(String message, int typeInt, Socket clientSocket) throws IOException {
-        OutputStream outputStream = clientSocket.getOutputStream();
-        DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-
+    private void actionByType(String message, int typeInt, Socket clientSocket) throws IOException {
+        System.out.println("message received: " + message);
+        boolean valid= validSocket(clientSocket);
         if(typeInt == 0){
-            if(idList.containsKey(message)) {
-                messageType = MessageType.REJECT;
+            if(idList.containsKey(message)){
+                messageType = MessageType.ALREADY_EXIST;
+                sendTypeOnly(clientSocket);
+                return;
+            } else if (clientInfo.containsKey(clientSocket)){
                 return;
             }
             idList.put(message, clientSocket);
-            messageType = MessageType.SUCCESS;
+            HashMap<String, Integer> newIdCount = new HashMap<>();
+            newIdCount.put(message, 0);
+            clientInfo.put(clientSocket, newIdCount);
+
+            messageType = MessageType.REGISTER_SUCCESS;
+            System.out.println("register Success!! : "+ message);
             sendTypeOnly(clientSocket);
 
-        } else if(typeInt == 1){
-            sendMessageToAllClient(message);
-            messageType = MessageType.COMMENT;
-        } else if(typeInt == 2){
+        } else if(typeInt == 1 && valid){
+            System.out.println("action By Type : 1" + message);
+            HashMap<String, Integer> oldIdCount = clientInfo.get(clientSocket);
+            // oldIdCount = {"id": 0}
+            System.out.println("e");
+            String id = "";
+            Set<String> keys = oldIdCount.keySet();
+            for(String key: keys){
+                id = key;
+            }
+            System.out.println("id: " + id);
+            oldIdCount.put(id, oldIdCount.get(id) + 1);
+            clientInfo.put(clientSocket, oldIdCount);
+
+            String newMessage = id + ": " + message;
+            sendMessageToAllClient(newMessage);
+        } else if(typeInt == 2 && valid){
+            HashMap<String, Integer> quitClient = clientInfo.get(clientSocket);
+            Map.Entry<String, Integer> entry = quitClient.entrySet().iterator().next();
+            String id = entry.getKey();
+            int count = entry.getValue();
+            String notice = "id: " + id + "is out this chat room" + "\n" + "total message: " + count;
             clientSocket.close();
+            sendMessageToAllClient(notice);
+        } else{
+            messageType = MessageType.REJECT;
+            sendTypeOnly(clientSocket);
         }
+    }
+
+    private boolean validSocket(Socket clientSocket){
+        if (clientInfo.containsKey(clientSocket)){
+            return true;
+        }
+        return false;
     }
 
 }
