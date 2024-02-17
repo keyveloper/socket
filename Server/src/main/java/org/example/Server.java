@@ -58,14 +58,14 @@ public class Server {
                 dataInputStream.readFully(inMessageByte);
                 String message = Share.readInputMessage(inMessageByte);
 
-                actionByType(message, messageType, clientSocket);
+                actionByType(messageType, message, clientSocket);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void actionByType(String message, MessageType inputType, Socket clientSocket) throws IOException {
+    private void actionByType(MessageType inputType, String message, Socket clientSocket) throws IOException {
         System.out.println("message received: " + message);
         switch (inputType){
             case REGISTER_ID :
@@ -89,7 +89,8 @@ public class Server {
                 // lock
                 socketCount.put(clientSocket, socketCount.get(clientSocket) + 1);
                 MessageType sendingType1 = MessageType.COMMENT;
-                sendMessageToAllClient(sendingType1, message);
+                String idAndMessage = socketId.get(clientSocket) + ": " + message;
+                sendMessageToAllClient(sendingType1, idAndMessage);
                 break;
             case QUIT:
                 String quitSocketId = socketId.get(clientSocket);
@@ -136,15 +137,6 @@ public class Server {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-
-
-    private boolean validSocket(Socket clientSocket){
-        if (clientInfo.containsKey(clientSocket)){
-            return true;
-        }
-        return false;
     }
 
 }

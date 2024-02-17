@@ -2,11 +2,9 @@ package org.example;
 
 import java.io.*;
 import java.net.*;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.regex.*;
 
 public class Client implements Runnable {
+    private Boolean registered = false;
 
     public void run(){
         long threadId = Thread.currentThread().getId();
@@ -27,7 +25,7 @@ public class Client implements Runnable {
 
                 String command = bufferedReader.readLine();
                 MessageType messageType = getMessageTypeByCommand(command);
-                String bodyMessage = seperateBody(command);
+                String bodyMessage = seperateBodyMessage(command);
                 byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);
 
                 dataOutputStream.writeInt(sendingByte.length);
@@ -39,18 +37,17 @@ public class Client implements Runnable {
                     //[]
                     byte[] inLengthByte = new byte[4];
                     dataInputStream.readFully(inLengthByte);
-                    int inMessageLength = ByteBuffer.wrap(inLengthByte).getInt();
+                    int messageLength = Share.readInputLength(inLengthByte);
 
                     byte[] inTypeByte = new byte[4];
                     dataInputStream.readFully(inTypeByte);
-                    ByteBuffer typeBuffer = ByteBuffer.wrap(inTypeByte);
-                    int typeInt = typeBuffer.getInt();
+                    MessageType messageType1 = Share.readInputType(inTypeByte);
 
                     byte[] inMessageByte = new byte[inAllLength - 8];
                     dataInputStream.readFully(inMessageByte);
-                    String inMessage = new String(inMessageByte);
+                    String message = Share.readInputMessage(inMessageByte);
 
-                    actionByType(inMessage, typeInt);
+                    actionByType(messageType, message);
                 } else if(inAllLength == 0){
                     // quit
                     break;
@@ -65,14 +62,17 @@ public class Client implements Runnable {
 
 
 
-    public void actionByType(String message, int typeInt){
-        if(typeInt == 1){
-            System.out.println(threadId + " - " + message);
-        }else if(typeInt == 3){
-        }else if(typeInt == 4){
-            System.out.println("Already exist ID");
-        }else if(typeInt == 5){
-            System.out.println("Register first \n /register your id");
+    public void actionByType(MessageType inputType, String message){
+        switch (inputType){
+            case COMMENT:
+                System.out.println(message);
+            case NOTICE:
+                System.out.println(message);
+            case ALREADY_EXIST:
+                System.out.println("This ID already Exist");
+            case REGISTER_SUCCESS:
+                System.out.println("Register Success!!");
+                this.registered = true;
         }
     }
 
@@ -85,13 +85,13 @@ public class Client implements Runnable {
         return MessageType.COMMENT;
     }
 
-    private String seperateBody(String command){
+    private String seperateBodyMessage(String command){
         String bodyMessage;
         if(command.startsWith("/REGISTER")){
             bodyMessage = command.substring(10);
             return bodyMessage;
         }else if(command.startsWith("/QUIT")){
-            bodyMessage = command.substring(6);
+            bodyMessage = "";
             return bodyMessage;
         }
         bodyMessage = command;
