@@ -46,7 +46,27 @@ public class Share {
         return packet;
     }
 
+    public static String readInputMessage(byte[] packet){
+        String message = new String(packet);
+        return message;
+    }
+
+    public static MessageType readInputType(byte[] packet){
+        MessageType type;
+        ByteBuffer typeBuffer = ByteBuffer.wrap(packet);
+        int typInt = typeBuffer.getInt();
+        type = MessageType.values()[typInt];
+        return type;
+    }
+
+    public static Integer readInputLength(byte[] packet){
+        int packetLength = ByteBuffer.wrap(packet).getInt();
+        return packetLength;
+    }
+
 }
+
+
 
 
 
