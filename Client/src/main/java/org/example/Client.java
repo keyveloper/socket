@@ -11,9 +11,9 @@ public class Client implements Runnable {
 
     private MessageType messageType = MessageType.COMMENT;
 
-    long threadId = Thread.currentThread().getId();
 
     public void run(){
+        long threadId = Thread.currentThread().getId();
         System.out.println("myid: "+  threadId);
         Socket socket = new Socket();
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
@@ -27,8 +27,8 @@ public class Client implements Runnable {
             while(true){
                 String command = bufferedReader.readLine();
                 boolean validCommand = checkCommand(command);
-                String message = "";
-                byte[] messageByte = null;
+                String message;
+                byte[] messageByte;
 
                 if(command.startsWith("/") && validCommand){
                     if (command.startsWith("/register")){
@@ -49,7 +49,7 @@ public class Client implements Runnable {
                 }
 
 
-                // input stream 관리
+                // input stream
                 int inAllLength = dataInputStream.readInt();
                 if(inAllLength > 0){
                     //[]
@@ -93,7 +93,7 @@ public class Client implements Runnable {
 
     public void actionByType(String message, int typeInt){
         if(typeInt == 1){
-            System.out.println(threadId + " - " + message);
+
         }else if(typeInt == 3){
             this.register = true;
         }else if(typeInt == 4){

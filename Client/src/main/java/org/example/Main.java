@@ -12,6 +12,5 @@ public class Main {
         Thread thread1 = new Thread(new Client());
         thread0.start();
         thread1.start();
-        
     }
 }

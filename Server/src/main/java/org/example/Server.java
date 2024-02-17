@@ -112,7 +112,7 @@ public class Server {
 
     private void actionByType(String message, int typeInt, Socket clientSocket) throws IOException {
         System.out.println("message received: " + message);
-        boolean valid= validSocket(clientSocket);
+        boolean valid = validSocket(clientSocket);
         if(typeInt == 0){
             if(idList.containsKey(message)){
                 messageType = MessageType.ALREADY_EXIST;
