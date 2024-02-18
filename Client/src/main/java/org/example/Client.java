@@ -80,7 +80,7 @@ public class Client implements Runnable {
         if(command.startsWith("/REGISTER")){
             return MessageType.REGISTER_ID;
         }else if(command.startsWith("/QUIT")){
-            return MessageType.QUIT;
+            return MessageType.FIN;
         }
         return MessageType.COMMENT;
     }
