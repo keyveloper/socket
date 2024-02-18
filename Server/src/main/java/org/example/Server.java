@@ -13,6 +13,8 @@ public class Server {
     private final HashMap<Socket, String> socketId = new HashMap<>();
     private final HashMap<Socket, Integer> socketCount = new HashMap<>();
 
+    private final HashMap<Socket, DataOutputStream> outputStreamMap = new HashMap<>();
+
     public Server() {
     }
 
@@ -39,6 +41,12 @@ public class Server {
             while(true){
                 InputStream inputStream = clientSocket.getInputStream();
                 DataInputStream dataInputStream = new DataInputStream(inputStream);
+                OutputStream outputStream = clientSocket.getOutputStream();
+                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+
+                synchronized (outputStreamMap){
+                    outputStreamMap.put(clientSocket, dataOutputStream);
+                }
 
                 // All byteLength
                 int inAllLength = dataInputStream.readInt();
@@ -145,8 +153,10 @@ public class Server {
     private void sendMessageToAllClient(MessageType type, String message){
         for(Socket client : socketId.keySet()){
             try {
-                OutputStream outputStream = client.getOutputStream();
-                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+                DataOutputStream dataOutputStream;
+                synchronized (outputStreamMap){
+                    dataOutputStream = outputStreamMap.get(client);
+                }
 
                 byte[] sendingByte = Share.getSendPacketByteWithHeader(type, message);
                 dataOutputStream.writeInt(sendingByte.length);
@@ -160,8 +170,11 @@ public class Server {
 
     private void sendTypeOnly(MessageType type, Socket clientSocket) {
         try{
-            OutputStream outputStream = clientSocket.getOutputStream();
-            DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+            DataOutputStream dataOutputStream;
+            synchronized (outputStreamMap){
+                dataOutputStream = outputStreamMap.get(clientSocket);
+            }
+
             String message = "";
             byte[] sendingByte = Share.getSendPacketByteWithHeader(type, message);
 
