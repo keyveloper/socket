@@ -23,26 +23,50 @@ public class Share {
         };
     }
 
-    public static byte[] getPacketLengthByte(int packLength){
-        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
-        buffer.putInt(packLength);
-        return buffer.array();
-    }
-
-    public static byte[] getHeaderPacketByte(byte[] packet, MessageType type){
+    public static byte[] getSendPacketByteWithHeader(MessageType type, String message){
         // byte[] + byte[] + byte[]
-        int packetLength = packet.length;
-        byte[] packetLengthByte = getPacketLengthByte(packetLength);
+        byte[] bodyByte = message.getBytes();
+        // body의 길이
+        int bodyLength = bodyByte.length;
+        // bodt의 길이를 나타내는 숫자 4byte이내
+        byte[] bodyLengthByte = intToByteArray(bodyLength);
         byte[] packetTypeByte = getTypeByte(type);
 
-        byte[] headerPacketByte = new byte[packetLengthByte.length + packetTypeByte.length + packet.length];
-        System.arraycopy(packetLengthByte, 0, headerPacketByte, 0, packetLengthByte.length);
-        System.arraycopy(packetTypeByte, 0, headerPacketByte, packetLengthByte.length, packetTypeByte.length);
-        System.arraycopy(packet, 0, headerPacketByte, packetLengthByte.length + packetTypeByte.length, packet.length);
-        return headerPacketByte;
+        byte[] packet = new byte[4 + 4 + bodyLength];
+
+        // bodyLengthByte 복사
+        System.arraycopy(bodyLengthByte, 0, packet, 0, 4);
+
+        // packetTypeByte 복사
+        System.arraycopy(packetTypeByte, 0, packet, 4, 4);
+
+        // bodyByte 복사
+        System.arraycopy(bodyByte, 0, packet, 8, bodyLength);
+
+        return packet;
+    }
+
+    public static String readInputMessage(byte[] packet){
+        String message = new String(packet);
+        return message;
+    }
+
+    public static MessageType readInputType(byte[] packet){
+        MessageType type;
+        ByteBuffer typeBuffer = ByteBuffer.wrap(packet);
+        int typInt = typeBuffer.getInt();
+        type = MessageType.values()[typInt];
+        return type;
+    }
+
+    public static Integer readInputLength(byte[] packet){
+        int packetLength = ByteBuffer.wrap(packet).getInt();
+        return packetLength;
     }
 
 }
+
+
 
 
 
