@@ -47,7 +47,7 @@ public class Client implements Runnable {
                     dataInputStream.readFully(inMessageByte);
                     String message = Share.readInputMessage(inMessageByte);
 
-                    actionByType(messageType, message);
+                    actionByType(messageType1, message);
                 } else if(inAllLength == 0){
                     // quit
                     break;
@@ -65,14 +65,18 @@ public class Client implements Runnable {
     public void actionByType(MessageType inputType, String message){
         switch (inputType){
             case COMMENT:
-                System.out.println(message);
+                System.out.println("\n" + message + "\n");
+                break;
             case NOTICE:
                 System.out.println(message);
+                break;
             case ALREADY_EXIST:
                 System.out.println("This ID already Exist");
+                break;
             case REGISTER_SUCCESS:
                 System.out.println("Register Success!!");
                 this.registered = true;
+                break;
         }
     }
 
@@ -80,7 +84,9 @@ public class Client implements Runnable {
         if(command.startsWith("/REGISTER")){
             return MessageType.REGISTER_ID;
         }else if(command.startsWith("/QUIT")){
-            return MessageType.QUIT;
+            return MessageType.FIN;
+        }else if(command.startsWith("/")){
+            // -- exectipn 추가 --
         }
         return MessageType.COMMENT;
     }

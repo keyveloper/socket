@@ -8,10 +8,7 @@ import java.net.Socket;
 // then press Enter. You can now see whitespace characters in your code.
 public class Main {
     public static void main(String[] args) {
-        Thread thread0 = new Thread(new Client());
-        Thread thread1 = new Thread(new Client());
-        thread0.start();
-        thread1.start();
-        
+        Thread client = new Thread(new Client());
+        client.start();
     }
 }

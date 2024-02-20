@@ -1,6 +1,19 @@
+buildscript {
+    repositories {
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'com.github.johnrengelman:shadow:8.1.1'
+    }
+}
+
 plugins {
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'java'
 }
+
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'java'
 
 group = 'org.example'
 version = '1.0-SNAPSHOT'
@@ -19,4 +32,11 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+
+jar {
+    manifest {
+        attributes "Main-Class": "org.example.Main"
+    }
 }
