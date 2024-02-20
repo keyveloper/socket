@@ -2,71 +2,52 @@ package org.example;
 
 import java.io.*;
 import java.net.*;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.regex.*;
 
 public class Client implements Runnable {
-    private Boolean register = false;
-
-    private MessageType messageType = MessageType.COMMENT;
-
-    long threadId = Thread.currentThread().getId();
+    private Boolean registered = false;
 
     public void run(){
+        long threadId = Thread.currentThread().getId();
         System.out.println("myid: "+  threadId);
+
         Socket socket = new Socket();
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         try{
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", 9999));
             System.out.print("\n [ Success connecting ] \n");
-            InputStream inputStream = socket.getInputStream();
-            DataInputStream dataInputStream = new DataInputStream(inputStream);
 
             while(true){
+                OutputStream outputStream = socket.getOutputStream();
+                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+                InputStream inputStream = socket.getInputStream();
+                DataInputStream dataInputStream = new DataInputStream(inputStream);
+
                 String command = bufferedReader.readLine();
-                boolean validCommand = checkCommand(command);
-                String message = "";
-                byte[] messageByte = null;
+                MessageType messageType = getMessageTypeByCommand(command);
+                String bodyMessage = seperateBodyMessage(command);
+                byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);
 
-                if(command.startsWith("/") && validCommand){
-                    if (command.startsWith("/register")){
-                        message = command.substring(10);
-                        messageType = MessageType.REGISTER_ID;
-                        messageByte = Share.getHeaderPacketByte(message.getBytes(), messageType);
-                        sendPacket(messageByte, this.messageType, socket);
-                    } else if(command.startsWith("/quit")){
-                        messageType = MessageType.QUIT;
-                        messageByte = Share.getHeaderPacketByte("".getBytes(), messageType);
-                        sendPacket(messageByte, this.messageType, socket);
-                        socket.close();
-                    }
-                } else{
-                    messageType = MessageType.COMMENT;
-                    messageByte = Share.getHeaderPacketByte(command.getBytes(), messageType);
-                    sendPacket(messageByte, this.messageType, socket);
-                }
+                dataOutputStream.writeInt(sendingByte.length);
+                dataOutputStream.write(sendingByte, 0, sendingByte.length);
+                dataOutputStream.flush();
 
-
-                // input stream 관리
                 int inAllLength = dataInputStream.readInt();
                 if(inAllLength > 0){
                     //[]
                     byte[] inLengthByte = new byte[4];
                     dataInputStream.readFully(inLengthByte);
-                    int inMessageLength = ByteBuffer.wrap(inLengthByte).getInt();
+                    int messageLength = Share.readInputLength(inLengthByte);
 
                     byte[] inTypeByte = new byte[4];
                     dataInputStream.readFully(inTypeByte);
-                    ByteBuffer typeBuffer = ByteBuffer.wrap(inTypeByte);
-                    int typeInt = typeBuffer.getInt();
+                    MessageType messageType1 = Share.readInputType(inTypeByte);
 
                     byte[] inMessageByte = new byte[inAllLength - 8];
                     dataInputStream.readFully(inMessageByte);
-                    String inMessage = new String(inMessageByte);
+                    String message = Share.readInputMessage(inMessageByte);
 
-                    actionByType(inMessage, typeInt);
+                    actionByType(messageType, message);
                 } else if(inAllLength == 0){
                     // quit
                     break;
@@ -79,37 +60,43 @@ public class Client implements Runnable {
     }
 
 
-    public void sendPacket(byte[] messageByte, MessageType messageType, Socket socket) throws IOException {
-        try{
-            OutputStream outputStream = socket.getOutputStream();
-            DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-            dataOutputStream.writeInt(messageByte.length);
-            dataOutputStream.write(messageByte, 0, messageByte.length);
-            dataOutputStream.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+
+
+    public void actionByType(MessageType inputType, String message){
+        switch (inputType){
+            case COMMENT:
+                System.out.println(message);
+            case NOTICE:
+                System.out.println(message);
+            case ALREADY_EXIST:
+                System.out.println("This ID already Exist");
+            case REGISTER_SUCCESS:
+                System.out.println("Register Success!!");
+                this.registered = true;
         }
     }
 
-    public void actionByType(String message, int typeInt){
-        if(typeInt == 1){
-            System.out.println(threadId + " - " + message);
-        }else if(typeInt == 3){
-            this.register = true;
-        }else if(typeInt == 4){
-            System.out.println("Already exist ID");
-        }else if(typeInt == 5){
-            System.out.println("Register first \n /register your id");
+    private MessageType getMessageTypeByCommand(String command){
+        if(command.startsWith("/REGISTER")){
+            return MessageType.REGISTER_ID;
+        }else if(command.startsWith("/QUIT")){
+            return MessageType.QUIT;
         }
+        return MessageType.COMMENT;
     }
 
-    public boolean checkCommand(String command){
-        String validCommandPattern = "/(register|quit)";
-        Pattern pattern= Pattern.compile(validCommandPattern);
-        Matcher matcher = pattern.matcher(command);
-        if(matcher.find()){
-            return true;
+    private String seperateBodyMessage(String command){
+        String bodyMessage;
+        if(command.startsWith("/REGISTER")){
+            bodyMessage = command.substring(10);
+            return bodyMessage;
+        }else if(command.startsWith("/QUIT")){
+            bodyMessage = "";
+            return bodyMessage;
         }
-        return false;
+        bodyMessage = command;
+        return bodyMessage;
     }
+
+
 }
