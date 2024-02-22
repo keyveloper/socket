@@ -7,13 +7,12 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Server {
+public class Server{
     public final static int tcpServerPort = 9999;
     private final HashMap<String, Socket> idSocketMap = new HashMap<>();
     private final HashMap<Socket, String> socketIdMap = new HashMap<>();
     private final HashMap<Socket, Integer> socketMessageCountMap = new HashMap<>();
-
-    private final HashMap<Socket, DataOutputStream> outputStreamMap = new HashMap<>();
+    final HashMap<Socket, DataOutputStream> outputStreamMap = new HashMap<>();
 
     public Server() {
     }
@@ -24,65 +23,28 @@ public class Server {
             serverSocket.bind(new InetSocketAddress(tcpServerPort));
             System.out.println("Starting tcp Server: " + tcpServerPort);
             System.out.println("[ Waiting ]\n");
+
             while (true){
-                Socket socket = serverSocket.accept();
-                System.out.println("Connected " + socket.getLocalPort() + " Port, From " + socket.getRemoteSocketAddress().toString() + "\n");
-                // Thread
-                handleClient(socket);
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Connected " + clientSocket.getLocalPort() + " Port, From " + clientSocket.getRemoteSocketAddress().toString() + "\n");
+
+                Thread clientHandler = new Thread(new ClientHandler(this, clientSocket));
+                clientHandler.start();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void handleClient(Socket clientSocket) throws IOException {
-        System.out.println("start handle Client");
-        try {
-            while(true){
-                InputStream inputStream = clientSocket.getInputStream();
-                DataInputStream dataInputStream = new DataInputStream(inputStream);
-                OutputStream outputStream = clientSocket.getOutputStream();
-                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-
-                synchronized (outputStreamMap){
-                    outputStreamMap.put(clientSocket, dataOutputStream);
-                }
-
-                // All byteLength
-                int inAllLength = dataInputStream.readInt();
-
-                // byte[4] = length(only body)
-                byte[] inLengthByte = new byte[4];
-                dataInputStream.readFully(inLengthByte);
-                int messageLength = Share.readInputLength(inLengthByte);
-
-                //byte[4] = type
-                byte[] inTypeByte = new byte[4];
-                dataInputStream.readFully(inTypeByte);
-                MessageType messageType = Share.readInputType(inTypeByte);
-
-                //byte[n] = body
-                byte[] inMessageByte = new byte[inAllLength - 8];
-                dataInputStream.readFully(inMessageByte);
-                String message = Share.readInputMessage(inMessageByte);
-
-                actionByType(messageType, message, clientSocket);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void actionByType(MessageType inputType, String message, Socket clientSocket) throws IOException {
-        System.out.println("message received: " + message + inputType);
+   void actionByType(MessageType inputType, String message, Socket clientSocket) throws IOException {
+        System.out.println("message received: " + message + " " + inputType);
         switch (inputType){
             case REGISTER_ID :
                 String id = message;
                 // LOCK
-                if (checkOriginalId(id)){
+                if (!idSocketMap.containsKey(id)){
                     saveId(id, clientSocket);
                     System.out.println("register Success!! : " + id);
-                    sendTypeOnly(MessageType.REGISTER_SUCCESS, clientSocket);
                 } else {
                     sendTypeOnly(MessageType.ALREADY_EXIST, clientSocket);
                 }
@@ -92,35 +54,33 @@ public class Server {
                 sendCommentToAllClient(MessageType.COMMENT, message, clientSocket);
                 break;
             case FIN:
-                clientSocket.close();
                 sendNoticeToAllClient(MessageType.NOTICE, getSocketOutMessage(clientSocket));
                 socketDataRemove(clientSocket);
+                clientSocket.close();
                 break;
         }
     }
 
-    private boolean checkOriginalId(String id){
-        synchronized (idSocketMap){
-            if (idSocketMap.containsKey(id)){
-                return false;
-            } else {
-                return  true;
-            }
-        }
-    }
 
     private void saveId(String id, Socket socket){
         synchronized (idSocketMap){
             idSocketMap.put(id, socket);
+
         }
         synchronized (socketIdMap){
             socketIdMap.put(socket, id);
         }
-
         socketMessageCountMap.put(socket, 0);
+
+        for (Map.Entry<Socket, Integer> entry : socketMessageCountMap.entrySet()){
+            Socket client = entry.getKey();
+            int count = entry.getValue();
+            System.out.println("Key: " + client + ", Value: " + count);
+        }
+
+        sendTypeOnly(MessageType.REGISTER_SUCCESS, socket);
+
     }
-
-
 
     private void addMessageCount(Socket socket){
         socketMessageCountMap.put(socket, socketMessageCountMap.get(socket) + 1);

@@ -65,7 +65,7 @@ public class Client implements Runnable {
     public void actionByType(MessageType inputType, String message){
         switch (inputType){
             case COMMENT:
-                System.out.println(message);
+                System.out.println("\n" + message + "\n");
                 break;
             case NOTICE:
                 System.out.println("\n" + message + "\n");
