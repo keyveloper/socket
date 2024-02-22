@@ -68,7 +68,7 @@ public class Client implements Runnable {
                 System.out.println(message);
                 break;
             case NOTICE:
-                System.out.println(message);
+                System.out.println("\n" + message + "\n");
                 break;
             case ALREADY_EXIST:
                 System.out.println("This ID already Exist");
@@ -81,9 +81,9 @@ public class Client implements Runnable {
     }
 
     private MessageType getMessageTypeByCommand(String command){
-        if(command.startsWith("/REGISTER")){
+        if(command.startsWith("/R")){
             return MessageType.REGISTER_ID;
-        }else if(command.startsWith("/QUIT")){
+        }else if(command.startsWith("/Q")){
             return MessageType.FIN;
         }
         return MessageType.COMMENT;
@@ -97,6 +97,8 @@ public class Client implements Runnable {
         }else if(command.startsWith("/Q")){
             bodyMessage = "";
             return bodyMessage;
+        }else if(command.startsWith("/")){
+            return null;
         }
         bodyMessage = command;
         return bodyMessage;

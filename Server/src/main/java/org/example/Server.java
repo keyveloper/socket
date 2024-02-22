@@ -9,9 +9,9 @@ import java.util.stream.Collectors;
 
 public class Server {
     public final static int tcpServerPort = 9999;
-    private final HashMap<String, Socket> idSocket = new HashMap<>();
-    private final HashMap<Socket, String> socketId = new HashMap<>();
-    private final HashMap<Socket, Integer> socketCount = new HashMap<>();
+    private final HashMap<String, Socket> idSocketMap = new HashMap<>();
+    private final HashMap<Socket, String> socketIdMap = new HashMap<>();
+    private final HashMap<Socket, Integer> socketMessageCountMap = new HashMap<>();
 
     private final HashMap<Socket, DataOutputStream> outputStreamMap = new HashMap<>();
 
@@ -74,91 +74,79 @@ public class Server {
     }
 
     private void actionByType(MessageType inputType, String message, Socket clientSocket) throws IOException {
-        System.out.println("message received: " + message);
+        System.out.println("message received: " + message + inputType);
         switch (inputType){
             case REGISTER_ID :
                 String id = message;
                 // LOCK
-                synchronized (idSocket){
-                    if(idSocket.containsKey(id)){
-                        MessageType sendingType = MessageType.ALREADY_EXIST;
-                        sendTypeOnly(sendingType, clientSocket);
-                        break;
-                    }
+                if (checkOriginalId(id)){
+                    saveId(id, clientSocket);
+                    System.out.println("register Success!! : " + id);
+                    sendTypeOnly(MessageType.REGISTER_SUCCESS, clientSocket);
+                } else {
+                    sendTypeOnly(MessageType.ALREADY_EXIST, clientSocket);
                 }
-                synchronized (idSocket){
-                    idSocket.put(id, clientSocket);
-                }
-
-                synchronized (socketId){
-                    socketId.put(clientSocket, id);
-                }
-
-                synchronized (socketCount){
-                    socketCount.put(clientSocket, 0);
-                }
-
-                MessageType sendingType = MessageType.REGISTER_SUCCESS;
-                System.out.println("register Success!! : " + id);
-                sendTypeOnly(sendingType, clientSocket);
                 break;
-
             case COMMENT:
-                // lock
-                synchronized (socketCount){
-                    socketCount.put(clientSocket, socketCount.get(clientSocket) + 1);
-                }
-
-                String idAndMessage;
-                synchronized (socketId){
-                    idAndMessage = socketId.get(clientSocket) + ": " + message;
-
-                }
-                MessageType sendingType1 = MessageType.COMMENT;
-                sendMessageToAllClient(sendingType1, idAndMessage);
+                addMessageCount(clientSocket);
+                sendCommentToAllClient(MessageType.COMMENT, message, clientSocket);
                 break;
             case FIN:
-                String quitSocketId;
-                Integer quitSocketCount;
-                synchronized (socketId){
-                    quitSocketId = socketId.get(clientSocket);
-                }
-
-                synchronized (socketCount){
-                    quitSocketCount = socketCount.get(clientSocket);
-                }
-
-                String outMessage = "ID:" + quitSocketId + "is out \n total message: " + quitSocketCount;
-                MessageType sendingType2 = MessageType.NOTICE;
-
-                synchronized (idSocket){
-                    idSocket.remove(quitSocketId);
-                }
-
-                synchronized (socketCount){
-                    socketCount.remove(clientSocket);
-                }
-
-                synchronized (socketId){
-                    socketId.remove(clientSocket);
-                }
-
                 clientSocket.close();
-
-                sendMessageToAllClient(sendingType2, outMessage);
+                sendNoticeToAllClient(MessageType.NOTICE, getSocketOutMessage(clientSocket));
+                socketDataRemove(clientSocket);
+                break;
         }
     }
 
+    private boolean checkOriginalId(String id){
+        synchronized (idSocketMap){
+            if (idSocketMap.containsKey(id)){
+                return false;
+            } else {
+                return  true;
+            }
+        }
+    }
 
-    private void sendMessageToAllClient(MessageType type, String message){
-        for(Socket client : socketId.keySet()){
+    private void saveId(String id, Socket socket){
+        synchronized (idSocketMap){
+            idSocketMap.put(id, socket);
+        }
+        synchronized (socketIdMap){
+            socketIdMap.put(socket, id);
+        }
+
+        socketMessageCountMap.put(socket, 0);
+    }
+
+
+
+    private void addMessageCount(Socket socket){
+        socketMessageCountMap.put(socket, socketMessageCountMap.get(socket) + 1);
+    }
+
+    private void socketDataRemove(Socket socket){
+        String id = socketIdMap.get(socket);
+        socketIdMap.remove(socket);
+        idSocketMap.remove(id);
+        socketMessageCountMap.remove(socket);
+    }
+
+    private String getSocketOutMessage(Socket socket){
+        return "ID:" + socketIdMap.get(socket) + "is out \n total message count: " + socketMessageCountMap.get(socket);
+    }
+
+    private void sendCommentToAllClient(MessageType type, String message, Socket sendingSocket){
+        String idAndMessage = socketIdMap.get(sendingSocket) + " : " + message;
+
+        for(Socket client : socketIdMap.keySet()){
             try {
                 DataOutputStream dataOutputStream;
                 synchronized (outputStreamMap){
                     dataOutputStream = outputStreamMap.get(client);
                 }
-
-                byte[] sendingByte = Share.getSendPacketByteWithHeader(type, message);
+                byte[] sendingByte = Share.getSendPacketByteWithHeader(type, idAndMessage);
                 dataOutputStream.writeInt(sendingByte.length);
                 dataOutputStream.write(sendingByte, 0, sendingByte.length);
                 dataOutputStream.flush();
@@ -168,13 +156,28 @@ public class Server {
         }
     }
 
+    private void sendNoticeToAllClient(MessageType type, String message){
+        for(Socket client : socketIdMap.keySet()){
+            try {
+                DataOutputStream dataOutputStream;
+                synchronized (outputStreamMap){
+                    dataOutputStream = outputStreamMap.get(client);
+                }
+                byte[] sendingByte = Share.getSendPacketByteWithHeader(type, message);
+                dataOutputStream.writeInt(sendingByte.length);
+                dataOutputStream.write(sendingByte, 0, sendingByte.length);
+                dataOutputStream.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
     private void sendTypeOnly(MessageType type, Socket clientSocket) {
         try{
             DataOutputStream dataOutputStream;
             synchronized (outputStreamMap){
                 dataOutputStream = outputStreamMap.get(clientSocket);
             }
-
             String message = "";
             byte[] sendingByte = Share.getSendPacketByteWithHeader(type, message);
 
@@ -185,5 +188,4 @@ public class Server {
             throw new RuntimeException(e);
         }
     }
-
 }
