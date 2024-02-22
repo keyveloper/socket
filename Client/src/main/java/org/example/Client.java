@@ -66,13 +66,17 @@ public class Client implements Runnable {
         switch (inputType){
             case COMMENT:
                 System.out.println(message);
+                break;
             case NOTICE:
                 System.out.println(message);
+                break;
             case ALREADY_EXIST:
                 System.out.println("This ID already Exist");
+                break;
             case REGISTER_SUCCESS:
                 System.out.println("Register Success!!");
                 this.registered = true;
+                break;
         }
     }
 
@@ -87,10 +91,10 @@ public class Client implements Runnable {
 
     private String seperateBodyMessage(String command){
         String bodyMessage;
-        if(command.startsWith("/REGISTER")){
-            bodyMessage = command.substring(10);
+        if(command.startsWith("/R")){
+            bodyMessage = command.substring(  3);
             return bodyMessage;
-        }else if(command.startsWith("/QUIT")){
+        }else if(command.startsWith("/Q")){
             bodyMessage = "";
             return bodyMessage;
         }
