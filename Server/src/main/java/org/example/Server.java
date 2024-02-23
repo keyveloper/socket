@@ -53,7 +53,7 @@ public class Server{
                 addMessageCount(clientSocket);
                 sendCommentToAllClient(MessageType.COMMENT, message, clientSocket);
                 break;
-            case FIN:
+            case FIN_CLIENT:
                 sendNoticeToAllClient(MessageType.NOTICE, getSocketOutMessage(clientSocket));
                 socketDataRemove(clientSocket);
                 clientSocket.close();
@@ -65,7 +65,6 @@ public class Server{
     private void saveId(String id, Socket socket){
         synchronized (idSocketMap){
             idSocketMap.put(id, socket);
-
         }
         synchronized (socketIdMap){
             socketIdMap.put(socket, id);
@@ -99,7 +98,6 @@ public class Server{
 
     private void sendCommentToAllClient(MessageType type, String message, Socket sendingSocket){
         String idAndMessage = socketIdMap.get(sendingSocket) + " : " + message;
-
         for(Socket client : socketIdMap.keySet()){
             try {
                 DataOutputStream dataOutputStream;

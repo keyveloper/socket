@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
 
 public class Client implements Runnable {
-    private Boolean registered = false;
+    Boolean registered = false;
 
     public void run(){
         long threadId = Thread.currentThread().getId();
@@ -16,12 +16,12 @@ public class Client implements Runnable {
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", 9999));
             System.out.print("\n [ Success connecting ] \n");
+            Thread inputDatahandler = new Thread(new InputDataHandler(this, socket));
+            inputDatahandler.start();
 
-            while(true){
+            while (true) {
                 OutputStream outputStream = socket.getOutputStream();
                 DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-                InputStream inputStream = socket.getInputStream();
-                DataInputStream dataInputStream = new DataInputStream(inputStream);
 
                 String command = bufferedReader.readLine();
                 MessageType messageType = getMessageTypeByCommand(command);
@@ -32,26 +32,7 @@ public class Client implements Runnable {
                 dataOutputStream.write(sendingByte, 0, sendingByte.length);
                 dataOutputStream.flush();
 
-                int inAllLength = dataInputStream.readInt();
-                if(inAllLength > 0){
-                    //[]
-                    byte[] inLengthByte = new byte[4];
-                    dataInputStream.readFully(inLengthByte);
-                    int messageLength = Share.readInputLength(inLengthByte);
-
-                    byte[] inTypeByte = new byte[4];
-                    dataInputStream.readFully(inTypeByte);
-                    MessageType messageType1 = Share.readInputType(inTypeByte);
-
-                    byte[] inMessageByte = new byte[inAllLength - 8];
-                    dataInputStream.readFully(inMessageByte);
-                    String message = Share.readInputMessage(inMessageByte);
-
-                    actionByType(messageType, message);
-                } else if(inAllLength == 0){
-                    // quit
-                    break;
-                }
+                // 종료 구현해야함
             }
 
         } catch (Exception e) {
@@ -61,30 +42,11 @@ public class Client implements Runnable {
 
 
 
-
-    public void actionByType(MessageType inputType, String message){
-        switch (inputType){
-            case COMMENT:
-                System.out.println("\n" + message + "\n");
-                break;
-            case NOTICE:
-                System.out.println("\n" + message + "\n");
-                break;
-            case ALREADY_EXIST:
-                System.out.println("This ID already Exist");
-                break;
-            case REGISTER_SUCCESS:
-                System.out.println("Register Success!!");
-                this.registered = true;
-                break;
-        }
-    }
-
     private MessageType getMessageTypeByCommand(String command){
         if(command.startsWith("/R")){
             return MessageType.REGISTER_ID;
         }else if(command.startsWith("/Q")){
-            return MessageType.FIN;
+            return MessageType.FIN_CLIENT;
         }
         return MessageType.COMMENT;
     }
@@ -102,6 +64,10 @@ public class Client implements Runnable {
         }
         bodyMessage = command;
         return bodyMessage;
+    }
+
+    void printInputData(String message){
+        System.out.println(message);
     }
 
 

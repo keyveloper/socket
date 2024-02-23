@@ -7,5 +7,9 @@ public enum MessageType {
     REGISTER_SUCCESS,
     ALREADY_EXIST,
     REJECT,
-    FIN,
+    FIN_CLIENT,
+    FIN_SERVER,
+    FIN_ACK_CLIENT,
+    FIN_ACK_SERVER,
+
 }
