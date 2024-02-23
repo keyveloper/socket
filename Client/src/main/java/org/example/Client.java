@@ -70,7 +70,7 @@ public class Client implements Runnable {
             case NOTICE:
                 System.out.println("\n" + message + "\n");
                 break;
-            case ALREADY_EXIST:
+            case ALREADY_EXIST_ID:
                 System.out.println("This ID already Exist");
                 break;
             case REGISTER_SUCCESS:

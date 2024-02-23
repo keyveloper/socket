@@ -12,7 +12,12 @@ public class Server{
     private final HashMap<String, Socket> idSocketMap = new HashMap<>();
     private final HashMap<Socket, String> socketIdMap = new HashMap<>();
     private final HashMap<Socket, Integer> socketMessageCountMap = new HashMap<>();
-    final HashMap<Socket, DataOutputStream> outputStreamMap = new HashMap<>();
+    final HashMap<Socket, DataOutputStream> SocketoutStreamMap = new HashMap<>();
+    private final Object socketIdLock = new Object();
+
+    private final Object socketCountLock = new Object();
+
+    private final Object socketOutStreamLock = new Object();
 
     public Server() {
     }
@@ -41,20 +46,45 @@ public class Server{
         switch (inputType){
             case REGISTER_ID :
                 String id = message;
+                Boolean registerSuccess = false;
+                DataOutputStream clientOutStream;
+                synchronized ( socketOutStreamLock ){
+                    clientOutStream = SocketoutStreamMap.get(clientSocket);
+                }
                 // LOCK
-                if (!idSocketMap.containsKey(id)){
-                    saveId(id, clientSocket);
-                    System.out.println("register Success!! : " + id);
-                } else {
-                    sendTypeOnly(MessageType.ALREADY_EXIST, clientSocket);
+                synchronized ( socketIdLock ){
+                    if (!idSocketMap.containsKey(id)){
+                        saveId(id, clientSocket);
+                        System.out.println("register Success!! : " + id);
+                        sendTypeOnly(MessageType.REGISTER_SUCCESS, clientOutStream);
+                        registerSuccess = true;
+                    } else {
+                        sendTypeOnly(MessageType.ALREADY_EXIST_ID, clientOutStream);
+                    }
+                }
+                if (registerSuccess){
+                    synchronized ( socketMessageCountMap ){
+                        setSocketMessageCountMap(clientSocket);
+                    }
                 }
                 break;
             case COMMENT:
-                addMessageCount(clientSocket);
-                sendCommentToAllClient(MessageType.COMMENT, message, clientSocket);
+                String idAndMessage;
+                synchronized ( socketIdLock ){
+                    idAndMessage = socketIdMap.get(clientSocket) + " : " + message;
+                }
+                synchronized ( socketOutStreamLock ){
+                    sendPacketToAllClient(MessageType.COMMENT,idAndMessage);
+                }
+                synchronized ( socketCountLock ){
+                    addSocketMessageCount(clientSocket);
+                }
                 break;
             case FIN:
-                sendNoticeToAllClient(MessageType.NOTICE, getSocketOutMessage(clientSocket));
+                String outMessage = getSocketOutMessage(clientSocket);
+                synchronized ( socketOutStreamLock ){
+                    sendPacketToAllClient(MessageType.NOTICE, outMessage);
+                }
                 socketDataRemove(clientSocket);
                 clientSocket.close();
                 break;
@@ -63,26 +93,14 @@ public class Server{
 
 
     private void saveId(String id, Socket socket){
-        synchronized (idSocketMap){
-            idSocketMap.put(id, socket);
-
-        }
-        synchronized (socketIdMap){
-            socketIdMap.put(socket, id);
-        }
-        socketMessageCountMap.put(socket, 0);
-
-        for (Map.Entry<Socket, Integer> entry : socketMessageCountMap.entrySet()){
-            Socket client = entry.getKey();
-            int count = entry.getValue();
-            System.out.println("Key: " + client + ", Value: " + count);
-        }
-
-        sendTypeOnly(MessageType.REGISTER_SUCCESS, socket);
-
+        idSocketMap.put(id, socket);
+        socketIdMap.put(socket, id);
     }
 
-    private void addMessageCount(Socket socket){
+    private void setSocketMessageCountMap(Socket socket){
+        socketMessageCountMap.put(socket, 0);
+    }
+    private void addSocketMessageCount(Socket socket){
         socketMessageCountMap.put(socket, socketMessageCountMap.get(socket) + 1);
     }
 
@@ -94,35 +112,26 @@ public class Server{
     }
 
     private String getSocketOutMessage(Socket socket){
-        return "ID:" + socketIdMap.get(socket) + "is out \n total message count: " + socketMessageCountMap.get(socket);
-    }
-
-    private void sendCommentToAllClient(MessageType type, String message, Socket sendingSocket){
-        String idAndMessage = socketIdMap.get(sendingSocket) + " : " + message;
-
-        for(Socket client : socketIdMap.keySet()){
-            try {
-                DataOutputStream dataOutputStream;
-                synchronized (outputStreamMap){
-                    dataOutputStream = outputStreamMap.get(client);
-                }
-                byte[] sendingByte = Share.getSendPacketByteWithHeader(type, idAndMessage);
-                dataOutputStream.writeInt(sendingByte.length);
-                dataOutputStream.write(sendingByte, 0, sendingByte.length);
-                dataOutputStream.flush();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        String head;
+        String tail;
+        synchronized ( socketIdLock ){
+            head = "ID:" + socketIdMap.get(socket) + "is out \n";
         }
+
+        synchronized ( socketCountLock ){
+            tail = "total message count: " + socketMessageCountMap.get(socket);
+        }
+        return head + tail;
     }
 
-    private void sendNoticeToAllClient(MessageType type, String message){
+
+
+    private void sendPacketToAllClient(MessageType messageType,String message){
+        // 이것도 LOCK필요
         for(Socket client : socketIdMap.keySet()){
             try {
                 DataOutputStream dataOutputStream;
-                synchronized (outputStreamMap){
-                    dataOutputStream = outputStreamMap.get(client);
-                }
+                dataOutputStream = SocketoutStreamMap.get(client);
                 byte[] sendingByte = Share.getSendPacketByteWithHeader(type, message);
                 dataOutputStream.writeInt(sendingByte.length);
                 dataOutputStream.write(sendingByte, 0, sendingByte.length);
@@ -132,15 +141,11 @@ public class Server{
             }
         }
     }
-    private void sendTypeOnly(MessageType type, Socket clientSocket) {
+    private void sendTypeOnly(MessageType type, DataOutputStream stream) {
         try{
-            DataOutputStream dataOutputStream;
-            synchronized (outputStreamMap){
-                dataOutputStream = outputStreamMap.get(clientSocket);
-            }
+            DataOutputStream dataOutputStream = stream;
             String message = "";
             byte[] sendingByte = Share.getSendPacketByteWithHeader(type, message);
-
             dataOutputStream.writeInt(sendingByte.length);
             dataOutputStream.write(sendingByte, 0, sendingByte.length);
             dataOutputStream.flush();
