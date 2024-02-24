@@ -5,7 +5,6 @@ public enum MessageType {
     COMMENT,
     NOTICE,
     REGISTER_SUCCESS,
-    ALREADY_EXIST,
-    REJECT,
+    ALREADY_EXIST_ID,
     FIN,
 }

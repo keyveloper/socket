@@ -47,7 +47,7 @@ public class Client implements Runnable {
                     dataInputStream.readFully(inMessageByte);
                     String message = Share.readInputMessage(inMessageByte);
 
-                    actionByType(messageType1, message);
+                    actionByType(messageType, message);
                 } else if(inAllLength == 0){
                     // quit
                     break;
@@ -68,9 +68,9 @@ public class Client implements Runnable {
                 System.out.println("\n" + message + "\n");
                 break;
             case NOTICE:
-                System.out.println(message);
+                System.out.println("\n" + message + "\n");
                 break;
-            case ALREADY_EXIST:
+            case ALREADY_EXIST_ID:
                 System.out.println("This ID already Exist");
                 break;
             case REGISTER_SUCCESS:
@@ -81,24 +81,24 @@ public class Client implements Runnable {
     }
 
     private MessageType getMessageTypeByCommand(String command){
-        if(command.startsWith("/REGISTER")){
+        if(command.startsWith("/R")){
             return MessageType.REGISTER_ID;
-        }else if(command.startsWith("/QUIT")){
+        }else if(command.startsWith("/Q")){
             return MessageType.FIN;
-        }else if(command.startsWith("/")){
-            // -- exectipn 추가 --
         }
         return MessageType.COMMENT;
     }
 
     private String seperateBodyMessage(String command){
         String bodyMessage;
-        if(command.startsWith("/REGISTER")){
-            bodyMessage = command.substring(10);
+        if(command.startsWith("/R")){
+            bodyMessage = command.substring(  3);
             return bodyMessage;
-        }else if(command.startsWith("/QUIT")){
+        }else if(command.startsWith("/Q")){
             bodyMessage = "";
             return bodyMessage;
+        }else if(command.startsWith("/")){
+            return null;
         }
         bodyMessage = command;
         return bodyMessage;
