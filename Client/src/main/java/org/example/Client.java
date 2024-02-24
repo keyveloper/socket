@@ -47,7 +47,7 @@ public class Client implements Runnable {
                     dataInputStream.readFully(inMessageByte);
                     String message = Share.readInputMessage(inMessageByte);
 
-                    actionByType(messageType, message);
+                    actionByType(messageType1, message);
                 } else if(inAllLength == 0){
                     // quit
                     break;

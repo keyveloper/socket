@@ -20,7 +20,9 @@ public class ClientHandler implements Runnable {
                 OutputStream outputStream = clientSocket.getOutputStream();
                 DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
 
-                server.outputStreamMap.put(clientSocket, dataOutputStream);
+                synchronized ( server.socketOutStreamLock ){
+                    server.socketoutStreamMap.put(clientSocket, dataOutputStream);
+                }
 
                 // All byteLength
                 int inAllLength = dataInputStream.readInt();
