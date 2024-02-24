@@ -67,10 +67,10 @@ public class Server{
                         addSocketMessageCount(clientSocket);
                         System.out.println("set end!!!");
                     }
-                    synchronized ( socketOutStreamLock ){
-                        clientOutStream = socketoutStreamMap.get(clientSocket);
-                        sendTypeOnly(messageType, clientOutStream);
-                    }
+                }
+                synchronized ( socketOutStreamLock ){
+                    clientOutStream = socketoutStreamMap.get(clientSocket);
+                    sendTypeOnly(messageType, clientOutStream);
                 }
                 break;
             case COMMENT:
@@ -139,7 +139,7 @@ public class Server{
         String head;
         String tail;
         synchronized ( socketIdLock ){
-            head = "ID:" + socketIdMap.get(socket) + "is out \n";
+            head = "ID:" + socketIdMap.get(socket) + " is out \n";
         }
 
         synchronized ( socketCountLock ){

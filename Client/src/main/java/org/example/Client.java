@@ -28,9 +28,18 @@ public class Client implements Runnable {
                 String bodyMessage = seperateBodyMessage(command);
                 byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);
 
-                dataOutputStream.writeInt(sendingByte.length);
-                dataOutputStream.write(sendingByte, 0, sendingByte.length);
-                dataOutputStream.flush();
+                if (registered && messageType != MessageType.REGISTER_ID){
+                    dataOutputStream.writeInt(sendingByte.length);
+                    dataOutputStream.write(sendingByte, 0, sendingByte.length);
+                    dataOutputStream.flush();
+                } else if(messageType == MessageType.REGISTER_ID){
+                    dataOutputStream.writeInt(sendingByte.length);
+                    dataOutputStream.write(sendingByte, 0, sendingByte.length);
+                    dataOutputStream.flush();
+                } else {
+                    System.out.println("Register first! \n command : /R");
+                    continue;
+                }
 
                 int inAllLength = dataInputStream.readInt();
                 if(inAllLength > 0){
@@ -41,13 +50,13 @@ public class Client implements Runnable {
 
                     byte[] inTypeByte = new byte[4];
                     dataInputStream.readFully(inTypeByte);
-                    MessageType messageType1 = Share.readInputType(inTypeByte);
+                    MessageType inMessageType = Share.readInputType(inTypeByte);
 
                     byte[] inMessageByte = new byte[inAllLength - 8];
                     dataInputStream.readFully(inMessageByte);
                     String message = Share.readInputMessage(inMessageByte);
 
-                    actionByType(messageType1, message);
+                    actionByType(inMessageType, message);
                 } else if(inAllLength == 0){
                     // quit
                     break;
@@ -63,6 +72,7 @@ public class Client implements Runnable {
 
 
     public void actionByType(MessageType inputType, String message){
+        System.out.println("Message Type: " + inputType);
         switch (inputType){
             case COMMENT:
                 System.out.println("\n" + message + "\n");

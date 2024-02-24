@@ -10,6 +10,5 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
         Thread client = new Thread(new Client());
         client.start();
-        client.wait();
     }
 }
