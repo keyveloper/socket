@@ -6,7 +6,7 @@ import java.io.*;
 import java.net.*;
 
 public class Share {
-
+    public static int portNum = 9999;
     public static byte[] getTypeByte(MessageType messageType){
         int typeInt = messageType.ordinal();
         byte[] typeBytes = intToByteArray(typeInt);
@@ -65,9 +65,3 @@ public class Share {
     }
 
 }
-
-
-
-
-
-

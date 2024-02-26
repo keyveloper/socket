@@ -19,22 +19,20 @@ public class InputDataHandler implements Runnable {
             while (true) {
                 int inAllLength = dataInputStream.readInt();
                 if(inAllLength > 0){
+                    //[]
                     byte[] inLengthByte = new byte[4];
                     dataInputStream.readFully(inLengthByte);
                     int messageLength = Share.readInputLength(inLengthByte);
 
                     byte[] inTypeByte = new byte[4];
                     dataInputStream.readFully(inTypeByte);
-                    MessageType messageType1 = Share.readInputType(inTypeByte);
-                    if (messageType1 == MessageType.FIN_ACK_SERVER) {
-                        break;
-                    }
+                    MessageType inMessageType = Share.readInputType(inTypeByte);
 
                     byte[] inMessageByte = new byte[inAllLength - 8];
                     dataInputStream.readFully(inMessageByte);
                     String message = Share.readInputMessage(inMessageByte);
 
-                    actionByType(messageType1, message);
+                    actionByType(inMessageType, message);
                 }
             }
 
@@ -51,9 +49,8 @@ public class InputDataHandler implements Runnable {
             case NOTICE:
                 client.printInputData("\n" + message + "\n");
                 break;
-            case ALREADY_EXIST:
+            case ALREADY_EXIST_ID:
                 client.printInputData("This ID already Exist");
-                System.out.println();
                 break;
             case REGISTER_SUCCESS:
                 client.printInputData("Register Success!!");

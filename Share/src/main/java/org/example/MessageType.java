@@ -5,11 +5,6 @@ public enum MessageType {
     COMMENT,
     NOTICE,
     REGISTER_SUCCESS,
-    ALREADY_EXIST,
-    REJECT,
-    FIN_CLIENT,
-    FIN_SERVER,
-    FIN_ACK_CLIENT,
-    FIN_ACK_SERVER,
-
+    ALREADY_EXIST_ID,
+    FIN,
 }

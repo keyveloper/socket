@@ -16,9 +16,10 @@ public class Client implements Runnable {
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", 9999));
             System.out.print("\n [ Success connecting ] \n");
+
+            // handler start
             Thread inputDatahandler = new Thread(new InputDataHandler(this, socket));
             inputDatahandler.start();
-
             while (true) {
                 OutputStream outputStream = socket.getOutputStream();
                 DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
@@ -46,7 +47,9 @@ public class Client implements Runnable {
         if(command.startsWith("/R")){
             return MessageType.REGISTER_ID;
         }else if(command.startsWith("/Q")){
-            return MessageType.FIN_CLIENT;
+            return MessageType.FIN;
+        }else if(command.startsWith("/")){
+            return null;
         }
         return MessageType.COMMENT;
     }
@@ -59,8 +62,6 @@ public class Client implements Runnable {
         }else if(command.startsWith("/Q")){
             bodyMessage = "";
             return bodyMessage;
-        }else if(command.startsWith("/")){
-            return null;
         }
         bodyMessage = command;
         return bodyMessage;
@@ -69,6 +70,5 @@ public class Client implements Runnable {
     void printInputData(String message){
         System.out.println(message);
     }
-
 
 }
