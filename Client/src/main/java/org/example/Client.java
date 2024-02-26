@@ -11,23 +11,23 @@ public class Client implements Runnable {
 
     private ArrayList<String> commandList = new ArrayList<>();
 
-    public Client(){
+    public Client() {
         commandList.add("R");
         commandList.add("Q");
     }
 
-    public void run(){
+    public void run() {
         long threadId = Thread.currentThread().getId();
         System.out.println("myid: "+  threadId);
 
         Socket socket = new Socket();
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-        try{
+        try {
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", tcpClientPort));
             System.out.print("\n [ Success connecting ] \n");
 
-            while(true){
+            while (true) {
                 OutputStream outputStream = socket.getOutputStream();
                 DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
                 InputStream inputStream = socket.getInputStream();
@@ -37,14 +37,14 @@ public class Client implements Runnable {
                 MessageType messageType = getMessageTypeByCommand(command);
 
                 if (messageType == null){
-                    System.out.println("존재하지 않는 명령어");
+                    System.out.println("wrong command");
                     continue;
                 } else if (registered && messageType != MessageType.REGISTER_ID){
                     String bodyMessage = seperateBodyMessage(command);
                     byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);                    dataOutputStream.writeInt(sendingByte.length);
                     dataOutputStream.write(sendingByte, 0, sendingByte.length);
                     dataOutputStream.flush();
-                } else if(messageType == MessageType.REGISTER_ID){
+                } else if (messageType == MessageType.REGISTER_ID){
                     String bodyMessage = seperateBodyMessage(command);
                     byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);                    dataOutputStream.writeInt(sendingByte.length);
                     dataOutputStream.write(sendingByte, 0, sendingByte.length);
@@ -55,7 +55,7 @@ public class Client implements Runnable {
                 }
 
                 int inAllLength = dataInputStream.readInt();
-                if(inAllLength > 0){
+                if(inAllLength > 0) {
                     //[]
                     byte[] inLengthByte = new byte[4];
                     dataInputStream.readFully(inLengthByte);
@@ -85,7 +85,7 @@ public class Client implements Runnable {
 
 
     public void actionByType(MessageType inputType, String message){
-        switch (inputType){
+        switch (inputType) {
             case COMMENT:
                 System.out.println("\n" + message + "\n");
                 break;

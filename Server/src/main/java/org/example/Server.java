@@ -68,7 +68,7 @@ public class Server{
                         System.out.println("set end!!!");
                     }
                 }
-                //
+                // -> Lock 삭제
                 synchronized ( socketOutStreamLock ){
                     clientOutStream = socketoutStreamMap.get(clientSocket);
                     sendTypeOnly(messageType, clientOutStream);
