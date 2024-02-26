@@ -2,9 +2,19 @@ package org.example;
 
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 
 public class Client implements Runnable {
+
+    private final int tcpClientPort = Share.portNum;
     private Boolean registered = false;
+
+    private ArrayList<String> commandList = new ArrayList<>();
+
+    public Client(){
+        commandList.add("R");
+        commandList.add("Q");
+    }
 
     public void run(){
         long threadId = Thread.currentThread().getId();
@@ -14,7 +24,7 @@ public class Client implements Runnable {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         try{
             System.out.println("\n[ Request ... ]");
-            socket.connect(new InetSocketAddress("localhost", 9999));
+            socket.connect(new InetSocketAddress("localhost", tcpClientPort));
             System.out.print("\n [ Success connecting ] \n");
 
             while(true){

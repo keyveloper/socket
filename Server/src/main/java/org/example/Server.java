@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Server{
-    public final static int tcpServerPort = 9999;
+    public final int tcpServerPort = Share.portNum;
     private final HashMap<String, Socket> idSocketMap = new HashMap<>();
     private final HashMap<Socket, String> socketIdMap = new HashMap<>();
     private final HashMap<Socket, Integer> socketMessageCountMap = new HashMap<>();
@@ -52,7 +52,7 @@ public class Server{
 
                 // LOCK
                 synchronized ( socketIdLock ){
-                    if (!idSocketMap.containsKey(id)){
+                    if (!idSocketMap.containsKey (id)){
                         saveId(id, clientSocket);
                         messageType = MessageType.REGISTER_SUCCESS;
                         System.out.println("register Success!! : " + id);
