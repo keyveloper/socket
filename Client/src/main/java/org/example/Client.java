@@ -35,18 +35,21 @@ public class Client implements Runnable {
 
                 String command = bufferedReader.readLine();
                 MessageType messageType = getMessageTypeByCommand(command);
-                String bodyMessage = seperateBodyMessage(command);
-                byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);
 
-                if (registered && messageType != MessageType.REGISTER_ID){
-                    dataOutputStream.writeInt(sendingByte.length);
+                if (messageType == null){
+                    System.out.println("존재하지 않는 명령어");
+                    continue;
+                } else if (registered && messageType != MessageType.REGISTER_ID){
+                    String bodyMessage = seperateBodyMessage(command);
+                    byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);                    dataOutputStream.writeInt(sendingByte.length);
                     dataOutputStream.write(sendingByte, 0, sendingByte.length);
                     dataOutputStream.flush();
                 } else if(messageType == MessageType.REGISTER_ID){
-                    dataOutputStream.writeInt(sendingByte.length);
+                    String bodyMessage = seperateBodyMessage(command);
+                    byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);                    dataOutputStream.writeInt(sendingByte.length);
                     dataOutputStream.write(sendingByte, 0, sendingByte.length);
                     dataOutputStream.flush();
-                } else {
+                }  else {
                     System.out.println("Register first! \n command : /R");
                     continue;
                 }
@@ -82,7 +85,6 @@ public class Client implements Runnable {
 
 
     public void actionByType(MessageType inputType, String message){
-        System.out.println("Message Type: " + inputType);
         switch (inputType){
             case COMMENT:
                 System.out.println("\n" + message + "\n");
@@ -105,6 +107,8 @@ public class Client implements Runnable {
             return MessageType.REGISTER_ID;
         }else if(command.startsWith("/Q")){
             return MessageType.FIN;
+        }else if(command.startsWith("/")){
+            return null;
         }
         return MessageType.COMMENT;
     }
@@ -117,8 +121,6 @@ public class Client implements Runnable {
         }else if(command.startsWith("/Q")){
             bodyMessage = "";
             return bodyMessage;
-        }else if(command.startsWith("/")){
-            return null;
         }
         bodyMessage = command;
         return bodyMessage;
