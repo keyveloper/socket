@@ -1,17 +1,16 @@
 package org.example;
 
-import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class IdRegistor {
+public class IdManager {
     private final Object socketIdLock = new Object();
     private final HashMap<String, Socket> idSocketMap = new HashMap<>();
     private final HashMap<Socket, String> socketIdMap = new HashMap<>();
 
     private final Server server;
 
-    public IdRegistor(Server server){
+    public IdManager(Server server){
         this.server = server;
     }
     // 1. id check
@@ -26,16 +25,6 @@ public class IdRegistor {
         } else {
             System.out.println("register Failed: ");
         }
-        // LOCK
-
-        if (registerSuccess) {
-            synchronized (socketMessageCountMap) {
-                System.out.println("set socketCount!");
-                addSocketMessageCount(clientSocket);
-                System.out.println("set end!!!");
-            }
-        }
-
     }
 
     private boolean checkIdDuplication(String id){

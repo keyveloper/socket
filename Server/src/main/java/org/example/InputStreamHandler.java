@@ -3,10 +3,10 @@ package org.example;
 import java.io.*;
 import java.net.Socket;
 
-public class ClientHandler implements Runnable {
+public class InputStreamHandler implements Runnable {
     private final Socket clientSocket;
     private final Server server;
-    public ClientHandler(Server server, Socket clientSocket) {
+    public InputStreamHandler(Server server, Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.server = server;
         System.out.println("Start c-handler");
@@ -30,7 +30,7 @@ public class ClientHandler implements Runnable {
                 // byte[4] = length(only body)
                 byte[] inLengthByte = new byte[4];
                 dataInputStream.readFully(inLengthByte);
-                int messageLength = Share.readInputLength(inLengthByte);
+                // int messageLength = Share.readInputLength(inLengthByte);
 
                 //byte[4] = type
                 byte[] inTypeByte = new byte[4];
@@ -40,9 +40,13 @@ public class ClientHandler implements Runnable {
                 //byte[n] = body
                 byte[] inMessageByte = new byte[inAllLength - 8];
                 dataInputStream.readFully(inMessageByte);
-                String message = Share.readInputMessage(inMessageByte);
 
-                server.actionByType(messageType, message, clientSocket);
+                Message message = new Message(messageType, Share.readInputMessage(inMessageByte), clientSocket);
+                server.processMessage(message);
+
+                if (messageType == MessageType.FIN){
+                    break;
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
