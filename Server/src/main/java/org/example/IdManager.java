@@ -61,7 +61,7 @@ public class IdManager {
         }
     }
 
-    public void removeSoket(Socket socket){
+    public void remove(Socket socket){
         synchronized (socketIdLock){
             String id = getIdBySocket(socket);
             idSocketMap.remove(id);

@@ -7,6 +7,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.logging.Handler;
 import java.util.stream.Collectors;
 
 public class Server{
@@ -14,11 +15,13 @@ public class Server{
 
     private final IdManager idManager = new IdManager(this);
 
-    final HashMap<Socket, DataOutputStream> socketoutStreamMap = new HashMap<>();
+    private final CountManager countManager = new CountManager(this);
 
+    private final HashMap<Socket, ClientHandler> handlerMap = new HashMap<>();
 
-    final Object socketOutStreamLock = new Object();
+    private final Object handlerLock = new Object();
 
+    private boolean isRunning = true;
     public Server() {
     }
 
@@ -28,13 +31,18 @@ public class Server{
                 serverSocket.bind(new InetSocketAddress(tcpServerPort));
                 System.out.println("Starting tcp Server: " + tcpServerPort);
                 System.out.println("[ Waiting ]\n");
-
-                while (true) {
+                while (isRunning) {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("Connected " + clientSocket.getLocalPort() + " Port, From " + clientSocket.getRemoteSocketAddress().toString() + "\n");
 
-                    Thread clientHandler = new Thread(new InputStreamHandler(this, clientSocket));
-                    clientHandler.start();
+                    ClientHandler clientHandler = new ClientHandler(this, clientSocket);
+                    Thread thread = new Thread(clientHandler);
+                    thread.start();
+                    synchronized ( handlerLock ){
+                        handlerMap.put(clientSocket, clientHandler);
+                    }
+
+                    // 종료 구현
                 }
             }
         } catch (IOException e) {
@@ -55,49 +63,54 @@ public class Server{
         switch (inputType){
             case REGISTER_ID :
                 resisterId(message, clientSocket);
-                sendRegisterResultPacket(message, clientSocket);
                 break;
             case COMMENT:
                 sendComment(message, clientSocket);
                 break;
             case FIN:
                 noticeFin(clientSocket);
-                removeData(clientSocket);
-                clientSocket.close();
                 break;
-        }
-    }
-
-    private void sendRegisterResultPacket(String id, Socket socket){
-        if (idManager.checkRegisterSuccess(id)){
-            sendTypeOnly(MessageType.REGISTER_SUCCESS, socket);
-        } else {
-            sendTypeOnly(MessageType.ALREADY_EXIST_ID, socket);
         }
     }
 
     private void resisterId(String id, Socket socket){
         idManager.register(id, socket);
-    }
-
-    private void socketCountRemove(Socket socket){
-        socketMessageCountMap.remove(socket);
-    }
-
-    private void socketOutstreamRemove(Socket socket){
-        socketoutStreamMap.remove(socket);
+        if (idManager.checkRegisterSuccess(id)){
+            countManager.register(socket);
+            synchronized ( handlerLock ){
+                handlerMap.get(socket).sendTypeOnly(MessageType.REGISTER_SUCCESS);
+            }
+        }
+        synchronized ( handlerLock ){
+            handlerMap.get(socket).sendTypeOnly(MessageType.ALREADY_EXIST_ID);
+        }
     }
 
     private void noticeFin(Socket socket){
-        sendPacketToAllClient(MessageType.NOTICE, getSocketOutMessage(socket));
+        synchronized ( handlerLock ){
+            handlerMap.get(socket).sendPacket(MessageType.NOTICE, getSocketOutMessage(socket));
+        }
+        removeData(socket);
+        try {
+            socket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void removeData(Socket socket){
-        idManager.removeSoket(socket);
+        idManager.remove(socket);
+        countManager.remove(socket);
+        synchronized ( handlerMap ){
+            handlerMap.remove(socket);
+        }
     }
 
     private String getSocketOutMessage(Socket socket){
-        return "Id: " + idManager.getIdBySocket(socket) +"\ntotal message count: " + getSocketMessageCount(socket);
+        // deadLock?
+        String id = idManager.getIdBySocket(socket);
+        int count = countManager.get(socket);
+        return "Id: " + id +"\ntotal message count: " + count;
     }
 
     private String makeCommentMessage(Socket socket, String message){
@@ -106,38 +119,11 @@ public class Server{
 
     private void sendComment(String message, Socket socket){
         message = makeCommentMessage(socket, message);
-        sendPacketToAllClient(MessageType.COMMENT, message);
-    }
-
-
-    private void sendPacketToAllClient(MessageType messageType,String message){
-        // 이것도 LOCK필요
-        for(Socket client : socketoutStreamMap.keySet()){
-            try {
-                DataOutputStream dataOutputStream = socketoutStreamMap.get(client);
-                byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, message);
-                dataOutputStream.writeInt(sendingByte.length);
-                dataOutputStream.write(sendingByte, 0, sendingByte.length);
-                dataOutputStream.flush();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+        synchronized ( handlerLock ){
+            for (Socket key : handlerMap.keySet()){
+                ClientHandler handler = handlerMap.get(key);
+                handler.sendPacket(MessageType.COMMENT, message);
             }
         }
-    }
-
-    private void sendTypeOnly(MessageType type, Socket socket) {
-        synchronized ( socketOutStreamLock ){
-            try{
-                DataOutputStream dataOutputStream = socketoutStreamMap.get(socket);
-                String message = "";
-                byte[] sendingByte = Share.getSendPacketByteWithHeader(type, message);
-                dataOutputStream.writeInt(sendingByte.length);
-                dataOutputStream.write(sendingByte, 0, sendingByte.length);
-                dataOutputStream.flush();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
     }
 }
