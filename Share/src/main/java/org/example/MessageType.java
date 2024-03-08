@@ -6,5 +6,8 @@ public enum MessageType {
     NOTICE,
     REGISTER_SUCCESS,
     ALREADY_EXIST_ID,
+    CHANGE_ID,
+    CHANGE_ID_SUCCESS,
+    WHISPER,
     FIN,
 }

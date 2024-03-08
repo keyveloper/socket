@@ -29,6 +29,19 @@ public class IdManager {
         }
     }
 
+    public boolean changeId(String id, Socket socket){
+        if(!isDuplicationID(id)){
+            synchronized ( socketIdLock ){
+                idSocketMap.remove(id);
+                idSocketMap.put(id, socket);
+                socketIdMap.put(socket, id);
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
     private boolean isDuplicationID(String id){
         synchronized ( socketIdLock ){
             return idSocketMap.containsKey(id);
@@ -60,6 +73,12 @@ public class IdManager {
     public String getIdBySocket(Socket socket){
         synchronized ( socketIdLock ){
             return socketIdMap.get(socket);
+        }
+    }
+
+    public Socket getSocketById(String id){
+        synchronized ( socketIdLock ){
+            return idSocketMap.get(id);
         }
     }
 

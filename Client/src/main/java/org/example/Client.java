@@ -4,23 +4,19 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 
-    public class Client implements Runnable {
-        private final int tcpClientPort = Share.portNum;
-        private Boolean registered = false;
-        private DataOutputStream dataOutputStream;
+public class Client implements Runnable {
+    private final int tcpClientPort = Share.portNum;
+    private Boolean registered = false;
+    private DataOutputStream dataOutputStream;
 
-        Socket socket;
+    Socket socket;
 
-    private ArrayList<String> commandList = new ArrayList<>();
     public Client() {
-        commandList.add("R");
-        commandList.add("Q");
+        socket = new Socket();
     }
     public void run() {
         long threadId = Thread.currentThread().getId();
         System.out.println("myid: "+  threadId);
-
-        socket = new Socket();
         try {
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", tcpClientPort));
@@ -62,7 +58,7 @@ import java.util.ArrayList;
 
     public void actionByType(MessageType inputType, String message){
         switch (inputType) {
-            case COMMENT:
+            case COMMENT, WHISPER:
                 System.out.println("\n" + message + "\n");
                 break;
             case NOTICE:
@@ -79,7 +75,8 @@ import java.util.ArrayList;
     }
 
     public void processCommand(String command){
-        try { MessageType messageType = getMessageTypeByCommand(command);
+        try {
+            MessageType messageType = getMessageTypeByCommand(command);
             if (messageType == null){
                 System.out.println("wrong command");
             } else if (registered && messageType != MessageType.REGISTER_ID){
@@ -93,6 +90,8 @@ import java.util.ArrayList;
                 dataOutputStream.write(sendingByte, 0, sendingByte.length);
                 dataOutputStream.flush();
             } else if (messageType == MessageType.FIN){
+                System.out.println("접속을 종료합니다");
+                dataOutputStream.close();
                 socket.close();
             } else {
                 System.out.println("Register first! \n command : /R");
@@ -102,11 +101,13 @@ import java.util.ArrayList;
     }
 
     private MessageType getMessageTypeByCommand(String command){
-        if(command.startsWith("/R")){
+        if (command.startsWith("/R")){
             return MessageType.REGISTER_ID;
-        }else if(command.startsWith("/Q")){
+        } else if (command.startsWith("/Q")){
             return MessageType.FIN;
-        }else if(command.startsWith("/")){
+        } else if (command.startsWith("/N")) {
+            return MessageType.CHANGE_ID;
+        } else if (command.startsWith("/")){
             return null;
         }
         return MessageType.COMMENT;
@@ -114,12 +115,10 @@ import java.util.ArrayList;
 
     private String seperateBodyMessage(String command){
         String bodyMessage;
-        if(command.startsWith("/R")){
-            bodyMessage = command.substring(  3);
-            return bodyMessage;
-        }else if(command.startsWith("/Q")){
-            bodyMessage = "";
-            return bodyMessage;
+        if (command.startsWith("/Q")){
+            return "";
+        } else if (command.startsWith("/")) {
+            return command.substring(3);
         }
         bodyMessage = command;
         return bodyMessage;

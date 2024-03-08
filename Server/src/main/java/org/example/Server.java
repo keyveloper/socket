@@ -52,6 +52,10 @@ public class Server{
             case COMMENT:
                 sendComment(message.getBody(), message.getClientSocket());
                 break;
+            case CHANGE_ID:
+                changeID(message.getBody(), message.getClientSocket());
+            case WHISPER:
+                sendWhisper(message.getBody(), message.getClientSocket());
             case FIN:
                 noticeFin(message.getClientSocket());
                 break;
@@ -68,14 +72,39 @@ public class Server{
         } else {
             synchronized ( handlerLock ){
                 handlerMap.get(socket).sendTypeOnly(MessageType.ALREADY_EXIST_ID);
+                System.out.println("Already Exist ID");
             }
         }
 
     }
 
+    private void changeID(String id, Socket socket){
+        if (idManager.changeId(id, socket)){
+            synchronized ( handlerLock ){
+                handlerMap.get(socket).sendTypeOnly(MessageType.REGISTER_SUCCESS);
+            }
+        } else {
+            synchronized ( handlerLock ){
+                handlerMap.get(socket).sendTypeOnly(MessageType.ALREADY_EXIST_ID);
+                System.out.println("Already Exist ID");
+            }
+        }
+    }
+
+    private void sendWhisper(String message, Socket socket){
+        String[] parts = message.split(" ", 2);
+        String receiverId = parts[0];
+        String whisperMessage = makeWhisperMessage(parts[1], socket);
+        Socket receiverSocket = idManager.getSocketById(receiverId);
+
+        synchronized ( handlerLock ){
+            handlerMap.get(receiverSocket).sendPacket(MessageType.WHISPER, whisperMessage);
+        }
+    }
+
     private void noticeFin(Socket socket){
         synchronized ( handlerLock ){
-            handlerMap.get(socket).sendPacket(MessageType.NOTICE, getSocketOutMessage(socket));
+            handlerMap.get(socket).sendPacket(MessageType.NOTICE, makeSocketOutMessage(socket));
         }
         removeData(socket);
         try {
@@ -93,7 +122,7 @@ public class Server{
         }
     }
 
-    private String getSocketOutMessage(Socket socket){
+    private String makeSocketOutMessage(Socket socket){
         // deadLock?
         String id = idManager.getIdBySocket(socket);
         int count = countManager.get(socket);
@@ -112,5 +141,9 @@ public class Server{
                 handler.sendPacket(MessageType.COMMENT, message);
             }
         }
+    }
+
+    private String makeWhisperMessage(String message, Socket socket){
+        return "(whisper)" + idManager.getIdBySocket(socket) + ": " + message;
     }
 }
