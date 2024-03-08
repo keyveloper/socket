@@ -2,7 +2,6 @@ package org.example;
 
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
 
 public class Client implements Runnable {
     private final int tcpClientPort = Share.portNum;
@@ -31,10 +30,9 @@ public class Client implements Runnable {
 
                 int inAllLength = dataInputStream.readInt();
                 if(inAllLength > 0) {
-                    //[]
                     byte[] inLengthByte = new byte[4];
                     dataInputStream.readFully(inLengthByte);
-                    int messageLength = Share.readInputLength(inLengthByte);
+                    // int messageLength = Share.readInputLength(inLengthByte);
 
                     byte[] inTypeByte = new byte[4];
                     dataInputStream.readFully(inTypeByte);
@@ -58,10 +56,7 @@ public class Client implements Runnable {
 
     public void actionByType(MessageType inputType, String message){
         switch (inputType) {
-            case COMMENT, WHISPER:
-                System.out.println("\n" + message + "\n");
-                break;
-            case NOTICE:
+            case COMMENT, WHISPER, NOTICE:
                 System.out.println("\n" + message + "\n");
                 break;
             case ALREADY_EXIST_ID:
@@ -77,6 +72,7 @@ public class Client implements Runnable {
     public void processCommand(String command){
         try {
             MessageType messageType = getMessageTypeByCommand(command);
+            System.out.println("command message type: " + messageType);
             if (messageType == null){
                 System.out.println("wrong command");
             } else if (registered && messageType != MessageType.REGISTER_ID){
@@ -90,7 +86,7 @@ public class Client implements Runnable {
                 dataOutputStream.write(sendingByte, 0, sendingByte.length);
                 dataOutputStream.flush();
             } else if (messageType == MessageType.FIN){
-                System.out.println("접속을 종료합니다");
+                System.out.println("connection end");
                 dataOutputStream.close();
                 socket.close();
             } else {
@@ -107,7 +103,9 @@ public class Client implements Runnable {
             return MessageType.FIN;
         } else if (command.startsWith("/N")) {
             return MessageType.CHANGE_ID;
-        } else if (command.startsWith("/")){
+        } else if (command.startsWith("/W")) {
+            return MessageType.WHISPER;
+        }else if (command.startsWith("/")){
             return null;
         }
         return MessageType.COMMENT;

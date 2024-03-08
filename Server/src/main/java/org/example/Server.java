@@ -54,8 +54,10 @@ public class Server{
                 break;
             case CHANGE_ID:
                 changeID(message.getBody(), message.getClientSocket());
+                break;
             case WHISPER:
                 sendWhisper(message.getBody(), message.getClientSocket());
+                break;
             case FIN:
                 noticeFin(message.getClientSocket());
                 break;
@@ -92,6 +94,7 @@ public class Server{
     }
 
     private void sendWhisper(String message, Socket socket){
+        System.out.println("start send whisper");
         String[] parts = message.split(" ", 2);
         String receiverId = parts[0];
         String whisperMessage = makeWhisperMessage(parts[1], socket);
