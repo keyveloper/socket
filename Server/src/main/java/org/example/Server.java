@@ -1,180 +1,129 @@
 package org.example;
 
+import com.sun.source.tree.Scope;
+
 import javax.swing.text.Style;
 import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.logging.Handler;
 import java.util.stream.Collectors;
 
 public class Server{
     public final int tcpServerPort = Share.portNum;
-    private final HashMap<String, Socket> idSocketMap = new HashMap<>();
-    private final HashMap<Socket, String> socketIdMap = new HashMap<>();
-    private final HashMap<Socket, Integer> socketMessageCountMap = new HashMap<>();
-    final HashMap<Socket, DataOutputStream> socketoutStreamMap = new HashMap<>();
-    private final Object socketIdLock = new Object();
 
-    private final Object socketCountLock = new Object();
+    private final IdManager idManager = new IdManager(this);
 
-    final Object socketOutStreamLock = new Object();
+    private final CountManager countManager = new CountManager(this);
 
+    private final HashMap<Socket, ClientHandler> handlerMap = new HashMap<>();
+
+    private final Object handlerLock = new Object();
+
+    private boolean isRunning = true;
     public Server() {
     }
 
     public void start(){
         try{
-            ServerSocket serverSocket = new ServerSocket();
-            serverSocket.bind(new InetSocketAddress(tcpServerPort));
-            System.out.println("Starting tcp Server: " + tcpServerPort);
-            System.out.println("[ Waiting ]\n");
+            try (ServerSocket serverSocket = new ServerSocket()) {
+                serverSocket.bind(new InetSocketAddress(tcpServerPort));
+                System.out.println("Starting tcp Server: " + tcpServerPort);
+                System.out.println("[ Waiting ]\n");
+                while (isRunning) {
+                    Socket clientSocket = serverSocket.accept();
+                    System.out.println("Connected " + clientSocket.getLocalPort() + " Port, From " + clientSocket.getRemoteSocketAddress().toString() + "\n");
 
-            while (true){
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Connected " + clientSocket.getLocalPort() + " Port, From " + clientSocket.getRemoteSocketAddress().toString() + "\n");
+                    ClientHandler clientHandler = new ClientHandler(this, clientSocket);
+                    Thread thread = new Thread(clientHandler);
+                    thread.start();
+                    synchronized ( handlerLock ){
+                        handlerMap.put(clientSocket, clientHandler);
+                    }
 
-                Thread clientHandler = new Thread(new ClientHandler(this, clientSocket));
-                clientHandler.start();
+                    // 종료 구현
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    void actionByType(MessageType inputType, String message, Socket clientSocket) throws IOException {
+    public void processMessage(Message message){
+        try {
+            actionByType(message.getMessageType(), message.getBody(), message.getClientSocket());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void actionByType(MessageType inputType, String message, Socket clientSocket) throws IOException {
         System.out.println("message received: " + message + " " + inputType);
         switch (inputType){
             case REGISTER_ID :
-                String id = message;
-                Boolean registerSuccess = false;
-                DataOutputStream clientOutStream;
-                MessageType messageType;
-
-                // LOCK
-                synchronized ( socketIdLock ){
-                    if (!idSocketMap.containsKey (id)){
-                        saveId(id, clientSocket);
-                        messageType = MessageType.REGISTER_SUCCESS;
-                        System.out.println("register Success!! : " + id);
-                        registerSuccess = true;
-                    } else {
-                        messageType = MessageType.ALREADY_EXIST_ID;
-                    }
-                }
-                if (registerSuccess){
-                    synchronized ( socketMessageCountMap ){
-                        System.out.println("set socketCount!");
-                        addSocketMessageCount(clientSocket);
-                        System.out.println("set end!!!");
-                    }
-                }
-                // -> Lock 삭제
-                synchronized ( socketOutStreamLock ){
-                    clientOutStream = socketoutStreamMap.get(clientSocket);
-                    sendTypeOnly(messageType, clientOutStream);
-                }
+                resisterId(message, clientSocket);
                 break;
             case COMMENT:
-                String idAndMessage;
-                synchronized ( socketIdLock ){
-                    idAndMessage = socketIdMap.get(clientSocket) + " : " + message;
-                }
-                synchronized ( socketOutStreamLock ){
-                    sendPacketToAllClient(MessageType.COMMENT,idAndMessage);
-                }
-                synchronized ( socketCountLock ){
-                    addSocketMessageCount(clientSocket);
-                }
+                sendComment(message, clientSocket);
                 break;
             case FIN:
-                String outMessage = getSocketOutMessage(clientSocket);
-                synchronized ( socketOutStreamLock ){
-                    sendPacketToAllClient(MessageType.NOTICE, outMessage);
-                }
-                synchronized ( socketIdLock ){
-                    socketIdRemove(clientSocket);
-                }
-
-                synchronized ( socketCountLock ){
-                    socketCountRemove(clientSocket);
-                }
-
-                synchronized ( socketOutStreamLock ){
-                    socketOutstreamRemove(clientSocket);
-                }
-
-                clientSocket.close();
+                noticeFin(clientSocket);
                 break;
         }
     }
 
-
-    private void saveId(String id, Socket socket){
-        idSocketMap.put(id, socket);
-        socketIdMap.put(socket, id);
-    }
-
-    private void addSocketMessageCount(Socket socket){
-        if (socketMessageCountMap.containsKey(socket)){
-            socketMessageCountMap.put(socket, socketMessageCountMap.get(socket) + 1);
-        } else {
-            socketMessageCountMap.put(socket, 0);
+    private void resisterId(String id, Socket socket){
+        idManager.register(id, socket);
+        if (idManager.checkRegisterSuccess(id)){
+            countManager.register(socket);
+            synchronized ( handlerLock ){
+                handlerMap.get(socket).sendTypeOnly(MessageType.REGISTER_SUCCESS);
+            }
+        }
+        synchronized ( handlerLock ){
+            handlerMap.get(socket).sendTypeOnly(MessageType.ALREADY_EXIST_ID);
         }
     }
 
-    private void socketIdRemove(Socket socket){
-        String id = socketIdMap.get(socket);
-        socketIdMap.remove(socket);
-        idSocketMap.remove(id);
+    private void noticeFin(Socket socket){
+        synchronized ( handlerLock ){
+            handlerMap.get(socket).sendPacket(MessageType.NOTICE, getSocketOutMessage(socket));
+        }
+        removeData(socket);
+        try {
+            socket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private void socketCountRemove(Socket socket){
-        socketMessageCountMap.remove(socket);
-    }
-
-    private void socketOutstreamRemove(Socket socket){
-        socketoutStreamMap.remove(socket);
+    private void removeData(Socket socket){
+        idManager.remove(socket);
+        countManager.remove(socket);
+        synchronized ( handlerMap ){
+            handlerMap.remove(socket);
+        }
     }
 
     private String getSocketOutMessage(Socket socket){
-        String head;
-        String tail;
-        synchronized ( socketIdLock ){
-            head = "ID:" + socketIdMap.get(socket) + " is out \n";
-        }
-
-        synchronized ( socketCountLock ){
-            tail = "total message count: " + socketMessageCountMap.get(socket);
-        }
-        return head + tail;
+        // deadLock?
+        String id = idManager.getIdBySocket(socket);
+        int count = countManager.get(socket);
+        return "Id: " + id +"\ntotal message count: " + count;
     }
 
-    private void sendPacketToAllClient(MessageType messageType,String message){
-        // 이것도 LOCK필요
-        for(Socket client : socketIdMap.keySet()){
-            try {
-                DataOutputStream dataOutputStream;
-                dataOutputStream = socketoutStreamMap.get(client);
-                byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, message);
-                dataOutputStream.writeInt(sendingByte.length);
-                dataOutputStream.write(sendingByte, 0, sendingByte.length);
-                dataOutputStream.flush();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+    private String makeCommentMessage(Socket socket, String message){
+        return idManager.getIdBySocket(socket) + " : " + message;
+    }
+
+    private void sendComment(String message, Socket socket){
+        message = makeCommentMessage(socket, message);
+        synchronized ( handlerLock ){
+            for (Socket key : handlerMap.keySet()){
+                ClientHandler handler = handlerMap.get(key);
+                handler.sendPacket(MessageType.COMMENT, message);
             }
-        }
-    }
-
-    private void sendTypeOnly(MessageType type, DataOutputStream stream) {
-        try{
-            DataOutputStream dataOutputStream = stream;
-            String message = "";
-            byte[] sendingByte = Share.getSendPacketByteWithHeader(type, message);
-            dataOutputStream.writeInt(sendingByte.length);
-            dataOutputStream.write(sendingByte, 0, sendingByte.length);
-            dataOutputStream.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 }

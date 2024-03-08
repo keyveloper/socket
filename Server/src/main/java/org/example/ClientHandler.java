@@ -6,6 +6,7 @@ import java.net.Socket;
 public class ClientHandler implements Runnable {
     private final Socket clientSocket;
     private final Server server;
+    private DataOutputStream dataOutputStream;
     public ClientHandler(Server server, Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.server = server;
@@ -18,11 +19,7 @@ public class ClientHandler implements Runnable {
                 InputStream inputStream = clientSocket.getInputStream();
                 DataInputStream dataInputStream = new DataInputStream(inputStream);
                 OutputStream outputStream = clientSocket.getOutputStream();
-                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-
-                synchronized ( server.socketOutStreamLock ){
-                    server.socketoutStreamMap.put(clientSocket, dataOutputStream);
-                }
+                dataOutputStream = new DataOutputStream(outputStream);
 
                 // All byteLength
                 int inAllLength = dataInputStream.readInt();
@@ -30,7 +27,7 @@ public class ClientHandler implements Runnable {
                 // byte[4] = length(only body)
                 byte[] inLengthByte = new byte[4];
                 dataInputStream.readFully(inLengthByte);
-                int messageLength = Share.readInputLength(inLengthByte);
+                // int messageLength = Share.readInputLength(inLengthByte);
 
                 //byte[4] = type
                 byte[] inTypeByte = new byte[4];
@@ -40,12 +37,42 @@ public class ClientHandler implements Runnable {
                 //byte[n] = body
                 byte[] inMessageByte = new byte[inAllLength - 8];
                 dataInputStream.readFully(inMessageByte);
-                String message = Share.readInputMessage(inMessageByte);
 
-                server.actionByType(messageType, message, clientSocket);
+                Message message = new Message(messageType, Share.readInputMessage(inMessageByte), clientSocket);
+                server.processMessage(message);
+
+                if (messageType == MessageType.FIN){
+                    break;
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void sendPacket(MessageType messageType, String message){
+        byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, message);
+        try {
+            dataOutputStream.writeInt(sendingByte.length);
+            dataOutputStream.write(sendingByte, 0, sendingByte.length);
+            dataOutputStream.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void sendTypeOnly(MessageType messageType){
+        byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, "");
+        try {
+            dataOutputStream.writeInt(sendingByte.length);
+            dataOutputStream.write(sendingByte, 0, sendingByte.length);
+            dataOutputStream.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public DataOutputStream getDataOutputStream() {
+        return dataOutputStream;
     }
 }
