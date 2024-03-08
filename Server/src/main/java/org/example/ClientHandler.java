@@ -7,6 +7,7 @@ public class ClientHandler implements Runnable {
     private final Socket clientSocket;
     private final Server server;
     private DataOutputStream dataOutputStream;
+
     public ClientHandler(Server server, Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.server = server;

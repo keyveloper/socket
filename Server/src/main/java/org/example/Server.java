@@ -1,14 +1,8 @@
 package org.example;
 
-import com.sun.source.tree.Scope;
-
-import javax.swing.text.Style;
 import java.io.*;
 import java.net.*;
-import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.logging.Handler;
-import java.util.stream.Collectors;
 
 public class Server{
     public final int tcpServerPort = Share.portNum;
@@ -41,7 +35,6 @@ public class Server{
                     synchronized ( handlerLock ){
                         handlerMap.put(clientSocket, clientHandler);
                     }
-
                     // 종료 구현
                 }
             }
@@ -51,39 +44,33 @@ public class Server{
     }
 
     public void processMessage(Message message){
-        try {
-            actionByType(message.getMessageType(), message.getBody(), message.getClientSocket());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void actionByType(MessageType inputType, String message, Socket clientSocket) throws IOException {
-        System.out.println("message received: " + message + " " + inputType);
-        switch (inputType){
+        System.out.println("message received: " + message.getBody() + " " + message.getMessageType());
+        switch (message.getMessageType()){
             case REGISTER_ID :
-                resisterId(message, clientSocket);
+                resisterId(message.getBody(), message.getClientSocket());
                 break;
             case COMMENT:
-                sendComment(message, clientSocket);
+                sendComment(message.getBody(), message.getClientSocket());
                 break;
             case FIN:
-                noticeFin(clientSocket);
+                noticeFin(message.getClientSocket());
                 break;
         }
     }
 
     private void resisterId(String id, Socket socket){
-        idManager.register(id, socket);
-        if (idManager.checkRegisterSuccess(id)){
+        if (idManager.register(id, socket)){
+            System.out.println("Id Reigsterd complete");
             countManager.register(socket);
             synchronized ( handlerLock ){
                 handlerMap.get(socket).sendTypeOnly(MessageType.REGISTER_SUCCESS);
             }
+        } else {
+            synchronized ( handlerLock ){
+                handlerMap.get(socket).sendTypeOnly(MessageType.ALREADY_EXIST_ID);
+            }
         }
-        synchronized ( handlerLock ){
-            handlerMap.get(socket).sendTypeOnly(MessageType.ALREADY_EXIST_ID);
-        }
+
     }
 
     private void noticeFin(Socket socket){

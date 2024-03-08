@@ -15,27 +15,29 @@ public class IdManager {
     }
     // 1. id check
     // 2. id add
-    public void register(String id, Socket socket){
-        if (checkIdDuplication(id)){
+    public boolean register(String id, Socket socket){
+        if (!isDuplicationID(id)){
             synchronized ( socketIdLock ){
                 idSocketMap.put(id, socket);
                 socketIdMap.put(socket, id);
                 System.out.println("register Success!! : " + id);
+                return true;
             }
         } else {
             System.out.println("register Failed: ");
+            return false;
         }
     }
 
-    private boolean checkIdDuplication(String id){
+    private boolean isDuplicationID(String id){
         synchronized ( socketIdLock ){
-            return !idSocketMap.containsKey(id);
+            return idSocketMap.containsKey(id);
         }
     }
 
     public boolean checkRegisterSuccess(String id){
         synchronized ( socketIdLock ){
-            return idSocketMap.containsKey(id);
+            return idSocketMap.containsKey(id) && isDuplicationID(id);
         }
     }
 

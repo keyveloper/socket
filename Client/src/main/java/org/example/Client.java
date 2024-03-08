@@ -4,24 +4,23 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 
-public class Client implements Runnable {
+    public class Client implements Runnable {
+        private final int tcpClientPort = Share.portNum;
+        private Boolean registered = false;
+        private DataOutputStream dataOutputStream;
 
-    private final int tcpClientPort = Share.portNum;
-    private Boolean registered = false;
+        Socket socket;
 
     private ArrayList<String> commandList = new ArrayList<>();
-
     public Client() {
         commandList.add("R");
         commandList.add("Q");
     }
-
     public void run() {
         long threadId = Thread.currentThread().getId();
         System.out.println("myid: "+  threadId);
 
-        Socket socket = new Socket();
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        socket = new Socket();
         try {
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", tcpClientPort));
@@ -29,30 +28,10 @@ public class Client implements Runnable {
 
             while (true) {
                 OutputStream outputStream = socket.getOutputStream();
-                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+                dataOutputStream = new DataOutputStream(outputStream);
                 InputStream inputStream = socket.getInputStream();
                 DataInputStream dataInputStream = new DataInputStream(inputStream);
 
-                String command = bufferedReader.readLine();
-                MessageType messageType = getMessageTypeByCommand(command);
-
-                if (messageType == null){
-                    System.out.println("wrong command");
-                    continue;
-                } else if (registered && messageType != MessageType.REGISTER_ID){
-                    String bodyMessage = seperateBodyMessage(command);
-                    byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);                    dataOutputStream.writeInt(sendingByte.length);
-                    dataOutputStream.write(sendingByte, 0, sendingByte.length);
-                    dataOutputStream.flush();
-                } else if (messageType == MessageType.REGISTER_ID){
-                    String bodyMessage = seperateBodyMessage(command);
-                    byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);                    dataOutputStream.writeInt(sendingByte.length);
-                    dataOutputStream.write(sendingByte, 0, sendingByte.length);
-                    dataOutputStream.flush();
-                }  else {
-                    System.out.println("Register first! \n command : /R");
-                    continue;
-                }
 
                 int inAllLength = dataInputStream.readInt();
                 if(inAllLength > 0) {
@@ -81,9 +60,6 @@ public class Client implements Runnable {
         }
     }
 
-
-
-
     public void actionByType(MessageType inputType, String message){
         switch (inputType) {
             case COMMENT:
@@ -99,6 +75,29 @@ public class Client implements Runnable {
                 System.out.println("Register Success!!");
                 this.registered = true;
                 break;
+        }
+    }
+
+    public void processCommand(String command){
+        try { MessageType messageType = getMessageTypeByCommand(command);
+            if (messageType == null){
+                System.out.println("wrong command");
+            } else if (registered && messageType != MessageType.REGISTER_ID){
+                String bodyMessage = seperateBodyMessage(command);
+                byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);                    dataOutputStream.writeInt(sendingByte.length);
+                dataOutputStream.write(sendingByte, 0, sendingByte.length);
+                dataOutputStream.flush();
+            } else if (messageType == MessageType.REGISTER_ID){
+                String bodyMessage = seperateBodyMessage(command);
+                byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);                    dataOutputStream.writeInt(sendingByte.length);
+                dataOutputStream.write(sendingByte, 0, sendingByte.length);
+                dataOutputStream.flush();
+            } else if (messageType == MessageType.FIN){
+                socket.close();
+            } else {
+                System.out.println("Register first! \n command : /R");
+            } } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
