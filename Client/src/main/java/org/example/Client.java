@@ -40,7 +40,7 @@ public class Client implements Runnable {
 
                     byte[] inMessageByte = new byte[inAllLength - 8];
                     dataInputStream.readFully(inMessageByte);
-                    String message = Share.readInputMessage(inMessageByte);
+                    String message = Share.convertString(inMessageByte);
 
                     actionByType(inMessageType, message);
                 } else if(inAllLength == 0){
@@ -85,13 +85,19 @@ public class Client implements Runnable {
                 byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, bodyMessage);                    dataOutputStream.writeInt(sendingByte.length);
                 dataOutputStream.write(sendingByte, 0, sendingByte.length);
                 dataOutputStream.flush();
+            } else if (messageType == MessageType.FILE) {
+                String[] parts = seperateBodyMessage(command).split(" ", 2);
+                // part1 = id, part2 = file path
+                String filepath = parts[1];
+
             } else if (messageType == MessageType.FIN){
                 System.out.println("connection end");
                 dataOutputStream.close();
                 socket.close();
             } else {
                 System.out.println("Register first! \n command : /R");
-            } } catch (IOException e) {
+            }
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -105,7 +111,9 @@ public class Client implements Runnable {
             return MessageType.CHANGE_ID;
         } else if (command.startsWith("/W")) {
             return MessageType.WHISPER;
-        }else if (command.startsWith("/")){
+        } else if (command.startsWith("/F")){
+            return MessageType.FILE;
+        } else if (command.startsWith("/")){
             return null;
         }
         return MessageType.COMMENT;

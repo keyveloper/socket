@@ -46,7 +46,11 @@ public class Share {
         return packet;
     }
 
-    public static String readInputMessage(byte[] packet){
+//    public static byte[] makefilePacketHeader(MessageType type, String id, File file) {
+//        return
+//    }
+
+    public static String convertString(byte[] packet){
         String message = new String(packet);
         return message;
     }

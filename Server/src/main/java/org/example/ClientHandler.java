@@ -39,7 +39,7 @@ public class ClientHandler implements Runnable {
                 byte[] inMessageByte = new byte[inAllLength - 8];
                 dataInputStream.readFully(inMessageByte);
 
-                Message message = new Message(messageType, Share.readInputMessage(inMessageByte), clientSocket);
+                Message message = new Message(messageType, inMessageByte, clientSocket);
                 server.processMessage(message);
 
                 if (messageType == MessageType.FIN){

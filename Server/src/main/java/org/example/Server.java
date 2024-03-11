@@ -44,19 +44,22 @@ public class Server{
     }
 
     public void processMessage(Message message){
-        System.out.println("message received: " + message.getBody() + " " + message.getMessageType());
+        System.out.println("message received: " +  " " + message.getMessageType());
         switch (message.getMessageType()){
             case REGISTER_ID :
-                resisterId(message.getBody(), message.getClientSocket());
+                resisterId(Share.convertString(message.getBody()), message.getClientSocket());
                 break;
             case COMMENT:
-                sendComment(message.getBody(), message.getClientSocket());
+                sendComment(Share.convertString(message.getBody()), message.getClientSocket());
                 break;
             case CHANGE_ID:
-                changeID(message.getBody(), message.getClientSocket());
+                changeID(Share.convertString(message.getBody()), message.getClientSocket());
                 break;
             case WHISPER:
-                sendWhisper(message.getBody(), message.getClientSocket());
+                sendWhisper(Share.convertString(message.getBody()), message.getClientSocket());
+                break;
+            case FILE:
+                sendFile(message.getBody(), message.getClientSocket());
                 break;
             case FIN:
                 noticeFin(message.getClientSocket());
@@ -93,7 +96,12 @@ public class Server{
         }
     }
 
-    private void sendWhisper(String message, Socket socket){
+    private void sendFile(byte[] body, Socket socket) {
+
+
+    }
+
+    private void sendWhisper(String message, Socket socket) {
         System.out.println("start send whisper");
         String[] parts = message.split(" ", 2);
         String receiverId = parts[0];
