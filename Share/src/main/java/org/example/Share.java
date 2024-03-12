@@ -48,6 +48,7 @@ public class Share {
 
     public static byte[] getFilePacketHeader(String id, byte[] fileByte) {
         // byte[] byte[] byte[] byte[]
+        return null;
     }
 
     public static String readInputMessage(byte[] packet){

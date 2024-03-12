@@ -146,12 +146,12 @@ public class Client implements Runnable {
                     offset = 0;
                     bytesRead = 0;
                     seq += 1;
-                    dataOutputStream.write();
-                    dataOutputStream.write();
+                    dataOutputStream.write(oneRead);
+                    dataOutputStream.write(oneRead);
                     continue;
                 }
             }
-            byte[] sendingPacket = Share.getFilePacketHeader(oneRead);
+            byte[] sendingPacket = Share.getFilePacketHeader(id, oneRead);
 
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
