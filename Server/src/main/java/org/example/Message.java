@@ -4,10 +4,10 @@ import java.net.Socket;
 
 public class Message {
     private final MessageType messageType;
-    private final String body;
+    private final byte[] body;
     private final Socket clientSocket;
 
-    public Message(MessageType messageType, String body, Socket clientSocket){
+    public Message(MessageType messageType, byte[] body, Socket clientSocket){
         this.messageType = messageType;
         this.body = body;
         this.clientSocket = clientSocket;
@@ -17,7 +17,7 @@ public class Message {
         return messageType;
     }
 
-    public String getBody(){
+    public byte[] getBody(){
         return body;
     }
 
