@@ -52,7 +52,7 @@ public class ClientHandler implements Runnable {
     }
 
     public void sendPacket(MessageType messageType, String message){
-        byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, message);
+        byte[] sendingByte = Share.getPacketHeader(messageType, message);
         try {
             dataOutputStream.writeInt(sendingByte.length);
             dataOutputStream.write(sendingByte, 0, sendingByte.length);
@@ -63,7 +63,7 @@ public class ClientHandler implements Runnable {
     }
 
     public void sendTypeOnly(MessageType messageType){
-        byte[] sendingByte = Share.getSendPacketByteWithHeader(messageType, "");
+        byte[] sendingByte = Share.getPacketHeader(messageType, "");
         try {
             dataOutputStream.writeInt(sendingByte.length);
             dataOutputStream.write(sendingByte, 0, sendingByte.length);
@@ -71,9 +71,5 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public DataOutputStream getDataOutputStream() {
-        return dataOutputStream;
     }
 }

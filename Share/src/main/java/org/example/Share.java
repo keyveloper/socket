@@ -23,12 +23,12 @@ public class Share {
         };
     }
 
-    public static byte[] getSendPacketByteWithHeader(MessageType type, String message){
+    public static byte[] getPacketHeader(MessageType type, String message){
         // byte[] + byte[] + byte[]
         byte[] bodyByte = message.getBytes();
         // body의 길이
         int bodyLength = bodyByte.length;
-        // bodt의 길이를 나타내는 숫자 4byte이내
+        // body의 길이를 나타내는 숫자 4byte이내
         byte[] bodyLengthByte = intToByteArray(bodyLength);
         byte[] packetTypeByte = getTypeByte(type);
 
@@ -44,6 +44,10 @@ public class Share {
         System.arraycopy(bodyByte, 0, packet, 8, bodyLength);
 
         return packet;
+    }
+
+    public static byte[] getFilePacketHeader(String id, byte[] fileByte) {
+        // byte[] byte[] byte[] byte[]
     }
 
     public static String readInputMessage(byte[] packet){

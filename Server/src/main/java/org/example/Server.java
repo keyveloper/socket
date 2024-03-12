@@ -58,6 +58,8 @@ public class Server{
             case WHISPER:
                 sendWhisper(message.getBody(), message.getClientSocket());
                 break;
+            case FILE:
+                sendFile(message.getBody(), message.getClientSocket());
             case FIN:
                 noticeFin(message.getClientSocket());
                 break;
@@ -93,7 +95,7 @@ public class Server{
         }
     }
 
-    private void sendWhisper(String message, Socket socket){
+    private void sendWhisper(String message, Socket socket) {
         System.out.println("start send whisper");
         String[] parts = message.split(" ", 2);
         String receiverId = parts[0];
@@ -103,6 +105,13 @@ public class Server{
         synchronized ( handlerLock ){
             handlerMap.get(receiverSocket).sendPacket(MessageType.WHISPER, whisperMessage);
         }
+    }
+
+    private void sendFile(String message, Socket socket) {
+        System.out.println("start sending the file");
+        String[] parts = message.split(" ", 2);
+        String receiverId = parts[0];
+        
     }
 
     private void noticeFin(Socket socket){

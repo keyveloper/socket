@@ -9,5 +9,8 @@ public enum MessageType {
     CHANGE_ID,
     CHANGE_ID_SUCCESS,
     WHISPER,
+    FILE,
+    FILE_END,
     FIN,
+    FIN_ACK,
 }
