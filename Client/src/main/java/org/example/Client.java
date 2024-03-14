@@ -134,22 +134,13 @@ public class Client implements Runnable {
         // 1MB단위로 읽어주기
         // file - 100mb
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
-
             byte[] oneRead = new byte[1024 * 1024]; // 1mb반위로 읽기 1024 * 1024
-            int offset = 0; // ~ now
             int bytesRead;
-            int seq = 0;
 
+            // 파일 데이터를 모두 읽을 때 까지 -> 연속적으로 계속 전송
             while ((bytesRead = fileInputStream.read(oneRead)) != -1) {
-                offset += bytesRead;
-                if (offset >= 1024 * 1024) {
-                    offset = 0;
-                    bytesRead = 0;
-                    seq += 1;
-                    dataOutputStream.write(oneRead);
-                    dataOutputStream.write(oneRead);
-                    continue;
-                }
+                // 파일 패킷추가
+
             }
             byte[] sendingPacket = Share.getFilePacketHeader(id, oneRead);
 

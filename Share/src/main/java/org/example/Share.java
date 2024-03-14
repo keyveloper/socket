@@ -47,8 +47,26 @@ public class Share {
     }
 
     public static byte[] getFilePacketHeader(String id, byte[] fileByte) {
-        // byte[] byte[] byte[] byte[]
-        return null;
+        // body.length, type, id.length, id, file -> 1MB단위
+        byte[] bodyLengthByte = intToByteArray( id.length() + fileByte.length);
+        byte[] typeByte = getTypeByte(MessageType.FILE);
+
+        byte[] idByte = id.getBytes();
+        byte[] idLengthByte = intToByteArray(idByte.length);
+        byte[] packet = new byte[4 + 4 + 4 + bodyLengthByte.length];
+
+        // bodyLength
+        System.arraycopy(bodyLengthByte, 0, packet, 0, 4);
+        // typeLength
+        System.arraycopy(typeByte, 0, packet, 4, 4);
+        // idLength
+        System.arraycopy(idLengthByte, 0, packet, 8, 4);
+        // id
+        System.arraycopy(idByte, 0, packet, 12, id.length());
+        // file
+        System.arraycopy(fileByte, 0, packet, 12 + id.length(), fileByte.length);
+
+        return packet;
     }
 
     public static String readInputMessage(byte[] packet){
