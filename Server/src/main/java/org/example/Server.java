@@ -13,7 +13,10 @@ public class Server{
 
     private final HashMap<Socket, ClientHandler> handlerMap = new HashMap<>();
 
+    private final HashMap<Socket, FileHandler> fileHandlerMap = new HashMap<>();
     private final Object handlerLock = new Object();
+
+    private final Object fileHandlerLock = new Object();
 
     private boolean isRunning = true;
     public Server() {
@@ -30,12 +33,16 @@ public class Server{
                     System.out.println("Connected " + clientSocket.getLocalPort() + " Port, From " + clientSocket.getRemoteSocketAddress().toString() + "\n");
 
                     ClientHandler clientHandler = new ClientHandler(this, clientSocket);
+                    FileHandler fileHandler = new FileHandler(this, clientSocket);
                     Thread thread = new Thread(clientHandler);
                     thread.start();
-                    synchronized ( handlerLock ){
+                    synchronized ( handlerLock ) {
                         handlerMap.put(clientSocket, clientHandler);
                     }
-                    // 종료 구현
+
+                    synchronized ( fileHandlerLock ) {
+                        fileHandlerMap.put(clientSocket, fileHandler);
+                    }
                 }
             }
         } catch (IOException e) {
@@ -58,8 +65,10 @@ public class Server{
             case WHISPER:
                 sendWhisper(new String(message.getBody()), message.getClientSocket());
                 break;
-            case FILE:
-                sendFile(message.getBody(), message.getClientSocket());
+            case FILE_START:
+                storeFile(message.getBody(), message.getClientSocket());
+            case FILE_END:
+                sendFile(message.getClientSocket());
             case FIN:
                 noticeFin(message.getClientSocket());
                 break;
@@ -107,8 +116,14 @@ public class Server{
         }
     }
 
-    private void sendFile(byte[] body, Socket socket) {
+    private void storeFile(byte[] body, Socket socket) {
         System.out.println("start sending the file");
+        synchronized ( fileHandlerLock ) {
+            fileHandlerMap.get(socket).storeFile(body);
+        }
+    }
+
+    private void sendFile(Socket socket) {
 
     }
 

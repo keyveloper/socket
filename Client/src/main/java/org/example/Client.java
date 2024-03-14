@@ -92,14 +92,14 @@ public class Client implements Runnable {
                         System.out.println("you Already Register ID");
                         break;
                     }
-                    sendPacket(MessageType.REGISTER_ID, seperateBodyMessage(command));
+                    sendPacket(MessageType.REGISTER_ID, getBodyMessage(command));
                     break;
                 case FIN:
                     System.out.println("sending FIN Packet");
                     sendPacket(MessageType.FIN, "");
                     break;
                 case FILE:
-                    String[] parts = seperateBodyMessage(command).split(" ", 3);
+                    String[] parts = getBodyMessage(command).split(" ", 3);
                     if (parts.length < 3) {
                         System.out.println("wrong command \n command: /F id filepath or filename");
                     }
@@ -108,7 +108,7 @@ public class Client implements Runnable {
                 default:
                     if (registered) {
                         System.out.println("sending default mode");
-                        sendPacket(getMessageTypeByCommand(command), seperateBodyMessage(command));
+                        sendPacket(getMessageTypeByCommand(command), getBodyMessage(command));
                     } else {
                         System.out.println("Register first! \n command : /R");
                     }
@@ -144,6 +144,11 @@ public class Client implements Runnable {
                 dataOutputStream.flush();
                 seq ++;
             }
+
+            System.out.println("file 전송 완료");
+            dataOutputStream.write(Share.getPacketHeader(MessageType.FILE_END, ""));
+            dataOutputStream.flush();
+
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -168,7 +173,7 @@ public class Client implements Runnable {
         return MessageType.COMMENT;
     }
 
-    private String seperateBodyMessage(String command){
+    private String getBodyMessage(String command){
         String bodyMessage;
         if (command.startsWith("/Q")){
             return "";
