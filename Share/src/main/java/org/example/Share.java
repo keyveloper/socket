@@ -1,6 +1,7 @@
 package org.example;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -46,14 +47,14 @@ public class Share {
         return packet;
     }
 
-    public static byte[] getFilePacketHeader(String id, byte[] fileByte) {
+    public static byte[] getFilePacketHeader(String id, Integer seq, byte[] fileByte) {
         // body.length, type, id.length, id, file -> 1MB단위
         byte[] bodyLengthByte = intToByteArray( id.length() + fileByte.length);
         byte[] typeByte = getTypeByte(MessageType.FILE);
-
-        byte[] idByte = id.getBytes();
+        byte[] idByte = id.getBytes(StandardCharsets.UTF_8);
         byte[] idLengthByte = intToByteArray(idByte.length);
-        byte[] packet = new byte[4 + 4 + 4 + bodyLengthByte.length];
+        byte[] seqByte = intToByteArray(seq);
+        byte[] packet = new byte[4 + 4 + 4 + 4 + bodyLengthByte.length];
 
         // bodyLength
         System.arraycopy(bodyLengthByte, 0, packet, 0, 4);
@@ -63,8 +64,10 @@ public class Share {
         System.arraycopy(idLengthByte, 0, packet, 8, 4);
         // id
         System.arraycopy(idByte, 0, packet, 12, id.length());
+
+        System.arraycopy(seqByte, 0, packet, 12 + id.length(), 4);
         // file
-        System.arraycopy(fileByte, 0, packet, 12 + id.length(), fileByte.length);
+        System.arraycopy(fileByte, 0, packet, 12 + id.length() + 4, fileByte.length);
 
         return packet;
     }

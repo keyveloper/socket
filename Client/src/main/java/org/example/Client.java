@@ -136,20 +136,19 @@ public class Client implements Runnable {
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
             byte[] oneRead = new byte[1024 * 1024]; // 1mb반위로 읽기 1024 * 1024
             int bytesRead;
-
+            int seq = 0;
             // 파일 데이터를 모두 읽을 때 까지 -> 연속적으로 계속 전송
             while ((bytesRead = fileInputStream.read(oneRead)) != -1) {
                 // 파일 패킷추가
-
+                dataOutputStream.write(Share.getFilePacketHeader(id, seq, oneRead), 0, bytesRead);
+                dataOutputStream.flush();
+                seq ++;
             }
-            byte[] sendingPacket = Share.getFilePacketHeader(id, oneRead);
-
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-    }
+        }}
 
     private MessageType getMessageTypeByCommand(String command){
         if (command.startsWith("/R")) {
