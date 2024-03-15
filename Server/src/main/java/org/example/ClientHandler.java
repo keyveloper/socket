@@ -73,6 +73,17 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    public void sendFile(MessageType messageType, byte[] body) {
+        byte[] sendingByte = Share.getPacketHeaderVerByte(messageType, body);
+        try {
+            dataOutputStream.writeInt(sendingByte.length);
+            dataOutputStream.write(sendingByte, 0, sendingByte.length);
+            dataOutputStream.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public DataOutputStream getDataOutputStream() {
         return dataOutputStream;
     }

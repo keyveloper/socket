@@ -64,10 +64,10 @@ public class Server{
             case WHISPER:
                 sendWhisper(new String(message.getBody()), message.getClientSocket());
                 break;
-            case FILE_START:
-                storeFile(message.getBody(), message.getClientSocket());
+            case FILE:
+                sendFile(message.getBody(), MessageType.FILE);
             case FILE_END:
-                sendFile(message.getBody(), message.getClientSocket());
+                sendFile(message.getBody(), MessageType.FILE_END);
             case FIN:
                 noticeFin(message.getClientSocket());
                 break;
@@ -115,16 +115,10 @@ public class Server{
         }
     }
 
-    private void storeFile(byte[] body, Socket socket) {
-        System.out.println("start store the file");
-        fileManagerMap.get(socket).storeFile(body);
-    }
-
-    private void sendFile(byte[] body, Socket socket) throws IllegalAccessException {
-        System.out.println("Start combined the file, and send to receiver");
-        String receiverId = fileManagerMap.get(socket).getReceiverId(body);
-        byte[] sendingByte = fileManagerMap.get(socket).getCombinedFile(receiverId);
-
+    private void sendFile(byte[] body, MessageType type) {
+        System.out.println("start sends the file");
+        Socket receiverSocket = idManager.getSocketById(FileProcessor.getReceiverId(body));
+        handlerMap.get(receiverSocket).sendFile(type, body);
     }
 
     private void noticeFin(Socket socket){

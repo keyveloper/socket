@@ -11,7 +11,6 @@ public class FileManager{
     private final HashMap<String, TreeMap<Integer, byte[]>> fileMap = new HashMap<>();
 
 
-
     public FileManager(Server server, Socket socket) {
         this.server = server;
         this.client = socket;
@@ -19,17 +18,16 @@ public class FileManager{
     }
 
     public void storeFile(byte[] body) {
-        int receiverIdLength = ByteBuffer.wrap(body, 0, 4).getInt();
-        String receiverId = new String(body, 4, receiverIdLength);
-        if (fileMap.containsKey(receiverId)) {
-            // one account one file
+        if (fileMap.containsKey(FileProcessor.getReceiverId(body))) {
             return;
         }
+        int receiverIdLength = FileProcessor.getReceiverIdLength(body);
         int seq = ByteBuffer.wrap(body, 8 + receiverIdLength, 4).getInt();
         byte[] fileByte = ByteBuffer.wrap(body, 12 + receiverIdLength, body.length - 4 - receiverIdLength - 4).array();
 
         TreeMap<Integer, byte[]> seqFileMap = new TreeMap<>();
-        fileMap.put(receiverId, seqFileMap);
+        seqFileMap.put(seq, fileByte);
+        fileMap.put(FileProcessor.getReceiverId(body), seqFileMap);
     }
 
     public byte[] getCombinedFile(String id) throws IllegalAccessException {

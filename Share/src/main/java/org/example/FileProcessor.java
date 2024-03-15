@@ -7,30 +7,30 @@ import static org.example.Share.*;
 import static org.example.TypeChange.intToByteArray;
 
 public class FileProcessor {
+
+    public static int getReceiverIdLength(byte[] body) {
+        return ByteBuffer.wrap(body, 0, 4).getInt();
+    }
     public static String getReceiverId(byte[] body) {
         int receiverIdLength = ByteBuffer.wrap(body, 0, 4).getInt();
-        String receiverId = new String(body, 4, receiverIdLength);
-        return receiverId;
+        return new String(body, 4, receiverIdLength);
     }
 
-    public static Integer getFileSeq(byte[] body) {
+    public static int getFileSeq(byte[] body) {
         int receiverIdLength = ByteBuffer.wrap(body, 0, 4).getInt();
         String receiverId = new String(body, 4, receiverIdLength);
 
-        int seq = ByteBuffer.wrap(body, 8 + receiverIdLength, 4).getInt();
-        return seq;
+        return ByteBuffer.wrap(body, 8 + receiverIdLength, 4).getInt();
     }
 
     public static byte[] getFileByte(byte[] body) {
         int receiverIdLength = ByteBuffer.wrap(body, 0, 4).getInt();
         String receiverId = new String(body, 4, receiverIdLength);
         int seq = ByteBuffer.wrap(body, 8 + receiverIdLength, 4).getInt();
-        byte[] fileByte = ByteBuffer.wrap(body, 12 + receiverIdLength, body.length - 4 - receiverIdLength - 4).array();
-
-        return fileByte;
+        return ByteBuffer.wrap(body, 12 + receiverIdLength, body.length - 4 - receiverIdLength - 4).array();
     }
 
-    public static byte[] getFileHeader(String id, Integer seq, byte[] fileByte) {
+    public static byte[] getFileHeaderByCommand(String id, Integer seq, byte[] fileByte) {
         // body.length, type, id.length, id, file -> 1MB단위
         byte[] bodyLengthByte = intToByteArray( id.length() + fileByte.length);
         byte[] typeByte = getTypeByte(MessageType.FILE);
@@ -55,7 +55,7 @@ public class FileProcessor {
         return packet;
     }
 
-    public static byte[] getFileEndHeader(String id, Integer seq, byte[] fileByte) {
+    public static byte[] getFileEndHeaderByCommand(String id, Integer seq, byte[] fileByte) {
         // body.length, type, id.length, id, file -> 1MB단위
         byte[] bodyLengthByte = intToByteArray( id.length() + fileByte.length);
         byte[] typeByte = getTypeByte(MessageType.FILE_END);
