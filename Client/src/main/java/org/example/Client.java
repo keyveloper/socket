@@ -140,13 +140,13 @@ public class Client implements Runnable {
             // 파일 데이터를 모두 읽을 때 까지 -> 연속적으로 계속 전송
             while ((bytesRead = fileInputStream.read(oneRead)) != -1) {
                 // 파일 패킷추가
-                dataOutputStream.write(Share.getFilePacketHeader(id, seq, oneRead), 0, bytesRead);
+                dataOutputStream.write(FileProcessor.getFileHeaderByCommand(MessageType.FILE, id, seq, oneRead), 0, bytesRead);
                 dataOutputStream.flush();
                 seq ++;
             }
 
             System.out.println("file 전송 완료");
-            dataOutputStream.write(Share.getPacketHeader(MessageType.FILE_END, ""));
+            dataOutputStream.write(Share.getPacketHeader(MessageType.FILE_END, id));
             dataOutputStream.flush();
 
         } catch (FileNotFoundException e) {

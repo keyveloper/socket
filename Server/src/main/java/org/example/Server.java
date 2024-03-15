@@ -13,7 +13,6 @@ public class Server{
 
     private final HashMap<Socket, ClientHandler> handlerMap = new HashMap<>();
 
-    private final HashMap<Socket, FileManager> fileManagerMap = new HashMap<>();
     private final Object handlerLock = new Object();
 
     private final Object fileManagerLock = new Object();
@@ -32,15 +31,10 @@ public class Server{
                     System.out.println("Connected " + clientSocket.getLocalPort() + " Port, From " + clientSocket.getRemoteSocketAddress().toString() + "\n");
 
                     ClientHandler clientHandler = new ClientHandler(this, clientSocket);
-                    FileManager fileManager = new FileManager(this, clientSocket);
                     Thread thread = new Thread(clientHandler);
                     thread.start();
                     synchronized ( handlerLock ) {
                         handlerMap.put(clientSocket, clientHandler);
-                    }
-
-                    synchronized ( fileManagerLock ) {
-                        fileManagerMap.put(clientSocket, fileManager);
                     }
                 }
             }
