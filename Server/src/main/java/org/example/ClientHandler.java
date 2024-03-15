@@ -72,4 +72,8 @@ public class ClientHandler implements Runnable {
             throw new RuntimeException(e);
         }
     }
+
+    public DataOutputStream getDataOutputStream() {
+        return dataOutputStream;
+    }
 }

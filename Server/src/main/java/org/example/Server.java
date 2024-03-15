@@ -118,13 +118,17 @@ public class Server{
 
     private void storeFile(byte[] body, Socket socket) {
         System.out.println("start sending the file");
+
+        // 여기 LOCK이 필요한가?
         synchronized ( fileHandlerLock ) {
             fileHandlerMap.get(socket).storeFile(body);
         }
     }
 
     private void sendFile(Socket socket) {
-
+        synchronized ( fileHandlerLock ) {
+            fileHandlerMap.get(socket).sendFile();
+        }
     }
 
     private void noticeFin(Socket socket){
