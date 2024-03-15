@@ -13,11 +13,10 @@ public class Server{
 
     private final HashMap<Socket, ClientHandler> handlerMap = new HashMap<>();
 
-    private final HashMap<Socket, FileHandler> fileHandlerMap = new HashMap<>();
+    private final HashMap<Socket, FileManager> fileManagerMap = new HashMap<>();
     private final Object handlerLock = new Object();
 
-    private final Object fileHandlerLock = new Object();
-
+    private final Object fileManagerLock = new Object();
     private boolean isRunning = true;
     public Server() {
     }
@@ -33,15 +32,15 @@ public class Server{
                     System.out.println("Connected " + clientSocket.getLocalPort() + " Port, From " + clientSocket.getRemoteSocketAddress().toString() + "\n");
 
                     ClientHandler clientHandler = new ClientHandler(this, clientSocket);
-                    FileHandler fileHandler = new FileHandler(this, clientSocket);
+                    FileManager fileManager = new FileManager(this, clientSocket);
                     Thread thread = new Thread(clientHandler);
                     thread.start();
                     synchronized ( handlerLock ) {
                         handlerMap.put(clientSocket, clientHandler);
                     }
 
-                    synchronized ( fileHandlerLock ) {
-                        fileHandlerMap.put(clientSocket, fileHandler);
+                    synchronized ( fileManagerLock ) {
+                        fileManagerMap.put(clientSocket, fileManager);
                     }
                 }
             }
@@ -68,7 +67,7 @@ public class Server{
             case FILE_START:
                 storeFile(message.getBody(), message.getClientSocket());
             case FILE_END:
-                sendFile(message.getClientSocket());
+                sendFile(message.getBody(), message.getClientSocket());
             case FIN:
                 noticeFin(message.getClientSocket());
                 break;
@@ -117,18 +116,15 @@ public class Server{
     }
 
     private void storeFile(byte[] body, Socket socket) {
-        System.out.println("start sending the file");
-
-        // 여기 LOCK이 필요한가?
-        synchronized ( fileHandlerLock ) {
-            fileHandlerMap.get(socket).storeFile(body);
-        }
+        System.out.println("start store the file");
+        fileManagerMap.get(socket).storeFile(body);
     }
 
-    private void sendFile(Socket socket) {
-        synchronized ( fileHandlerLock ) {
-            fileHandlerMap.get(socket).sendFile();
-        }
+    private void sendFile(byte[] body, Socket socket) throws IllegalAccessException {
+        System.out.println("Start combined the file, and send to receiver");
+        String receiverId = fileManagerMap.get(socket).getReceiverId(body);
+        byte[] sendingByte = fileManagerMap.get(socket).getCombinedFile(receiverId);
+
     }
 
     private void noticeFin(Socket socket){

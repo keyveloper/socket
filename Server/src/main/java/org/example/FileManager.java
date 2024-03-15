@@ -10,13 +10,9 @@ public class FileManager{
     private final Socket client;
     private final HashMap<String, TreeMap<Integer, byte[]>> fileMap = new HashMap<>();
 
-    public String getReceiverId(byte[] body) {
-        int receiverIdLength = ByteBuffer.wrap(body, 0, 4).getInt();
-        String receiverId = new String(body, 4, receiverIdLength);
-        return receiverId;
-    }
 
-    public FileManager(Server server, Socket socket, DataOutputStream dataOutputStream) {
+
+    public FileManager(Server server, Socket socket) {
         this.server = server;
         this.client = socket;
         System.out.println("Run File_handler");
@@ -28,7 +24,7 @@ public class FileManager{
         if (fileMap.containsKey(receiverId)) {
             // one account one file
             return;
-     g   }
+        }
         int seq = ByteBuffer.wrap(body, 8 + receiverIdLength, 4).getInt();
         byte[] fileByte = ByteBuffer.wrap(body, 12 + receiverIdLength, body.length - 4 - receiverIdLength - 4).array();
 
@@ -36,7 +32,7 @@ public class FileManager{
         fileMap.put(receiverId, seqFileMap);
     }
 
-    private byte[] getCombineFile(String id) throws IllegalAccessException {
+    public byte[] getCombinedFile(String id) throws IllegalAccessException {
         TreeMap<Integer, byte[]> fileSeq = fileMap.get(id);
         if (fileSeq == null) {
             throw new IllegalAccessException("ID not found: " + id);

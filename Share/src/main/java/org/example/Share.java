@@ -1,10 +1,9 @@
 package org.example;
 
-import java.nio.ByteBuffer;
+import java.nio.*;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.io.*;
-import java.net.*;
+
+import static org.example.TypeChange.intToByteArray;
 
 public class Share {
     public static int portNum = 9999;
@@ -15,14 +14,6 @@ public class Share {
         return typeBytes;
     }
 
-    private static byte[] intToByteArray(int value) {
-        return new byte[]{
-                (byte) (value >> 24),
-                (byte) (value >> 16),
-                (byte) (value >> 8),
-                (byte) value
-        };
-    }
 
     public static byte[] getPacketHeader(MessageType type, String message){
         // byte[] + byte[] + byte[]
