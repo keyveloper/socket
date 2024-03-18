@@ -70,6 +70,10 @@ public class Server{
         }
     }
 
+    public void print(String message) {
+        System.out.println(message);
+    }
+
     private void resisterId(String id, Socket socket){
         if (idManager.register(id, socket)){
             System.out.println("Id Reigsterd complete");
@@ -87,13 +91,14 @@ public class Server{
     }
 
     private void changeID(String id, Socket socket){
+        String oldId = idManager.getIdBySocket(socket);
         if (idManager.changeId(id, socket)){
             synchronized ( handlerLock ){
                 handlerMap.get(socket).sendTypeOnly(MessageType.REGISTER_SUCCESS);
 
                 for (Socket key : handlerMap.keySet()){
                     ClientHandler handler = handlerMap.get(key);
-                    handler.sendPacket(MessageType.COMMENT, getIdChangeMessage(id, socket));
+                    handler.sendPacket(MessageType.COMMENT, getIdChangeMessage(oldId, socket));
                 }
 
             }
@@ -105,8 +110,8 @@ public class Server{
         }
     }
 
-    private String getIdChangeMessage(String changedid, Socket socket) {
-        return idManager.getIdBySocket(socket) + "changed the id -> " + changedid;
+    private String getIdChangeMessage(String oldId, Socket socket) {
+        return oldId + " changed ID" + oldId + " -> " + idManager.getIdBySocket(socket);
     }
 
     private void sendWhisper(String message, Socket socket) {
@@ -129,7 +134,10 @@ public class Server{
 
     private void noticeFin(Socket socket){
         synchronized ( handlerLock ){
-            handlerMap.get(socket).sendPacket(MessageType.NOTICE, makeSocketOutMessage(socket));
+            for (Socket key : handlerMap.keySet()){
+                ClientHandler handler = handlerMap.get(key);
+                handler.sendPacket(MessageType.NOTICE, makeSocketOutMessage(socket));
+            }
         }
         removeData(socket);
         try {

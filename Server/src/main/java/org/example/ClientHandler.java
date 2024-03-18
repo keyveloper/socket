@@ -2,6 +2,8 @@ package org.example;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class ClientHandler implements Runnable {
     private final Socket clientSocket;
@@ -22,21 +24,17 @@ public class ClientHandler implements Runnable {
                 OutputStream outputStream = clientSocket.getOutputStream();
                 dataOutputStream = new DataOutputStream(outputStream);
 
-                // All byteLength
-                int inAllLength = dataInputStream.readInt();
+                // body length
+                int bodyLength = dataInputStream.readInt();
+                server.print(String.valueOf(bodyLength));
 
                 // byte[4] = length(only body)
-                byte[] inLengthByte = new byte[4];
-                dataInputStream.readFully(inLengthByte);
-                // int messageLength = Share.readInputLength(inLengthByte);
-
-                //byte[4] = type
-                byte[] inTypeByte = new byte[4];
-                dataInputStream.readFully(inTypeByte);
-                MessageType messageType = Share.readInputType(inTypeByte);
+                int typeInt = dataInputStream.readInt();
+                MessageType messageType = MessageType.values()[typeInt];
+                server.print("Message Type: " + messageType);
 
                 //byte[n] = body
-                byte[] inMessageByte = new byte[inAllLength - 8];
+                byte[] inMessageByte = new byte[bodyLength];
                 dataInputStream.readFully(inMessageByte);
 
                 Message message = new Message(messageType, inMessageByte, clientSocket);

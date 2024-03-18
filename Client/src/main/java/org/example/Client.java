@@ -3,6 +3,8 @@ package org.example;
 import javax.swing.text.Style;
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class Client implements Runnable {
     private final int tcpClientPort = Share.portNum;
@@ -39,7 +41,8 @@ public class Client implements Runnable {
 
                     byte[] inTypeByte = new byte[4];
                     dataInputStream.readFully(inTypeByte);
-                    MessageType inMessageType = Share.readInputType(inTypeByte);
+                    int typeInt = ByteBuffer.wrap(inTypeByte).getInt();
+                    MessageType inMessageType = MessageType.values()[typeInt];
 
 
                     byte[] inMessageByte = new byte[inAllLength - 8];
@@ -117,6 +120,7 @@ public class Client implements Runnable {
                         break;
                     }
                     sendPacket(MessageType.REGISTER_ID, getBodyMessage(command));
+                    System.out.println("send Id:" + getBodyMessage(command));
                     break;
                 case FIN:
                     System.out.println("sending FIN Packet");
@@ -146,7 +150,9 @@ public class Client implements Runnable {
 
     private void sendPacket(MessageType type, String body) {
         try {
+            System.out.println("add headerm type, body" + type + body);
             byte[] sendingByte = Share.getPacketHeader(type, body);
+            System.out.println(Arrays.toString(sendingByte) + sendingByte.length);
             dataOutputStream.write(sendingByte, 0, sendingByte.length);
             dataOutputStream.flush();
         } catch (IOException e) {

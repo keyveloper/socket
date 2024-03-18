@@ -45,23 +45,15 @@ public class Share {
 
         System.arraycopy(bodyLengthByte, 0, packet, 0, 4);
         System.arraycopy(packetTypeByte, 0, packet, 4, 4);
-        System.arraycopy(body, 0, packet, 0, body.length);
+        System.arraycopy(body, 0, packet, 8, body.length);
 
         return packet;
     }
 
     public static String readInputMessage(byte[] packet){
-        String message = new String(packet);
-        return message;
+        return new String(packet);
     }
 
-    public static MessageType readInputType(byte[] packet){
-        MessageType type;
-        ByteBuffer typeBuffer = ByteBuffer.wrap(packet);
-        int typInt = typeBuffer.getInt();
-        type = MessageType.values()[typInt];
-        return type;
-    }
 
     public static Integer readInputLength(byte[] packet){
         int packetLength = ByteBuffer.wrap(packet).getInt();
