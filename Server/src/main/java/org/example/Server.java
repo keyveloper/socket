@@ -133,13 +133,15 @@ public class Server{
     }
 
     private void noticeFin(Socket socket){
+        String outMessage = makeSocketOutMessage(socket);
+        removeData(socket);
         synchronized ( handlerLock ){
             for (Socket key : handlerMap.keySet()){
                 ClientHandler handler = handlerMap.get(key);
-                handler.sendPacket(MessageType.NOTICE, makeSocketOutMessage(socket));
+                handler.sendPacket(MessageType.NOTICE, outMessage);
             }
         }
-        removeData(socket);
+
         try {
             socket.close();
         } catch (IOException e) {
