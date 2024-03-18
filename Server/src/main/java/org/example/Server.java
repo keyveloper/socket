@@ -174,6 +174,7 @@ public class Server{
                 handler.sendPacket(MessageType.COMMENT, message);
             }
         }
+        countManager.add(socket);
     }
 
     private String makeWhisperMessage(String message, Socket socket){
