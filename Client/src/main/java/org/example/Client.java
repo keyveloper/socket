@@ -1,5 +1,6 @@
 package org.example;
 
+import javax.swing.text.Style;
 import java.io.*;
 import java.net.*;
 
@@ -86,13 +87,16 @@ public class Client implements Runnable {
         }
     }
 
-    private void actionByFile(MessageType messageType, byte[] body) throws IllegalAccessException {
+    private void actionByFile(MessageType messageType, byte[] body) throws IllegalAccessException, IOException {
         switch (messageType) {
             case FILE:
                 fileManager.storeFile(body);
                 break;
             case FILE_END:
                 byte[] combinedFileByte = fileManager.getCombinedFile(FileProcessor.getReceiverId(body));
+                FileOutputStream fileOutputStream = new FileOutputStream(fileManager.getOutputPath());
+                fileOutputStream.write(body);
+                System.out.println("File has been saved successfully to: " + fileManager.getOutputPath());
                 break;
         }
     }
@@ -138,6 +142,7 @@ public class Client implements Runnable {
             throw new RuntimeException(e);
         }
     }
+
 
     private void sendPacket(MessageType type, String body) {
         try {

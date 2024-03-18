@@ -9,6 +9,7 @@ public class FileManager{
     private final Socket client;
     private final HashMap<String, TreeMap<Integer, byte[]>> fileMap = new HashMap<>();
 
+    private final String outputPath = "C:\\Users\\user\\Desktop\\BE metoring\\socket\\Client\\src\\main\\java\\org\\example";
 
     public FileManager(Socket socket) {
         this.client = socket;
@@ -28,6 +29,9 @@ public class FileManager{
         fileMap.put(FileProcessor.getReceiverId(body), seqFileMap);
     }
 
+    public String getOutputPath() {
+        return outputPath;
+    }
     public byte[] getCombinedFile(String id) throws IllegalAccessException {
         TreeMap<Integer, byte[]> fileSeq = fileMap.get(id);
         if (fileSeq == null) {

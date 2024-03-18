@@ -90,6 +90,12 @@ public class Server{
         if (idManager.changeId(id, socket)){
             synchronized ( handlerLock ){
                 handlerMap.get(socket).sendTypeOnly(MessageType.REGISTER_SUCCESS);
+
+                for (Socket key : handlerMap.keySet()){
+                    ClientHandler handler = handlerMap.get(key);
+                    handler.sendPacket(MessageType.COMMENT, getIdChangeMessage(id, socket));
+                }
+
             }
         } else {
             synchronized ( handlerLock ){
@@ -97,6 +103,10 @@ public class Server{
                 System.out.println("Already Exist ID");
             }
         }
+    }
+
+    private String getIdChangeMessage(String changedid, Socket socket) {
+        return idManager.getIdBySocket(socket) + "changed the id -> " + changedid;
     }
 
     private void sendWhisper(String message, Socket socket) {
