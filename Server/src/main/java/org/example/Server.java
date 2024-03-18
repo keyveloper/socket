@@ -60,8 +60,10 @@ public class Server{
                 break;
             case FILE:
                 sendFile(message.getBody(), MessageType.FILE);
+                break;
             case FILE_END:
                 sendFile(message.getBody(), MessageType.FILE_END);
+                break;
             case FIN:
                 noticeFin(message.getClientSocket());
                 break;

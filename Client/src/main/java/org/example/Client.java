@@ -8,10 +8,13 @@ public class Client implements Runnable {
     private Boolean registered = false;
     private DataOutputStream dataOutputStream;
 
+    private FileManager fileManager;
+
     Socket socket;
 
     public Client() {
         socket = new Socket();
+        fileManager = new FileManager(socket);
     }
     public void run() {
         long threadId = Thread.currentThread().getId();
@@ -37,14 +40,19 @@ public class Client implements Runnable {
                     dataInputStream.readFully(inTypeByte);
                     MessageType inMessageType = Share.readInputType(inTypeByte);
 
+
+                    byte[] inMessageByte = new byte[inAllLength - 8];
+                    dataInputStream.readFully(inMessageByte);
+                    String message = Share.readInputMessage(inMessageByte);
+
                     if (inMessageType == MessageType.FIN_ACK) {
                         actionByType(inMessageType, "");
                         break;
                     }
 
-                    byte[] inMessageByte = new byte[inAllLength - 8];
-                    dataInputStream.readFully(inMessageByte);
-                    String message = Share.readInputMessage(inMessageByte);
+                    if (inMessageType == MessageType.FILE || inMessageType == MessageType.FILE_END) {
+                        actionByFile(inMessageType, inMessageByte);
+                    }
 
                     actionByType(inMessageType, message);
                 } else if(inAllLength == 0){
@@ -58,7 +66,7 @@ public class Client implements Runnable {
         }
     }
 
-    public void actionByType(MessageType inputType, String message) throws IOException {
+    private void actionByType(MessageType inputType, String message) throws IOException {
         switch (inputType) {
             case COMMENT, WHISPER, NOTICE:
                 System.out.println("\n" + message + "\n");
@@ -74,6 +82,18 @@ public class Client implements Runnable {
                 System.out.println("Connetion close!");
                 dataOutputStream.close();
                 socket.close();
+                break;
+        }
+    }
+
+    private void actionByFile(MessageType messageType, byte[] body) throws IllegalAccessException {
+        switch (messageType) {
+            case FILE:
+                fileManager.storeFile(body);
+                break;
+            case FILE_END:
+                byte[] combinedFileByte = fileManager.getCombinedFile(FileProcessor.getReceiverId(body));
+                break;
         }
     }
 
