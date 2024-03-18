@@ -25,7 +25,7 @@ public class CountManager {
     public void add(Socket socket){
         synchronized ( countLock ) {
             if (messageCountMap.containsKey(socket)){
-                messageCountMap.put(socket, messageCountMap.get(socket));
+                messageCountMap.put(socket, messageCountMap.get(socket) + 1);
             }
         }
     }
