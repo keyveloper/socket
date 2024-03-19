@@ -31,6 +31,23 @@ public class FileProcessor {
         return ByteBuffer.wrap(body, 12 + receiverIdLength, body.length - 4 - receiverIdLength - 4).array();
     }
 
+    public static byte[] getTestFileHeader(MessageType messageType, byte[] body) {
+        // no id
+        // body
+        int bodyLengthByteSize = 4;
+        int typeByteSize = 4;
+        int bodyLengthSize = body.length;
+        System.out.println("bodyLengthSize: " + bodyLengthSize);
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(bodyLengthByteSize + typeByteSize + bodyLengthSize);
+        System.out.println("byteBuffer length: " + byteBuffer.capacity());
+        byteBuffer.putInt(bodyLengthSize);
+        byteBuffer.putInt(messageType.ordinal());
+        byteBuffer.put(body);
+
+        return byteBuffer.array();
+    }
+
     public static byte[] getFileHeaderByCommand(MessageType type, String id, Integer seq, byte[] fileByte) {
         // body.length, type, id.length, id, file -> 1MB단위
         byte[] bodyLengthByte = intToByteArray(id.length() + fileByte.length);

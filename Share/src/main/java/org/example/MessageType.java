@@ -13,4 +13,6 @@ public enum MessageType {
     FILE_END,
     FIN,
     FIN_ACK,
+    TEST,
+    TEST_SAVE
 }

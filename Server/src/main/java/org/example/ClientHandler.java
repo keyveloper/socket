@@ -55,14 +55,6 @@ public class ClientHandler implements Runnable {
             server.processMessage(finMessage);
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (dataInputStream != null) dataInputStream.close();
-                if (dataOutputStream != null) dataOutputStream.close();
-                if (clientSocket != null) clientSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -71,6 +63,16 @@ public class ClientHandler implements Runnable {
         try {
             dataOutputStream.writeInt(sendingByte.length);
             dataOutputStream.write(sendingByte, 0, sendingByte.length);
+            dataOutputStream.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void sendByte(byte[] body) {
+        try {
+            dataOutputStream.writeInt(body.length);
+            dataOutputStream.write(body, 0, body.length);
             dataOutputStream.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);

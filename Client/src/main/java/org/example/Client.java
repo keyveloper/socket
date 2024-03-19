@@ -4,7 +4,8 @@ import javax.swing.text.Style;
 import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.nio.file.Path;
+import java.util.*;
 
 public class Client implements Runnable {
     private final int tcpClientPort = Share.portNum;
@@ -58,6 +59,10 @@ public class Client implements Runnable {
                         actionByFile(inMessageType, inMessageByte);
                     }
 
+                    if (inMessageType == MessageType.TEST_SAVE) {
+                        saveFile(inMessageByte);
+                    }
+
                     actionByType(inMessageType, message);
                 } else if(inAllLength == 0){
                     // quit
@@ -104,6 +109,21 @@ public class Client implements Runnable {
         }
     }
 
+    private void saveFile(byte[] body) {
+        System.out.print("start to save file/ \n data: " + Arrays.toString(body));
+        try {
+            String randomFileName = UUID.randomUUID().toString() + ".txt";
+            String directoryPath = "C:\\Users\\yangd\\OneDrive\\바탕 화면\\filetest\\outputPath";
+            File file = new File(directoryPath, randomFileName);
+            FileOutputStream fileOutputStream =  new FileOutputStream(file);
+            fileOutputStream.write(body);
+            fileOutputStream.flush();
+            System.out.println("File saved successfully: " + file.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void processCommand(String command){
         try {
             MessageType messageType = getMessageTypeByCommand(command);
@@ -133,6 +153,10 @@ public class Client implements Runnable {
                     }
                     // parts[] = [/f id path]
                     sendFile(parts[1], parts[2]);
+                    break;
+                case TEST:
+                    sendTestFile(getBodyMessage(command));
+                    break;
                 default:
                     if (registered) {
                         System.out.println("sending default mode");
@@ -145,6 +169,29 @@ public class Client implements Runnable {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void sendTestFile(String fileName) {
+        File file = new File("C:\\Users\\yangd\\OneDrive\\바탕 화면\\filetest", fileName);
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            byte[] readByte = new byte[(int) file.length()];
+            int byteRead;
+            int seq = 0;
+            while ((byteRead = fileInputStream.read(readByte)) != -1) {
+                System.out.println("readByte: " + Arrays.toString(readByte));
+                System.out.println("byteRead: " + byteRead);
+                byte[] testHeader = FileProcessor.getTestFileHeader(MessageType.TEST, readByte);
+                System.out.println(Arrays.toString(testHeader));
+                dataOutputStream.write(testHeader,0, testHeader.length);
+                dataOutputStream.flush();
+            }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
 
@@ -164,12 +211,14 @@ public class Client implements Runnable {
         File file = new File(filePath);
         // 1MB단위로 읽어주기
         // file - 100mb
-        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
             byte[] oneRead = new byte[1024 * 1024]; // 1mb반위로 읽기 1024 * 1024
             int bytesRead;
             int seq = 0;
             // 파일 데이터를 모두 읽을 때 까지 -> 연속적으로 계속 전송
             while ((bytesRead = fileInputStream.read(oneRead)) != -1) {
+                System.out.println(bytesRead);
                 // 파일 패킷추가
                 dataOutputStream.write(FileProcessor.getFileHeaderByCommand(MessageType.FILE, id, seq, oneRead), 0, bytesRead);
                 dataOutputStream.flush();
@@ -197,6 +246,8 @@ public class Client implements Runnable {
             return MessageType.WHISPER;
         } else if (command.startsWith("/F")) {
             return MessageType.FILE;
+        } else if (command.startsWith("/T")) {
+            return MessageType.TEST;
         }
           else if (command.startsWith("/")){
             return null;

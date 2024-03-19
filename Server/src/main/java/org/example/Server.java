@@ -14,8 +14,6 @@ public class Server{
     private final HashMap<Socket, ClientHandler> handlerMap = new HashMap<>();
 
     private final Object handlerLock = new Object();
-
-    private final Object fileManagerLock = new Object();
     private boolean isRunning = true;
     public Server() {
     }
@@ -64,9 +62,28 @@ public class Server{
             case FILE_END:
                 sendFile(message.getBody(), MessageType.FILE_END);
                 break;
+            case TEST:
+                processTest(message.getBody());
+                break;
             case FIN:
                 noticeFin(message.getClientSocket());
                 break;
+        }
+    }
+
+    private void processTest(byte[] body) {
+        System.out.println("Test packet Received!!" + Arrays.toString(body));
+        ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+        synchronized (handlerLock) {
+            for (Socket socket : handlerMap.keySet()) {
+                ClientHandler handler = handlerMap.get(socket);
+                clientHandlers.add(handler);
+            }
+        }
+        for (ClientHandler clientHandler : clientHandlers) {
+            byte[] testByte = FileProcessor.getTestFileHeader(MessageType.TEST_SAVE, body);
+            System.out.println("send to all client \n data: " + Arrays.toString(testByte));
+            clientHandler.sendByte(testByte);
         }
     }
 
@@ -183,7 +200,4 @@ public class Server{
         return "(whisper)" + idManager.getIdBySocket(socket) + ": " + message;
     }
 
-    public CountManager getCountManager() {
-        return countManager;
-    }
 }
