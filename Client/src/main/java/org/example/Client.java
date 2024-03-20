@@ -59,7 +59,7 @@ public class Client implements Runnable {
                         actionByFile(inMessageType, inMessageByte);
                     }
 
-                    if (inMessageType == MessageType.TEST_SAVE) {
+                    if (inMessageType == MessageType.TEST_SAVE) {;
                         saveFile(inMessageByte);
                     }
 
@@ -109,7 +109,12 @@ public class Client implements Runnable {
         }
     }
 
+    private void storeFile(byte[] body) {
+        fileManager.testSave(body);
+    }
+
     private void saveFile(byte[] body) {
+        // has only body(flieName, seq, fileByte[])_
         System.out.print("start to save file/ \n data: " + Arrays.toString(body));
         try {
             String randomFileName = UUID.randomUUID().toString() + ".txt";
@@ -122,6 +127,10 @@ public class Client implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void combineFile(byte[] body) {
+
     }
 
     public void processCommand(String command){
@@ -175,23 +184,30 @@ public class Client implements Runnable {
         File file = new File("C:\\Users\\yangd\\OneDrive\\바탕 화면\\filetest", fileName);
         try {
             FileInputStream fileInputStream = new FileInputStream(file);
-            byte[] readByte = new byte[(int) file.length()];
+            byte[] readByte = new byte[1024 * 1024];
             int byteRead;
             int seq = 0;
             while ((byteRead = fileInputStream.read(readByte)) != -1) {
                 System.out.println("readByte: " + Arrays.toString(readByte));
                 System.out.println("byteRead: " + byteRead);
-                byte[] testHeader = FileProcessor.getTestFileHeader(MessageType.TEST, readByte);
+                byte[] testHeader = FileProcessor.getTestFileHeader(MessageType.TEST, fileName, seq, readByte);
                 System.out.println(Arrays.toString(testHeader));
-                dataOutputStream.write(testHeader,0, testHeader.length);
-                dataOutputStream.flush();
+                System.out.print("\n seq: " + seq + " sending file packet");
+                try{
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+//                dataOutputStream.write(testHeader,0, testHeader.length);
+//                dataOutputStream.flush();
+                seq ++;
             }
+            System.out.println("all filePacket be sent");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
 

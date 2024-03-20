@@ -29,6 +29,14 @@ public class FileManager{
         fileMap.put(FileProcessor.getReceiverId(body), seqFileMap);
     }
 
+    // fileMap = {FileName: {seq: byte[]}}
+    public void testSave(byte[] body) {
+        // original body를 들고있다.
+        TreeMap<Integer, byte[]> seqFileMap = new TreeMap<Integer, byte[]>();
+        seqFileMap.put(FileProcessor.getFileSeq(body), FileProcessor.getFileByte(body));
+        fileMap.put(FileProcessor.getFileName(body), seqFileMap);
+    }
+
     public String getOutputPath() {
         return outputPath;
     }

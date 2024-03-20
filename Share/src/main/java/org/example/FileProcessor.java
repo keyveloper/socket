@@ -2,6 +2,7 @@ package org.example;
 
 import java.nio.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import static org.example.Share.*;
 import static org.example.TypeChange.intToByteArray;
@@ -18,30 +19,71 @@ public class FileProcessor {
     }
 
     public static int getFileSeq(byte[] body) {
-        int receiverIdLength = ByteBuffer.wrap(body, 0, 4).getInt();
-        String receiverId = new String(body, 4, receiverIdLength);
+        int fileNameSize = 4;
+        int seqSize = 4;
+        ByteBuffer byteBuffer = ByteBuffer.allocate(seqSize);
+        ByteBuffer.wrap(body, fileNameSize, seqSize);
+        return byteBuffer.getInt();
+    }
 
-        return ByteBuffer.wrap(body, 8 + receiverIdLength, 4).getInt();
+    public static String getFileName(byte[] body) {
+        int fileNameSize = 4;
+        return new String(body, 0, fileNameSize, StandardCharsets.UTF_8);
     }
 
     public static byte[] getFileByte(byte[] body) {
-        int receiverIdLength = ByteBuffer.wrap(body, 0, 4).getInt();
-        String receiverId = new String(body, 4, receiverIdLength);
-        int seq = ByteBuffer.wrap(body, 8 + receiverIdLength, 4).getInt();
-        return ByteBuffer.wrap(body, 12 + receiverIdLength, body.length - 4 - receiverIdLength - 4).array();
+        int fileNameSize = 4;
+        int seqSize = 4;
+        int fileSize = body.length - fileNameSize - seqSize;
+        ByteBuffer byteBuffer = ByteBuffer.allocate(fileSize);
+        return byteBuffer.wrap(body, fileNameSize + seqSize, fileSize).array();
     }
 
-    public static byte[] getTestFileHeader(MessageType messageType, byte[] body) {
+    public static byte[] getTestFileHeader(MessageType messageType, String fileName, int seq, byte[] body) {
         // no id
+        // have seq, fileName
         // body
+        String onlyName = fileName.substring(0, fileName.lastIndexOf('.'));
+        byte[] fileNameByte = onlyName.getBytes(StandardCharsets.UTF_8);
+        System.out.println("fileName Byte: " + Arrays.toString(fileNameByte));
+
+        System.out.println("fileNameByteSize: " + fileNameByte.length);
+        if (fileNameByte.length > 4) {
+            throw new FileNameLengthException("FileName length  must be under 4");
+        }
         int bodyLengthByteSize = 4;
         int typeByteSize = 4;
-        int bodyLengthSize = body.length;
-        System.out.println("bodyLengthSize: " + bodyLengthSize);
+        int fileNameByteSize = 4;
+        int seqByteSize = 4;
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(bodyLengthByteSize + typeByteSize + bodyLengthSize);
+        int fileByteSize = body.length;
+
+        System.out.println("fileByteSize: " + fileByteSize);
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(bodyLengthByteSize + typeByteSize + fileNameByteSize + seqByteSize + fileByteSize);
         System.out.println("byteBuffer length: " + byteBuffer.capacity());
-        byteBuffer.putInt(bodyLengthSize);
+        byteBuffer.putInt(body.length);
+        byteBuffer.putInt(messageType.ordinal());
+        byteBuffer.put(fileNameByte);
+        byteBuffer.putInt(seq);
+        byteBuffer.put(body);
+        try{
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        return byteBuffer.array();
+    }
+
+    public static byte[] getTestFileHeaderVerServer(MessageType messageType, byte[] body) {
+        int bodyLengthByteSize = 4;
+        int typeByteSize = 4;
+        int bodyByteSize = body.length;
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(bodyLengthByteSize + typeByteSize + bodyByteSize);
+        System.out.println("byteBugger Length (may be same as client)" + byteBuffer.capacity());
+        byteBuffer.putInt(body.length);
         byteBuffer.putInt(messageType.ordinal());
         byteBuffer.put(body);
 

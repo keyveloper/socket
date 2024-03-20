@@ -81,7 +81,7 @@ public class Server{
             }
         }
         for (ClientHandler clientHandler : clientHandlers) {
-            byte[] testByte = FileProcessor.getTestFileHeader(MessageType.TEST_SAVE, body);
+            byte[] testByte = FileProcessor.getTestFileHeaderVerServer(MessageType.TEST_SAVE, body);
             System.out.println("send to all client \n data: " + Arrays.toString(testByte));
             clientHandler.sendByte(testByte);
         }
