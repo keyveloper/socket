@@ -14,5 +14,5 @@ public enum MessageType {
     FIN,
     FIN_ACK,
     TEST,
-    TEST_SAVE
+    TEST_SEND_END,
 }

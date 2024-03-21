@@ -4,22 +4,23 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class Server{
+public class Server {
     public final int tcpServerPort = Share.portNum;
 
     private final IdManager idManager = new IdManager(this);
 
-    private final CountManager countManager = new CountManager(this);
+    private final CountManager countManager = new CountManager();
 
     private final HashMap<Socket, ClientHandler> handlerMap = new HashMap<>();
 
     private final Object handlerLock = new Object();
     private boolean isRunning = true;
+
     public Server() {
     }
 
-    public void start(){
-        try{
+    public void start() {
+        try {
             try (ServerSocket serverSocket = new ServerSocket()) {
                 serverSocket.bind(new InetSocketAddress(tcpServerPort));
                 System.out.println("Starting tcp Server: " + tcpServerPort);
@@ -31,7 +32,7 @@ public class Server{
                     ClientHandler clientHandler = new ClientHandler(this, clientSocket);
                     Thread thread = new Thread(clientHandler);
                     thread.start();
-                    synchronized ( handlerLock ) {
+                    synchronized (handlerLock) {
                         handlerMap.put(clientSocket, clientHandler);
                     }
                 }
@@ -41,10 +42,10 @@ public class Server{
         }
     }
 
-    public void processMessage(Message message){
-        System.out.println("message received: " + message.getBody() + " " + message.getMessageType());
-        switch (message.getMessageType()){
-            case REGISTER_ID :
+    public void processMessage(Message message) {
+        System.out.println("ProccessMessage: " + Arrays.toString(message.getBody()) + " " + message.getMessageType());
+        switch (message.getMessageType()) {
+            case REGISTER_ID:
                 resisterId(new String(message.getBody()), message.getClientSocket());
                 break;
             case COMMENT:
@@ -63,7 +64,10 @@ public class Server{
                 sendFile(message.getBody(), MessageType.FILE_END);
                 break;
             case TEST:
-                processTest(message.getBody());
+                processTest(message.getBody(), message.getClientSocket());
+                break;
+            case TEST_SEND_END:
+                commandSave(message.getBody(), message.getClientSocket());
                 break;
             case FIN:
                 noticeFin(message.getClientSocket());
@@ -71,17 +75,39 @@ public class Server{
         }
     }
 
-    private void processTest(byte[] body) {
+    private void processTest(byte[] body, Socket sender) {
         System.out.println("Test packet Received!!" + Arrays.toString(body));
         ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
         synchronized (handlerLock) {
             for (Socket socket : handlerMap.keySet()) {
+                if (socket == sender) {
+                    continue;
+                }
                 ClientHandler handler = handlerMap.get(socket);
                 clientHandlers.add(handler);
             }
         }
         for (ClientHandler clientHandler : clientHandlers) {
-            byte[] testByte = FileProcessor.getTestFileHeaderVerServer(MessageType.TEST_SAVE, body);
+            byte[] testByte = FileProcessor.getTestFileHeaderVerServer(MessageType.TEST, body);
+            System.out.println("send to all client \n data: " + Arrays.toString(testByte));
+            clientHandler.sendByte(testByte);
+        }
+    }
+
+    private void commandSave(byte[] body, Socket sender) {
+        System.out.println("send TEST_SAVE");
+        ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+        synchronized (handlerLock) {
+            for (Socket socket : handlerMap.keySet()) {
+                if (socket == sender) {
+                    continue;
+                }
+                ClientHandler handler = handlerMap.get(socket);
+                clientHandlers.add(handler);
+            }
+        }
+        for (ClientHandler clientHandler : clientHandlers) {
+            byte[] testByte = FileProcessor.getTestFileHeaderVerServer(MessageType.TEST_SEND_END, body);
             System.out.println("send to all client \n data: " + Arrays.toString(testByte));
             clientHandler.sendByte(testByte);
         }
@@ -91,15 +117,15 @@ public class Server{
         System.out.println(message);
     }
 
-    private void resisterId(String id, Socket socket){
-        if (idManager.register(id, socket)){
+    private void resisterId(String id, Socket socket) {
+        if (idManager.register(id, socket)) {
             System.out.println("Id Reigsterd complete");
             countManager.register(socket);
-            synchronized ( handlerLock ){
+            synchronized (handlerLock) {
                 handlerMap.get(socket).sendTypeOnly(MessageType.REGISTER_SUCCESS);
             }
         } else {
-            synchronized ( handlerLock ){
+            synchronized (handlerLock) {
                 handlerMap.get(socket).sendTypeOnly(MessageType.ALREADY_EXIST_ID);
                 System.out.println("Already Exist ID");
             }
@@ -107,20 +133,20 @@ public class Server{
 
     }
 
-    private void changeID(String id, Socket socket){
+    private void changeID(String id, Socket socket) {
         String oldId = idManager.getIdBySocket(socket);
-        if (idManager.changeId(id, socket)){
-            synchronized ( handlerLock ){
+        if (idManager.changeId(id, socket)) {
+            synchronized (handlerLock) {
                 handlerMap.get(socket).sendTypeOnly(MessageType.REGISTER_SUCCESS);
 
-                for (Socket key : handlerMap.keySet()){
+                for (Socket key : handlerMap.keySet()) {
                     ClientHandler handler = handlerMap.get(key);
                     handler.sendPacket(MessageType.COMMENT, getIdChangeMessage(oldId, socket));
                 }
 
             }
         } else {
-            synchronized ( handlerLock ){
+            synchronized (handlerLock) {
                 handlerMap.get(socket).sendTypeOnly(MessageType.ALREADY_EXIST_ID);
                 System.out.println("Already Exist ID");
             }
@@ -138,7 +164,7 @@ public class Server{
         String whisperMessage = makeWhisperMessage(parts[1], socket);
         Socket receiverSocket = idManager.getSocketById(receiverId);
 
-        synchronized ( handlerLock ){
+        synchronized (handlerLock) {
             handlerMap.get(receiverSocket).sendPacket(MessageType.WHISPER, whisperMessage);
         }
     }
@@ -149,11 +175,11 @@ public class Server{
         handlerMap.get(receiverSocket).sendFile(type, body);
     }
 
-    private void noticeFin(Socket socket){
+    private void noticeFin(Socket socket) {
         String outMessage = makeSocketOutMessage(socket);
         removeData(socket);
-        synchronized ( handlerLock ){
-            for (Socket key : handlerMap.keySet()){
+        synchronized (handlerLock) {
+            for (Socket key : handlerMap.keySet()) {
                 ClientHandler handler = handlerMap.get(key);
                 handler.sendPacket(MessageType.NOTICE, outMessage);
             }
@@ -166,29 +192,29 @@ public class Server{
         }
     }
 
-    private void removeData(Socket socket){
+    private void removeData(Socket socket) {
         idManager.remove(socket);
         countManager.remove(socket);
-        synchronized ( handlerMap ){
+        synchronized (handlerMap) {
             handlerMap.remove(socket);
         }
     }
 
-    private String makeSocketOutMessage(Socket socket){
+    private String makeSocketOutMessage(Socket socket) {
         // deadLock?
         String id = idManager.getIdBySocket(socket);
         int count = countManager.get(socket);
-        return "Id: " + id +"\ntotal message count: " + count;
+        return "Id: " + id + "\ntotal message count: " + count;
     }
 
-    private String makeCommentMessage(Socket socket, String message){
+    private String makeCommentMessage(Socket socket, String message) {
         return idManager.getIdBySocket(socket) + " : " + message;
     }
 
-    private void sendComment(String message, Socket socket){
+    private void sendComment(String message, Socket socket) {
         message = makeCommentMessage(socket, message);
-        synchronized ( handlerLock ){
-            for (Socket key : handlerMap.keySet()){
+        synchronized (handlerLock) {
+            for (Socket key : handlerMap.keySet()) {
                 ClientHandler handler = handlerMap.get(key);
                 handler.sendPacket(MessageType.COMMENT, message);
             }
@@ -196,7 +222,7 @@ public class Server{
         countManager.add(socket);
     }
 
-    private String makeWhisperMessage(String message, Socket socket){
+    private String makeWhisperMessage(String message, Socket socket) {
         return "(whisper)" + idManager.getIdBySocket(socket) + ": " + message;
     }
 

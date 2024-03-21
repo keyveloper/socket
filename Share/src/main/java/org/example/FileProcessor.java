@@ -36,7 +36,7 @@ public class FileProcessor {
         int seqSize = 4;
         int fileSize = body.length - fileNameSize - seqSize;
         ByteBuffer byteBuffer = ByteBuffer.allocate(fileSize);
-        return byteBuffer.wrap(body, fileNameSize + seqSize, fileSize).array();
+        return ByteBuffer.wrap(body, fileNameSize + seqSize, fileSize).array();
     }
 
     public static byte[] getTestFileHeader(MessageType messageType, String fileName, int seq, byte[] body) {
@@ -45,7 +45,7 @@ public class FileProcessor {
         // body
         String onlyName = fileName.substring(0, fileName.lastIndexOf('.'));
         byte[] fileNameByte = onlyName.getBytes(StandardCharsets.UTF_8);
-        System.out.println("fileName Byte: " + Arrays.toString(fileNameByte));
+        System.out.println("\n fileName Byte: " + Arrays.toString(fileNameByte));
 
         System.out.println("fileNameByteSize: " + fileNameByte.length);
         if (fileNameByte.length > 4) {
@@ -62,16 +62,13 @@ public class FileProcessor {
 
         ByteBuffer byteBuffer = ByteBuffer.allocate(bodyLengthByteSize + typeByteSize + fileNameByteSize + seqByteSize + fileByteSize);
         System.out.println("byteBuffer length: " + byteBuffer.capacity());
-        byteBuffer.putInt(body.length);
+
+
+        byteBuffer.putInt(fileNameByteSize + seqByteSize + fileByteSize);
         byteBuffer.putInt(messageType.ordinal());
         byteBuffer.put(fileNameByte);
         byteBuffer.putInt(seq);
         byteBuffer.put(body);
-        try{
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
 
         return byteBuffer.array();
     }

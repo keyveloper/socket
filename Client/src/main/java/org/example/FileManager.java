@@ -3,16 +3,17 @@ package org.example;
 import java.net.*;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class FileManager{
-    private final Socket client;
+    private final Client client;
     private final HashMap<String, TreeMap<Integer, byte[]>> fileMap = new HashMap<>();
 
     private final String outputPath = "C:\\Users\\user\\Desktop\\BE metoring\\socket\\Client\\src\\main\\java\\org\\example";
 
-    public FileManager(Socket socket) {
-        this.client = socket;
+    public FileManager(Client client) {
+        this.client = client;
         System.out.println("Run File_handler");
     }
 
@@ -30,7 +31,8 @@ public class FileManager{
     }
 
     // fileMap = {FileName: {seq: byte[]}}
-    public void testSave(byte[] body) {
+    public void testStore(byte[] body) {
+        System.out.println("Client: filePacket received : " + Arrays.toString(body));
         // original body를 들고있다.
         TreeMap<Integer, byte[]> seqFileMap = new TreeMap<Integer, byte[]>();
         seqFileMap.put(FileProcessor.getFileSeq(body), FileProcessor.getFileByte(body));
@@ -49,6 +51,29 @@ public class FileManager{
         ByteBuffer combinedFile = ByteBuffer.allocate(fileSeq.values().stream().mapToInt(arr -> arr.length).sum());
         fileSeq.forEach((seq, bytes) -> combinedFile.put(bytes));
         return combinedFile.array();
+    }
+
+    public byte[] getCombineFileTestByte(byte[] fileNameByte) {
+        String fullFileName = new String(fileNameByte, StandardCharsets.UTF_8);
+        String fileName = fullFileName.split("\\.")[0];
+        client.print("combined start: " + fileName);
+        printFileMap();
+        int totalLength = 0;
+        for (int seq : fileMap.get(fileName).keySet()) {
+            totalLength += fileMap.get(fileName).get(seq).length;
+        }
+        ByteBuffer totalBuffer = ByteBuffer.allocate(totalLength);
+        for (int seq : fileMap.get(fileName).keySet()) {
+            totalBuffer.put(fileMap.get(fileName).get(seq));
+        }
+        return totalBuffer.array();
+    }
+
+    private void printFileMap() {
+        Set<String> keySet = fileMap.keySet();
+        keySet.forEach(key -> {
+            client.print("key: " + key + ", value: " + fileMap.get(key));
+        });
     }
 
     private ByteBuffer allocateByteBufferFromMap(HashMap<Integer, byte[]> seqFileMap) {
