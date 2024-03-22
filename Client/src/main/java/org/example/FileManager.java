@@ -31,12 +31,35 @@ public class FileManager{
     }
 
     // fileMap = {FileName: {seq: byte[]}}
-    public void testStore(byte[] body) {
-        System.out.println("Client: filePacket received : " + Arrays.toString(body));
+    public void testStore(byte[] body, int fileLength) {
+        System.out.println("in test Store: Client: filePacket received : " + Arrays.toString(body));
         // original body를 들고있다.
-        TreeMap<Integer, byte[]> seqFileMap = new TreeMap<Integer, byte[]>();
-        seqFileMap.put(FileProcessor.getFileSeq(body), FileProcessor.getFileByte(body));
-        fileMap.put(FileProcessor.getFileName(body), seqFileMap);
+        ByteBuffer bodyBuffer = ByteBuffer.wrap(body);
+        System.out.println("first bodyBuffer: " + Arrays.toString(bodyBuffer.array()));
+        byte[] fileNameByte = new byte[4];
+        bodyBuffer.get(fileNameByte);
+        String fileName = new String(fileNameByte);
+        System.out.println("store fileName: " + fileName );
+        System.out.println("remain bodyBuffer" + Arrays.toString(bodyBuffer.array()) + "\nposition: " + bodyBuffer.position());
+
+        int seq = bodyBuffer.getInt();
+        System.out.println("store seq: " + seq);
+        byte[] fileByte = new byte[fileLength];
+        bodyBuffer.get(fileByte);
+        System.out.println("store fileByte: " + Arrays.toString(fileByte));
+
+        TreeMap<Integer, byte[]> seqFileMap;
+        if (!fileMap.containsKey(fileName)) {
+            seqFileMap = new TreeMap<Integer, byte[]>();
+        } else {
+            seqFileMap = fileMap.get(fileName);
+        }
+        seqFileMap.put(seq, fileByte);
+        fileMap.put(fileName, seqFileMap);
+
+        for (Map.Entry<Integer, byte[]> entry : fileMap.get(fileName).entrySet()) {
+            System.out.println("Key: " + entry.getKey() + ", Value: " + Arrays.toString(entry.getValue()));
+        }
     }
 
     public String getOutputPath() {
@@ -56,24 +79,21 @@ public class FileManager{
     public byte[] getCombineFileTestByte(byte[] fileNameByte) {
         String fullFileName = new String(fileNameByte, StandardCharsets.UTF_8);
         String fileName = fullFileName.split("\\.")[0];
-        client.print("combined start: " + fileName);
-        printFileMap();
-        int totalLength = 0;
-        for (int seq : fileMap.get(fileName).keySet()) {
-            totalLength += fileMap.get(fileName).get(seq).length;
+        client.print("combined start: " + fileName + "\n");
+
+        TreeMap<Integer, byte[]> seqFileMap = fileMap.get(fileName);
+        int totalSize = 0;
+        for (Map.Entry<Integer, byte[]> entry : seqFileMap.entrySet()) {
+            totalSize += entry.getValue().length;
         }
-        ByteBuffer totalBuffer = ByteBuffer.allocate(totalLength);
-        for (int seq : fileMap.get(fileName).keySet()) {
-            totalBuffer.put(fileMap.get(fileName).get(seq));
+        System.out.println("totalSize: " + totalSize);
+        ByteBuffer totalBuffer = ByteBuffer.allocate(totalSize);
+
+
+        for (byte[] fileByte : seqFileMap.values()) {
+            totalBuffer.put(fileByte);
         }
         return totalBuffer.array();
-    }
-
-    private void printFileMap() {
-        Set<String> keySet = fileMap.keySet();
-        keySet.forEach(key -> {
-            client.print("key: " + key + ", value: " + fileMap.get(key));
-        });
     }
 
     private ByteBuffer allocateByteBufferFromMap(HashMap<Integer, byte[]> seqFileMap) {

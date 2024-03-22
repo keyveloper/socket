@@ -38,7 +38,7 @@ public class Client implements Runnable {
                 if(inAllLength > 0) {
                     byte[] inLengthByte = new byte[4];
                     dataInputStream.readFully(inLengthByte);
-                    // int messageLength = Share.readInputLength(inLengthByte);
+                    int messageLength = Share.readInputLength(inLengthByte);
 
                     byte[] inTypeByte = new byte[4];
                     dataInputStream.readFully(inTypeByte);
@@ -60,7 +60,7 @@ public class Client implements Runnable {
                     }
 
                     if (inMessageType == MessageType.TEST) {;
-                        storeFile(inMessageByte);
+                        storeFile(inMessageByte, messageLength - inLengthByte.length - inTypeByte.length);
                     }
 
                     if (inMessageType == MessageType.TEST_SEND_END) {;
@@ -114,17 +114,17 @@ public class Client implements Runnable {
     }
 
     // store in structure
-    private void storeFile(byte[] body) {
-        fileManager.testStore(body);
+    private void storeFile(byte[] body, int fileLength) {
+        fileManager.testStore(body, fileLength);
     }
 
     // save in path
     private void saveFile(byte[] body) {
         // has only body(flieName, seq, fileByte[])_
-        System.out.print("start to save file/ \n data: " + Arrays.toString(body));
+        System.out.print("start to save file/ \n totalData: " + Arrays.toString(body));
         try {
             String randomFileName = UUID.randomUUID().toString() + ".txt";
-            String directoryPath = "C:\\Users\\user\\Desktop\\BEmetoring\\file_test\\output";
+            String directoryPath = "C:\\Users\\yangd\\OneDrive\\바탕 화면\\filetest\\outputPath";
             File file = new File(directoryPath, randomFileName);
             FileOutputStream fileOutputStream =  new FileOutputStream(file);
             fileOutputStream.write(body);
@@ -136,7 +136,9 @@ public class Client implements Runnable {
     }
 
     private void combineFile(byte[] fileNameByte) {
+        System.out.println("combinFile start: fileNameByte: " + Arrays.toString(fileNameByte));
         byte[] totalFileByte = fileManager.getCombineFileTestByte(fileNameByte);
+        System.out.println("totalFileByte: " + Arrays.toString(totalFileByte));
         saveFile(totalFileByte);
     }
 
@@ -192,7 +194,7 @@ public class Client implements Runnable {
     }
 
     private void sendTestFile(String fileName) {
-        File file = new File("C:\\Users\\user\\Desktop\\BEmetoring\\file_test", fileName);
+        File file = new File("C:\\Users\\yangd\\OneDrive\\바탕 화면\\filetest", fileName);
         try {
             FileInputStream fileInputStream = new FileInputStream(file);
             byte[] readByte = new byte[10];
