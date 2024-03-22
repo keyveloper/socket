@@ -43,7 +43,7 @@ public class Server {
     }
 
     public void processMessage(Message message) {
-        System.out.println("ProccessMessage: " + Arrays.toString(message.getBody()) + " " + message.getMessageType());
+       // System.out.println("ProccessMessage: " + Arrays.toString(message.getBody()) + " " + message.getMessageType());
         switch (message.getMessageType()) {
             case REGISTER_ID:
                 resisterId(new String(message.getBody()), message.getClientSocket());
@@ -76,7 +76,7 @@ public class Server {
     }
 
     private void processTest(byte[] body, Socket sender) {
-        System.out.println("Test packet Received!!" + Arrays.toString(body));
+        //System.out.println("Test packet Received!!" + Arrays.toString(body));
         ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
         synchronized (handlerLock) {
             for (Socket socket : handlerMap.keySet()) {
@@ -89,7 +89,7 @@ public class Server {
         }
         for (ClientHandler clientHandler : clientHandlers) {
             byte[] testByte = FileProcessor.getTestFileHeaderVerServer(MessageType.TEST, body);
-            System.out.println("send to all client \n data: " + Arrays.toString(testByte));
+            //System.out.println("send to all client \n data: " + Arrays.toString(testByte));
             clientHandler.sendByte(testByte);
         }
     }
@@ -108,7 +108,7 @@ public class Server {
         }
         for (ClientHandler clientHandler : clientHandlers) {
             byte[] testByte = FileProcessor.getTestFileHeaderVerServer(MessageType.TEST_SEND_END, body);
-            System.out.println("send to all client \n data: " + Arrays.toString(testByte));
+            //System.out.println("send to all client \n data: " + Arrays.toString(testByte));
             clientHandler.sendByte(testByte);
         }
     }

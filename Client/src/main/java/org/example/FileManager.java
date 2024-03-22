@@ -32,21 +32,21 @@ public class FileManager{
 
     // fileMap = {FileName: {seq: byte[]}}
     public void testStore(byte[] body, int fileLength) {
-        System.out.println("in test Store: Client: filePacket received : " + Arrays.toString(body));
+        //System.out.println("in test Store: Client: filePacket received : " + Arrays.toString(body));
         // original body를 들고있다.
         ByteBuffer bodyBuffer = ByteBuffer.wrap(body);
-        System.out.println("first bodyBuffer: " + Arrays.toString(bodyBuffer.array()));
+        //System.out.println("first bodyBuffer: " + Arrays.toString(bodyBuffer.array()));
         byte[] fileNameByte = new byte[4];
         bodyBuffer.get(fileNameByte);
         String fileName = new String(fileNameByte);
-        System.out.println("store fileName: " + fileName );
-        System.out.println("remain bodyBuffer" + Arrays.toString(bodyBuffer.array()) + "\nposition: " + bodyBuffer.position());
+        //System.out.println("store fileName: " + fileName );
+        //System.out.println("remain bodyBuffer" + Arrays.toString(bodyBuffer.array()) + "\nposition: " + bodyBuffer.position());
 
         int seq = bodyBuffer.getInt();
-        System.out.println("store seq: " + seq);
+        //System.out.println("store seq: " + seq);
         byte[] fileByte = new byte[fileLength];
         bodyBuffer.get(fileByte);
-        System.out.println("store fileByte: " + Arrays.toString(fileByte));
+        //System.out.println("store fileByte: " + Arrays.toString(fileByte));
 
         TreeMap<Integer, byte[]> seqFileMap;
         if (!fileMap.containsKey(fileName)) {
@@ -58,7 +58,8 @@ public class FileManager{
         fileMap.put(fileName, seqFileMap);
 
         for (Map.Entry<Integer, byte[]> entry : fileMap.get(fileName).entrySet()) {
-            System.out.println("Key: " + entry.getKey() + ", Value: " + Arrays.toString(entry.getValue()));
+            //
+            // System.out.println("Key: " + entry.getKey() + ", Value: " + Arrays.toString(entry.getValue()));
         }
     }
 

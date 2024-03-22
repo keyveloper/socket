@@ -39,10 +39,10 @@ public class FileProcessor {
         return ByteBuffer.wrap(body, fileNameSize + seqSize, fileSize).array();
     }
 
-    public static byte[] getTestFileHeader(MessageType messageType, String fileName, int seq, byte[] body) {
-        // no id
-        // have seq, fileName
-        // body
+    public static byte[] getTestFileHeader(MessageType messageType, String receiver, String fileName, int seq, byte[] body) {
+
+        // idlength(4) + id + fileName(4) + seq(4)
+
         String onlyName = fileName.substring(0, fileName.lastIndexOf('.'));
         byte[] fileNameByte = onlyName.getBytes(StandardCharsets.UTF_8);
         System.out.println("\n fileName Byte: " + Arrays.toString(fileNameByte));
@@ -51,21 +51,25 @@ public class FileProcessor {
         if (fileNameByte.length > 4) {
             throw new FileNameLengthException("FileName length  must be under 4");
         }
+        int idLengthByteSize = 4;
+        int idByteSize = receiver.length();
         int bodyLengthByteSize = 4;
         int typeByteSize = 4;
         int fileNameByteSize = 4;
         int seqByteSize = 4;
-
         int fileByteSize = body.length;
 
         System.out.println("fileByteSize: " + fileByteSize);
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(bodyLengthByteSize + typeByteSize + fileNameByteSize + seqByteSize + fileByteSize);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(idLengthByteSize + idByteSize + bodyLengthByteSize + typeByteSize + fileNameByteSize + seqByteSize + fileByteSize);
         System.out.println("byteBuffer length: " + byteBuffer.capacity());
 
 
-        byteBuffer.putInt(fileNameByteSize + seqByteSize + fileByteSize);
+        // body length
+        byteBuffer.putInt(idLengthByteSize + idByteSize + fileNameByteSize + seqByteSize + fileByteSize);
         byteBuffer.putInt(messageType.ordinal());
+        byteBuffer.putInt(idByteSize);
+        byteBuffer.put(receiver.getBytes());
         byteBuffer.put(fileNameByte);
         byteBuffer.putInt(seq);
         byteBuffer.put(body);

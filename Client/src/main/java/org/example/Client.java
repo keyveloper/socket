@@ -121,7 +121,7 @@ public class Client implements Runnable {
     // save in path
     private void saveFile(byte[] body) {
         // has only body(flieName, seq, fileByte[])_
-        System.out.print("start to save file/ \n totalData: " + Arrays.toString(body));
+        //System.out.print("start to save file/ \n totalData: " + Arrays.toString(body));
         try {
             String randomFileName = UUID.randomUUID().toString() + ".txt";
             String directoryPath = "C:\\Users\\yangd\\OneDrive\\바탕 화면\\filetest\\outputPath";
@@ -136,9 +136,9 @@ public class Client implements Runnable {
     }
 
     private void combineFile(byte[] fileNameByte) {
-        System.out.println("combinFile start: fileNameByte: " + Arrays.toString(fileNameByte));
+       // System.out.println("combinFile start: fileNameByte: " + Arrays.toString(fileNameByte));
         byte[] totalFileByte = fileManager.getCombineFileTestByte(fileNameByte);
-        System.out.println("totalFileByte: " + Arrays.toString(totalFileByte));
+        //System.out.println("totalFileByte: " + Arrays.toString(totalFileByte));
         saveFile(totalFileByte);
     }
 
@@ -173,7 +173,9 @@ public class Client implements Runnable {
                     sendFile(parts[1], "C:\\Users\\user\\Desktop\\BE metoring\\socket\\Client\\src\\main\\java\\org\\example\\hi.txt");
                     break;
                 case TEST:
-                    sendTestFile(getBodyMessage(command));
+                    String[] commandParts = getBodyMessage(command).split(" ", 2);
+                    System.out.println("commandParts: " + Arrays.toString(commandParts));
+                    sendTestFile(commandParts[0], commandParts[1]);
                     break;
                 default:
                     if (registered) {
@@ -193,7 +195,7 @@ public class Client implements Runnable {
         System.out.println(message);
     }
 
-    private void sendTestFile(String fileName) {
+    private void sendTestFile(String receiver, String fileName) {
         File file = new File("C:\\Users\\yangd\\OneDrive\\바탕 화면\\filetest", fileName);
         try {
             FileInputStream fileInputStream = new FileInputStream(file);
@@ -201,20 +203,20 @@ public class Client implements Runnable {
             int byteRead;
             int seq = 0;
             while ((byteRead = fileInputStream.read(readByte)) != -1) {
-                System.out.println("readByte: " + Arrays.toString(readByte));
-                System.out.println("byteRead: " + byteRead);
+                // System.out.println("readByte: " + Arrays.toString(readByte));
+                // System.out.println("byteRead: " + byteRead);
                 byte[] actualBytessRead = Arrays.copyOf(readByte, byteRead);
 
-                byte[] testHeader = FileProcessor.getTestFileHeader(MessageType.TEST, fileName, seq, actualBytessRead);
+                byte[] testHeader = FileProcessor.getTestFileHeader(MessageType.TEST, receiver, fileName, seq, actualBytessRead);
                 System.out.println("made packet: " + Arrays.toString(testHeader));
-                System.out.print("\n seq: " + seq + " sending file packet\n");
-                System.out.println("testHeader length: " + testHeader.length);
+                // System.out.print("\n seq: " + seq + " sending file packet\n");
+                // System.out.println("testHeader length: " + testHeader.length);
                 dataOutputStream.write(testHeader,0, testHeader.length);
                 dataOutputStream.flush();
                 seq ++;
 
             }
-            System.out.println("all filePacket be sent");
+            // System.out.println("all filePacket be sent");
             sendPacket(MessageType.TEST_SEND_END, fileName);
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);

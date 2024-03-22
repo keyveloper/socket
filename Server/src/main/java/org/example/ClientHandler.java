@@ -28,7 +28,7 @@ public class ClientHandler implements Runnable {
                 server.print("Message Type: " + messageType);
 
                 byte[] body = getBody(dataInputStream, bodyLength);
-                server.print("body: " + Arrays.toString(body));
+                //server.print("body: " + Arrays.toString(body));
 
                 Message message = new Message(messageType, body, clientSocket);
                 server.processMessage(message);
