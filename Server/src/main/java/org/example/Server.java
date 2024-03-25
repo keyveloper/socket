@@ -2,6 +2,8 @@ package org.example;
 
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Server {
@@ -64,10 +66,10 @@ public class Server {
                 sendFile(message.getBody(), MessageType.FILE_END);
                 break;
             case TEST:
-                processTest(message.getBody(), message.getClientSocket());
+                processTest(message.getBody());
                 break;
             case TEST_SEND_END:
-                commandSave(message.getBody(), message.getClientSocket());
+                commandSave(message.getBody());
                 break;
             case FIN:
                 noticeFin(message.getClientSocket());
@@ -75,42 +77,55 @@ public class Server {
         }
     }
 
-    private void processTest(byte[] body, Socket sender) {
+    private void processTest(byte[] body) {
+        System.out.println("Strat proceeTest!!");
         //System.out.println("Test packet Received!!" + Arrays.toString(body));
-        ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+        ByteBuffer byteBuffer = ByteBuffer.wrap(body);
+        int idLengthSize = 4;
+        int idLength = byteBuffer.getInt();
+        byte[] idByte = new byte[idLength];
+        byteBuffer.get(idByte);
+        System.out.println(Arrays.toString(body));
+        String receiveId = new String(idByte, StandardCharsets.UTF_8);
+        System.out.println("receiveId: " + receiveId + "\n ByteBuffer position: " + byteBuffer.position());
+        byte[] remainBody = new byte[body.length - idLengthSize - idLength];
+        byteBuffer.get(remainBody);
+        System.out.println("remian body: " + Arrays.toString(remainBody));
+
+        byte[] remainBodyWithHeader = FileProcessor.getTestFileHeaderVerServer(MessageType.TEST, remainBody);
+        System.out.println("reaminBodyWithHeader: " + Arrays.toString(remainBodyWithHeader));
+        Socket receiverSocket = idManager.getSocketById(receiveId);
+        ClientHandler receiverHandler;
         synchronized (handlerLock) {
-            for (Socket socket : handlerMap.keySet()) {
-                if (socket == sender) {
-                    continue;
-                }
-                ClientHandler handler = handlerMap.get(socket);
-                clientHandlers.add(handler);
-            }
+            receiverHandler = handlerMap.get(receiverSocket);
         }
-        for (ClientHandler clientHandler : clientHandlers) {
-            byte[] testByte = FileProcessor.getTestFileHeaderVerServer(MessageType.TEST, body);
-            //System.out.println("send to all client \n data: " + Arrays.toString(testByte));
-            clientHandler.sendByte(testByte);
-        }
+
+        receiverHandler.sendByte(remainBodyWithHeader);
+
     }
 
-    private void commandSave(byte[] body, Socket sender) {
-        System.out.println("send TEST_SAVE");
-        ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+    private void commandSave(byte[] body) {
+        System.out.println("command TEST_SAVE");
+        System.out.println("body: " + Arrays.toString(body));
+        ByteBuffer byteBuffer = ByteBuffer.wrap(body);
+        int idLengthSize = 4;
+        int idLength = byteBuffer.getInt();
+        byte[] idByte = new byte[idLength];
+        byteBuffer.get(idByte);
+        String receiveId = new String(idByte, StandardCharsets.UTF_8);
+        byte[] remainBody = new byte[body.length - idLengthSize - idLength];
+        byteBuffer.get(remainBody);
+        System.out.println("remian body: " + Arrays.toString(remainBody));
+
+        byte[] remainBodyWithHeader = FileProcessor.getTestFileHeaderVerServer(MessageType.TEST_SEND_END, remainBody);
+        System.out.println("reaminBodyWithHeader: " + Arrays.toString(remainBodyWithHeader));
+        Socket receiverSocket = idManager.getSocketById(receiveId);
+        ClientHandler receiverHandler;
         synchronized (handlerLock) {
-            for (Socket socket : handlerMap.keySet()) {
-                if (socket == sender) {
-                    continue;
-                }
-                ClientHandler handler = handlerMap.get(socket);
-                clientHandlers.add(handler);
-            }
+            receiverHandler = handlerMap.get(receiverSocket);
         }
-        for (ClientHandler clientHandler : clientHandlers) {
-            byte[] testByte = FileProcessor.getTestFileHeaderVerServer(MessageType.TEST_SEND_END, body);
-            //System.out.println("send to all client \n data: " + Arrays.toString(testByte));
-            clientHandler.sendByte(testByte);
-        }
+
+        receiverHandler.sendByte(remainBodyWithHeader);
     }
 
     public void print(String message) {

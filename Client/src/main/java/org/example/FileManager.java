@@ -39,6 +39,7 @@ public class FileManager{
         byte[] fileNameByte = new byte[4];
         bodyBuffer.get(fileNameByte);
         String fileName = new String(fileNameByte);
+        System.out.println(fileName);
         //System.out.println("store fileName: " + fileName );
         //System.out.println("remain bodyBuffer" + Arrays.toString(bodyBuffer.array()) + "\nposition: " + bodyBuffer.position());
 

@@ -34,20 +34,24 @@ public class Client implements Runnable {
                 InputStream inputStream = socket.getInputStream();
                 DataInputStream dataInputStream = new DataInputStream(inputStream);
 
+                int bodyLengthSize= 4;
+                int typeLengthSize = 4;
                 int inAllLength = dataInputStream.readInt();
                 if(inAllLength > 0) {
                     byte[] inLengthByte = new byte[4];
                     dataInputStream.readFully(inLengthByte);
                     int messageLength = Share.readInputLength(inLengthByte);
+                    System.out.println("received meesageLenght: " + messageLength);
 
                     byte[] inTypeByte = new byte[4];
                     dataInputStream.readFully(inTypeByte);
                     int typeInt = ByteBuffer.wrap(inTypeByte).getInt();
                     MessageType inMessageType = MessageType.values()[typeInt];
+                    System.out.println("received type: " + inMessageType);
 
-
-                    byte[] inMessageByte = new byte[inAllLength - 8];
+                    byte[] inMessageByte = new byte[inAllLength - bodyLengthSize - typeLengthSize];
                     dataInputStream.readFully(inMessageByte);
+                    System.out.println("inMessageByte: " + Arrays.toString(inMessageByte));
                     String message = Share.readInputMessage(inMessageByte);
 
                     if (inMessageType == MessageType.FIN_ACK) {
@@ -217,7 +221,9 @@ public class Client implements Runnable {
 
             }
             // System.out.println("all filePacket be sent");
-            sendPacket(MessageType.TEST_SEND_END, fileName);
+            byte[] endByte = FileProcessor.getTestFileHeader(MessageType.TEST_SEND_END, receiver, fileName, 0, null);
+            dataOutputStream.write(endByte, 0, endByte.length);
+            dataOutputStream.flush();
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {

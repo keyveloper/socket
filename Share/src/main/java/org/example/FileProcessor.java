@@ -51,17 +51,18 @@ public class FileProcessor {
         if (fileNameByte.length > 4) {
             throw new FileNameLengthException("FileName length  must be under 4");
         }
-        int idLengthByteSize = 4;
-        int idByteSize = receiver.length();
+
         int bodyLengthByteSize = 4;
         int typeByteSize = 4;
+        int idLengthByteSize = 4;
+        int idByteSize = receiver.length();
         int fileNameByteSize = 4;
         int seqByteSize = 4;
         int fileByteSize = body.length;
 
         System.out.println("fileByteSize: " + fileByteSize);
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(idLengthByteSize + idByteSize + bodyLengthByteSize + typeByteSize + fileNameByteSize + seqByteSize + fileByteSize);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(bodyLengthByteSize + typeByteSize + idLengthByteSize + idByteSize + fileNameByteSize + seqByteSize + fileByteSize);
         System.out.println("byteBuffer length: " + byteBuffer.capacity());
 
 
