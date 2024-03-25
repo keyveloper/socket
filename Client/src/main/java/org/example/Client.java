@@ -17,7 +17,7 @@ public class Client implements Runnable {
 
     public Client() {
         socket = new Socket();
-        fileManager = new FileManager(socket);
+        fileManager = new FileManager();
     }
     public void run() {
         long threadId = Thread.currentThread().getId();
@@ -28,8 +28,6 @@ public class Client implements Runnable {
             System.out.print("\n [ Success connecting ] \n");
 
             while (true) {
-                OutputStream outputStream = socket.getOutputStream();
-                dataOutputStream = new DataOutputStream(outputStream);
                 InputStream inputStream = socket.getInputStream();
                 DataInputStream dataInputStream = new DataInputStream(inputStream);
 
@@ -70,6 +68,60 @@ public class Client implements Runnable {
         }
     }
 
+    public void processCommand(String command){
+        if (command.startsWith("/R") || command.startsWith("/r")) {
+            processRegister(command);
+        }
+
+        if (command.startsWith("/F") || command.startsWith("/f")) {
+            processFin(command);
+        }
+
+        if (command.startsWith("/N") || command.startsWith("/n")) {
+            processChangeId(command);
+        }
+
+        if (command.startsWith("/W") || command.startsWith("/w")) {
+            processWhisper(command);
+        }
+
+        processComment(command);
+
+    }
+
+    private void processRegister(String command) {
+        byte[] packet = HeaderMaker.makeHeader(MessageType.REGISTER_ID, command.substring(3).getBytes(););
+        sendPacket(packet);
+    }
+
+    private void processFin(String command) {
+        byte[] packet = HeaderMaker.makeHeader(MessageType.FIN, command.substring(3).getBytes());
+        sendPacket(packet);
+    }
+
+    private void processChangeId(String command) {
+        String[] parts = command.substring(3).split(" ", 2);
+        ByteBuffer partsBuffer = ByteBuffer.allocate(parts[0].length() + parts[1].length());
+        partsBuffer.put(parts[0].getBytes());
+        partsBuffer.put(parts[1].getBytes());
+        byte[] packet = HeaderMaker.makeHeader(MessageType.CHANGE_ID, partsBuffer.array());
+        sendPacket(packet);
+    }
+
+    private void processWhisper(String command) {
+        String[] parts = command.substring(3).split(" ", 2);
+        ByteBuffer partsBuffer = ByteBuffer.allocate(parts[0].length() + parts[1].length());
+        partsBuffer.put(parts[0].getBytes());
+        partsBuffer.put(parts[1].getBytes());
+        byte[] packet = HeaderMaker.makeHeader(MessageType.CHANGE_ID, partsBuffer.array());
+        sendPacket(packet);
+    }
+
+    private void processComment(String command) {
+        byte[] packet = HeaderMaker.makeHeader(MessageType.COMMENT, command.getBytes());
+    }
+
+
     private void actionByType(MessageType inputType, String message) throws IOException {
         switch (inputType) {
             case COMMENT, WHISPER, NOTICE:
@@ -104,56 +156,12 @@ public class Client implements Runnable {
         }
     }
 
-    public void processCommand(String command){
+
+
+    private void sendPacket(byte[] packet) {
         try {
-            MessageType messageType = getMessageTypeByCommand(command);
-
-            if (messageType == null) {
-                System.out.println("Invalid command. Please try again.");
-                return;
-            }
-            System.out.println("command message type: " + getMessageTypeByCommand(command));
-            switch (messageType) {
-                case REGISTER_ID:
-                    if (registered) {
-                        System.out.println("you Already Register ID");
-                        break;
-                    }
-                    sendPacket(MessageType.REGISTER_ID, getBodyMessage(command));
-                    System.out.println("send Id:" + getBodyMessage(command));
-                    break;
-                case FIN:
-                    System.out.println("sending FIN Packet");
-                    sendPacket(MessageType.FIN, "");
-                    break;
-                case FILE:
-                    String[] parts = getBodyMessage(command).split(" ", 3);
-                    if (parts.length < 3) {
-                        System.out.println("wrong command \n command: /F id filepath or filename");
-                    }
-                    // parts[] = [/f id path]
-                    sendFile(parts[1], parts[2]);
-                default:
-                    if (registered) {
-                        System.out.println("sending default mode");
-                        sendPacket(getMessageTypeByCommand(command), getBodyMessage(command));
-                    } else {
-                        System.out.println("Register first! \n command : /R");
-                    }
-                    break;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    private void sendPacket(MessageType type, String body) {
-        try {
-            System.out.println("add headerm type, body" + type + body);
-            byte[] sendingByte = Share.getPacketHeader(type, body);
-            System.out.println(Arrays.toString(sendingByte) + sendingByte.length);
-            dataOutputStream.write(sendingByte, 0, sendingByte.length);
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataOutputStream.write(packet, 0, packet.length);
             dataOutputStream.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -185,35 +193,5 @@ public class Client implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }}
-
-    private MessageType getMessageTypeByCommand(String command){
-        if (command.startsWith("/R")) {
-            return MessageType.REGISTER_ID;
-        } else if (command.startsWith("/Q")) {
-            return MessageType.FIN;
-        } else if (command.startsWith("/N")) {
-            return MessageType.CHANGE_ID;
-        } else if (command.startsWith("/W")) {
-            return MessageType.WHISPER;
-        } else if (command.startsWith("/F")) {
-            return MessageType.FILE;
-        }
-          else if (command.startsWith("/")){
-            return null;
-        }
-        return MessageType.COMMENT;
-    }
-
-    private String getBodyMessage(String command){
-        String bodyMessage;
-        if (command.startsWith("/Q")){
-            return "";
-        } else if (command.startsWith("/")) {
-            return command.substring(3);
-        }
-        bodyMessage = command;
-        return bodyMessage;
-    }
-
 
 }

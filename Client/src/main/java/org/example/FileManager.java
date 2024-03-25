@@ -6,13 +6,11 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 public class FileManager{
-    private final Socket client;
     private final HashMap<String, TreeMap<Integer, byte[]>> fileMap = new HashMap<>();
 
     private final String outputPath = "C:\\Users\\user\\Desktop\\BE metoring\\socket\\Client\\src\\main\\java\\org\\example";
 
-    public FileManager(Socket socket) {
-        this.client = socket;
+    public FileManager() {
         System.out.println("Run File_handler");
     }
 
