@@ -8,18 +8,11 @@ import java.util.Arrays;
 
 public class ClientHandler implements Runnable {
     private final Socket clientSocket;
+
     private final Server server;
-    private DataOutputStream dataOutputStream;
-    private DataInputStream dataInputStream;
 
     public ClientHandler(Server server, Socket clientSocket) {
         this.clientSocket = clientSocket;
-        try {
-            dataInputStream = new DataInputStream(clientSocket.getInputStream());
-            dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         this.server = server;
         System.out.println("Start c-handler");
     }
@@ -27,23 +20,20 @@ public class ClientHandler implements Runnable {
     public void run(){
         try {
             while (true) {
+                DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
+
                 // body length
-                int bodyLength = dataInputStream.readInt();
-                server.print(String.valueOf(bodyLength));
+                int bodyLength = getBodyLength(dataInputStream);
+                MessageType messageType = getMessageType(dataInputStream);
+                byte[] body = new byte[bodyLength];
+                dataInputStream.readFully(body);
+                System.out.println("bodyLength: " + bodyLength + "\n messageType: " + messageType + "\nbody: " + Arrays.toString(body));
 
-                // byte[4] = length(only body)
-                int typeInt = dataInputStream.readInt();
-                MessageType messageType = MessageType.values()[typeInt];
-                server.print("Message Type: " + messageType);
+                Message message = new Message(messageType, body);
+                server.processMessage(message, clientSocket);
 
-                //byte[n] = body
-                byte[] inMessageByte = new byte[bodyLength];
-                dataInputStream.readFully(inMessageByte);
-
-                Message message = new Message(messageType, inMessageByte, clientSocket);
-                server.processMessage(message);
-
-                if (messageType == MessageType.FIN){
+                if (message.getMessageType() == MessageType.FIN) {
+                    System.out.println("closed ClientHandler");
                     break;
                 }
             }
@@ -51,26 +41,19 @@ public class ClientHandler implements Runnable {
             System.out.println("Client closed the connection.");
         } catch (SocketException e) {
             System.out.println("Client connection was reset. ");
-            Message finMessage = new Message(MessageType.FIN, null, clientSocket);
-            server.processMessage(finMessage);
+            Message finMessage = new Message(MessageType.FIN, null);
+            server.processMessage(finMessage, clientSocket);
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (dataInputStream != null) dataInputStream.close();
-                if (dataOutputStream != null) dataOutputStream.close();
-                if (clientSocket != null) clientSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
-    public void sendPacket(MessageType messageType, String message){
-        byte[] sendingByte = Share.getPacketHeader(messageType, message);
+    public void sendPacket(MessageType messageType, byte[] body){
         try {
-            dataOutputStream.writeInt(sendingByte.length);
-            dataOutputStream.write(sendingByte, 0, sendingByte.length);
+            byte[] packet = HeaderMaker.makeHeader(messageType, body);
+            DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+            dataOutputStream.writeInt(packet.length);
+            dataOutputStream.write(packet, 0, packet.length);
             dataOutputStream.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -78,28 +61,43 @@ public class ClientHandler implements Runnable {
     }
 
     public void sendTypeOnly(MessageType messageType){
-        byte[] sendingByte = Share.getPacketHeader(messageType, "");
         try {
-            dataOutputStream.writeInt(sendingByte.length);
-            dataOutputStream.write(sendingByte, 0, sendingByte.length);
+            byte[] packet = HeaderMaker.makeOnlyTypeHeader(messageType);
+            System.out.println("sendTypeonly packet" + Arrays.toString(packet));
+            DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+            dataOutputStream.writeInt(packet.length);
+            dataOutputStream.write(packet, 0, packet.length);
             dataOutputStream.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void sendFile(MessageType messageType, byte[] body) {
-        byte[] sendingByte = Share.getPacketHeaderVerByte(messageType, body);
+    public void sendFile(byte[] body) {
         try {
-            dataOutputStream.writeInt(sendingByte.length);
-            dataOutputStream.write(sendingByte, 0, sendingByte.length);
+            byte[] packet = HeaderMaker.makeHeader(MessageType.FILE, body);
+            DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+            dataOutputStream.writeInt(packet.length);
+            dataOutputStream.write(packet, 0, packet.length);
             dataOutputStream.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public DataOutputStream getDataOutputStream() {
-        return dataOutputStream;
+    private int getBodyLength(DataInputStream dataInputStream) {
+        try {
+            return dataInputStream.readInt();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private MessageType getMessageType(DataInputStream dataInputStream) {
+        try {
+            return MessageType.values()[dataInputStream.readInt()];
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -13,4 +13,11 @@ public class HeaderMaker {
 
         return resultBuffer.array();
     }
+
+    public static byte[] makeOnlyTypeHeader(MessageType messageType) {
+        ByteBuffer resultBuffer = ByteBuffer.allocate(Integer.BYTES * 2);
+        resultBuffer.putInt(0);
+        resultBuffer.putInt(messageType.ordinal());
+        return resultBuffer.array();
+    }
 }

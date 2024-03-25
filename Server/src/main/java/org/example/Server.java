@@ -2,6 +2,8 @@ package org.example;
 
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Server{
@@ -15,7 +17,6 @@ public class Server{
 
     private final Object handlerLock = new Object();
 
-    private final Object fileManagerLock = new Object();
     private boolean isRunning = true;
     public Server() {
     }
@@ -43,35 +44,30 @@ public class Server{
         }
     }
 
-    public void processMessage(Message message){
-        System.out.println("message received: " + message.getBody() + " " + message.getMessageType());
+    public void processMessage(Message message, Socket senderSocket){
         switch (message.getMessageType()){
             case REGISTER_ID :
-                resisterId(new String(message.getBody()), message.getClientSocket());
+                resisterId(new String(message.getBody()), senderSocket);
                 break;
             case COMMENT:
-                sendComment(new String(message.getBody()), message.getClientSocket());
+                sendComment(new String(message.getBody()),senderSocket);
                 break;
             case CHANGE_ID:
-                changeID(new String(message.getBody()), message.getClientSocket());
+                changeID(new String(message.getBody()), senderSocket);
                 break;
             case WHISPER:
-                sendWhisper(new String(message.getBody()), message.getClientSocket());
+                sendWhisper(new String(message.getBody()), senderSocket);
                 break;
             case FILE:
-                sendFile(message.getBody(), MessageType.FILE);
+                sendFile(message.getBody());
                 break;
             case FILE_END:
-                sendFile(message.getBody(), MessageType.FILE_END);
+                sendFileEnd(message.getBody());
                 break;
             case FIN:
-                noticeFin(message.getClientSocket());
+                noticeFin(senderSocket);
                 break;
         }
-    }
-
-    public void print(String message) {
-        System.out.println(message);
     }
 
     private void resisterId(String id, Socket socket){
@@ -80,6 +76,7 @@ public class Server{
             countManager.register(socket);
             synchronized ( handlerLock ){
                 handlerMap.get(socket).sendTypeOnly(MessageType.REGISTER_SUCCESS);
+                System.out.println("send ResisterSuceess");
             }
         } else {
             synchronized ( handlerLock ){
@@ -90,6 +87,33 @@ public class Server{
 
     }
 
+    private void sendFileEnd(byte[] body) {
+        // body = idLength id fileName
+        System.out.println("Strat sendFileEnd!!");
+        System.out.println("Test packet Received!!" + Arrays.toString(body));
+
+        ByteBuffer byteBuffer = ByteBuffer.wrap(body);
+
+        int idLengthSize = 4;
+        int idLength = byteBuffer.getInt();
+        byte[] idByte = new byte[idLength];
+        byteBuffer.get(idByte);
+        System.out.println(Arrays.toString(body));
+        String receiveId = new String(idByte, StandardCharsets.UTF_8);
+        System.out.println("receiveId: " + receiveId + "\n ByteBuffer position: " + byteBuffer.position());
+
+        byte[] fileName = new byte[body.length - idLengthSize - idLength];
+        byteBuffer.get(fileName);
+        System.out.println("remian body: " + Arrays.toString(fileName));
+
+        Socket receiverSocket = idManager.getSocketById(receiveId);
+        ClientHandler receiverHandler;
+        synchronized (handlerLock) {
+            receiverHandler = handlerMap.get(receiverSocket);
+        }
+        receiverHandler.sendFile(fileName);
+    }
+
     private void changeID(String id, Socket socket){
         String oldId = idManager.getIdBySocket(socket);
         if (idManager.changeId(id, socket)){
@@ -98,7 +122,7 @@ public class Server{
 
                 for (Socket key : handlerMap.keySet()){
                     ClientHandler handler = handlerMap.get(key);
-                    handler.sendPacket(MessageType.COMMENT, getIdChangeMessage(oldId, socket));
+                    handler.sendPacket(MessageType.COMMENT, getIdChangeMessage(oldId, socket).getBytes());
                 }
 
             }
@@ -111,7 +135,7 @@ public class Server{
     }
 
     private String getIdChangeMessage(String oldId, Socket socket) {
-        return oldId + " changed ID" + oldId + " -> " + idManager.getIdBySocket(socket);
+        return oldId + " changed ID: " + oldId + "  ->  " + idManager.getIdBySocket(socket);
     }
 
     private void sendWhisper(String message, Socket socket) {
@@ -122,14 +146,32 @@ public class Server{
         Socket receiverSocket = idManager.getSocketById(receiverId);
 
         synchronized ( handlerLock ){
-            handlerMap.get(receiverSocket).sendPacket(MessageType.WHISPER, whisperMessage);
+            handlerMap.get(receiverSocket).sendPacket(MessageType.WHISPER, whisperMessage.getBytes());
         }
     }
 
-    private void sendFile(byte[] body, MessageType type) {
-        System.out.println("start sends the file");
-        Socket receiverSocket = idManager.getSocketById(FileProcessor.getReceiverId(body));
-        handlerMap.get(receiverSocket).sendFile(type, body);
+    private void sendFile(byte[] body) {
+        System.out.println("\nStrat sendFile!!");
+        //System.out.println("Test packet Received!!" + Arrays.toString(body));
+        ByteBuffer byteBuffer = ByteBuffer.wrap(body);
+
+        int idLengthSize = 4;
+        int idLength = byteBuffer.getInt();
+        byte[] idByte = new byte[idLength];
+        byteBuffer.get(idByte);
+        System.out.println(Arrays.toString(body));
+        String receiveId = new String(idByte, StandardCharsets.UTF_8);
+
+        byte[] packet = new byte[body.length - idLengthSize - idLength];
+        byteBuffer.get(packet);
+        System.out.println("remian body: " + Arrays.toString(packet));
+
+        Socket receiverSocket = idManager.getSocketById(receiveId);
+        ClientHandler receiverHandler;
+        synchronized (handlerLock) {
+            receiverHandler = handlerMap.get(receiverSocket);
+        }
+        receiverHandler.sendFile(packet);
     }
 
     private void noticeFin(Socket socket){
@@ -138,7 +180,7 @@ public class Server{
         synchronized ( handlerLock ){
             for (Socket key : handlerMap.keySet()){
                 ClientHandler handler = handlerMap.get(key);
-                handler.sendPacket(MessageType.NOTICE, outMessage);
+                handler.sendPacket(MessageType.NOTICE, outMessage.getBytes());
             }
         }
 
@@ -161,7 +203,7 @@ public class Server{
         // deadLock?
         String id = idManager.getIdBySocket(socket);
         int count = countManager.get(socket);
-        return "Id: " + id +"\ntotal message count: " + count;
+        return "Id: " + id +"is out \ntotal message count: " + count;
     }
 
     private String makeCommentMessage(Socket socket, String message){
@@ -173,7 +215,7 @@ public class Server{
         synchronized ( handlerLock ){
             for (Socket key : handlerMap.keySet()){
                 ClientHandler handler = handlerMap.get(key);
-                handler.sendPacket(MessageType.COMMENT, message);
+                handler.sendPacket(MessageType.COMMENT, message.getBytes());
             }
         }
         countManager.add(socket);
@@ -183,7 +225,4 @@ public class Server{
         return "(whisper)" + idManager.getIdBySocket(socket) + ": " + message;
     }
 
-    public CountManager getCountManager() {
-        return countManager;
-    }
 }

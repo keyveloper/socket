@@ -5,12 +5,11 @@ import java.net.Socket;
 public class Message {
     private final MessageType messageType;
     private final byte[] body;
-    private final Socket clientSocket;
 
-    public Message(MessageType messageType, byte[] body, Socket clientSocket){
+    public Message(MessageType messageType, byte[] body){
         this.messageType = messageType;
         this.body = body;
-        this.clientSocket = clientSocket;
+
     }
 
     public MessageType getMessageType(){
@@ -21,7 +20,4 @@ public class Message {
         return body;
     }
 
-    public Socket getClientSocket(){
-        return clientSocket;
-    }
 }
