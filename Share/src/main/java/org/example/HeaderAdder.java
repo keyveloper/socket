@@ -2,8 +2,8 @@ package org.example;
 
 import java.nio.*;
 
-public class HeaderMaker {
-    public static byte[] makeHeader(MessageType messageType, byte[] body) {
+public class HeaderAdder {
+    public static byte[] addHeader(MessageType messageType, byte[] body) {
         // bodyLength + bodytype + body
         int bodyLength = body.length;
         ByteBuffer resultBuffer = ByteBuffer.allocate(Integer.BYTES * 2 + bodyLength);
@@ -14,7 +14,7 @@ public class HeaderMaker {
         return resultBuffer.array();
     }
 
-    public static byte[] makeOnlyTypeHeader(MessageType messageType) {
+    public static byte[] addOnlyTypeHeader(MessageType messageType) {
         ByteBuffer resultBuffer = ByteBuffer.allocate(Integer.BYTES * 2);
         resultBuffer.putInt(0);
         resultBuffer.putInt(messageType.ordinal());

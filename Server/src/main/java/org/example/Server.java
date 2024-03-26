@@ -89,29 +89,27 @@ public class Server{
 
     private void sendFileEnd(byte[] body) {
         // body = idLength id fileName
-        System.out.println("Strat sendFileEnd!!");
-        System.out.println("Test packet Received!!" + Arrays.toString(body));
-
+        System.out.println("sendFile body in end: " + Arrays.toString(body));
         ByteBuffer byteBuffer = ByteBuffer.wrap(body);
 
-        int idLengthSize = 4;
+        // idlength(4) + id + fileNameLength(4) + fileName + seq + filebyte
+        int idLengthSize = Integer.BYTES;
         int idLength = byteBuffer.getInt();
         byte[] idByte = new byte[idLength];
         byteBuffer.get(idByte);
-        System.out.println(Arrays.toString(body));
-        String receiveId = new String(idByte, StandardCharsets.UTF_8);
-        System.out.println("receiveId: " + receiveId + "\n ByteBuffer position: " + byteBuffer.position());
+        String receiverId = new String(idByte, StandardCharsets.UTF_8);
+        System.out.println("receiver id: " + receiverId);
 
-        byte[] fileName = new byte[body.length - idLengthSize - idLength];
-        byteBuffer.get(fileName);
-        System.out.println("remian body: " + Arrays.toString(fileName));
+        byte[] remainBody = new byte[body.length - idLengthSize - idByte.length];
+        byteBuffer.get(remainBody);
+        System.out.println("remianBody(with filename)" + Arrays.toString(remainBody));
 
-        Socket receiverSocket = idManager.getSocketById(receiveId);
+        Socket receiverSocket = idManager.getSocketById(receiverId);
         ClientHandler receiverHandler;
         synchronized (handlerLock) {
             receiverHandler = handlerMap.get(receiverSocket);
         }
-        receiverHandler.sendFile(fileName);
+        receiverHandler.sendPacket(MessageType.FILE_END, remainBody);
     }
 
     private void changeID(String id, Socket socket){

@@ -48,21 +48,11 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void sendPacket(MessageType messageType, byte[] body){
-        try {
-            byte[] packet = HeaderMaker.makeHeader(messageType, body);
-            DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-            dataOutputStream.writeInt(packet.length);
-            dataOutputStream.write(packet, 0, packet.length);
-            dataOutputStream.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+
 
     public void sendTypeOnly(MessageType messageType){
         try {
-            byte[] packet = HeaderMaker.makeOnlyTypeHeader(messageType);
+            byte[] packet = HeaderAdder.addOnlyTypeHeader(messageType);
             System.out.println("sendTypeonly packet" + Arrays.toString(packet));
             DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
             dataOutputStream.writeInt(packet.length);
@@ -75,7 +65,7 @@ public class ClientHandler implements Runnable {
 
     public void sendFile(byte[] body) {
         try {
-            byte[] packet = HeaderMaker.makeHeader(MessageType.FILE, body);
+            byte[] packet = HeaderAdder.addHeader(MessageType.FILE, body);
             DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
             dataOutputStream.writeInt(packet.length);
             dataOutputStream.write(packet, 0, packet.length);

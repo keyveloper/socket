@@ -94,6 +94,7 @@ public class Client implements Runnable {
     }
 
     private void processMessage(Message message) {
+        System.out.println("start procee message: " + message.getMessageType());
         switch (message.getMessageType()) {
             case COMMENT, WHISPER, NOTICE:
                 System.out.println("\n" + new String(message.getBody()) + "\n");
@@ -107,8 +108,10 @@ public class Client implements Runnable {
                 break;
             case FILE:
                 storeFile(message.getBody());
+                break;
             case FILE_END:
                 combineFile(message.getBody());
+                break;
             case FIN_ACK:
                 System.out.println("Connetion close!");
                 try {
@@ -132,40 +135,46 @@ public class Client implements Runnable {
     }
 
     private void sendFile(byte[] receiver, byte[] fileName) {
-        String filePath = "C:\\Users\\user\\Desktop\\BEmetoring\\file_test";
+        // home pc String filePath = "C:\\Users\\user\\Desktop\\BEmetoring\\file_test";
+        String filePath = "C:\\Users\\yangd\\OneDrive\\바탕 화면\\filetest";
         File file = new File(filePath, new String(fileName));
         try {
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             FileInputStream fileInputStream = new FileInputStream(file);
             byte[] readByte = new byte[10];
             String onlyName = new String(fileName).split("\\.")[0];
-            int receiverLengthSize = receiver.length;
-            int fileNameSize = 4;
-            int seqSize = 4;
+            int receiverLengthSize = Integer.BYTES;
+            int fileNameSize = Integer.BYTES;
+            int seqSize = Integer.BYTES;
             int byteRead;
             int seq = 0;
             while ((byteRead = fileInputStream.read(readByte)) != -1) {
                 byte[] actualRead = Arrays.copyOf(readByte, byteRead);
-
-                ByteBuffer bodyBuffer = ByteBuffer.allocate(receiverLengthSize + receiver.length + fileName.length + seqSize + actualRead.length);
-                System.out.println("want to " + 4 + receiver.length + 4 + 4 + actualRead.length);
+                // idlength(4) + id + fileNameLength(4) + fileName + seq + filebyte
+                ByteBuffer bodyBuffer = ByteBuffer.allocate(receiverLengthSize + receiver.length + fileNameSize + onlyName.getBytes().length + seqSize + actualRead.length);
                 System.out.println("bodybuffer size: " + bodyBuffer.capacity());
                 bodyBuffer.putInt(receiver.length);
                 bodyBuffer.put(receiver);
-                bodyBuffer.putInt(fileNameSize);
+                bodyBuffer.putInt(onlyName.getBytes().length);
                 bodyBuffer.put(onlyName.getBytes());
                 bodyBuffer.putInt(seq);
                 bodyBuffer.put(actualRead);
+                System.out.println("bodyBuffer: (not head)" + Arrays.toString(bodyBuffer.array())); // 여기서 문제 -> 할당하는 부분 다시
 
-                byte[] packet = HeaderMaker.makeHeader(MessageType.FILE, bodyBuffer.array());
+                byte[] packet = HeaderAdder.addHeader(MessageType.FILE, bodyBuffer.array());
                 System.out.println("made packet: " + Arrays.toString(packet));
                 dataOutputStream.write(packet,0, packet.length);
                 dataOutputStream.flush();
                 seq ++;
             }
-            // System.out.println("all filePacket be sent");
-            ByteBuffer endBuffer = ByteBuffer.allocate(receiver.length + fileName.length);
-            byte[] endPacket = HeaderMaker.makeHeader(MessageType.FILE_END, endBuffer.array());
+             System.out.println("all filePacket be sent");
+            ByteBuffer endBuffer = ByteBuffer.allocate(receiverLengthSize + receiver.length + fileNameSize + onlyName.getBytes().length);
+            endBuffer.putInt(receiver.length);
+            endBuffer.put(receiver);
+            endBuffer.putInt(onlyName.getBytes().length);
+            endBuffer.put(onlyName.getBytes());
+            byte[] endPacket = HeaderAdder.addHeader(MessageType.FILE_END, endBuffer.array());
+            System.out.println("endPacket: " + Arrays.toString(endPacket));
             dataOutputStream.write(endPacket, 0, endPacket.length);
             dataOutputStream.flush();
         } catch (FileNotFoundException e) {
@@ -180,14 +189,20 @@ public class Client implements Runnable {
     }
 
     private void combineFile(byte[] fileName) {
-        byte[] totalFile = fileManager.getCombineFile(fileName);
+        ByteBuffer fileNameBuffer = ByteBuffer.wrap(fileName);
+        int fileNameLength = fileNameBuffer.getInt();
+        byte[] fileNameByte = new byte[fileNameLength];
+        fileNameBuffer.get(fileNameByte);
+
+        byte[] totalFile = fileManager.getCombineFile(fileNameByte);
         saveFile(totalFile);
     }
 
     private void saveFile(byte[] body) {
         try {
-            String randomFileName = UUID.randomUUID().toString() + ".txt";
-            String directoryPath = "C:\\Users\\user\\Desktop\\BEmetoring\\file_test\\output";
+            String randomFileName = UUID.randomUUID() + ".txt";
+            String directoryPath = "C:\\Users\\yangd\\OneDrive\\바탕 화면\\filetest\\outputPath";
+            // home String directoryPath = "C:\\Users\\user\\Desktop\\BEmetoring\\file_test\\output";
             File file = new File(directoryPath, randomFileName);
             FileOutputStream fileOutputStream =  new FileOutputStream(file);
             fileOutputStream.write(body);
@@ -199,29 +214,29 @@ public class Client implements Runnable {
     }
 
     private void processRegister(String command) {
-        byte[] packet = HeaderMaker.makeHeader(MessageType.REGISTER_ID, command.substring(3).getBytes());
+        byte[] packet = HeaderAdder.addHeader(MessageType.REGISTER_ID, command.substring(3).getBytes());
         sendPacket(packet);
     }
 
     private void processFin() {
         System.out.println("process fin start");
-        byte[] packet = HeaderMaker.makeOnlyTypeHeader(MessageType.FIN);
+        byte[] packet = HeaderAdder.addOnlyTypeHeader(MessageType.FIN);
         sendPacket(packet);
     }
 
     private void processChangeId(String command) {
-        byte[] packet = HeaderMaker.makeHeader(MessageType.CHANGE_ID, command.substring(3).getBytes());
+        byte[] packet = HeaderAdder.addHeader(MessageType.CHANGE_ID, command.substring(3).getBytes());
         sendPacket(packet);
     }
 
     private void processWhisper(String command) {
         System.out.println("start whisper: " + Arrays.toString(command.substring(3).getBytes()));
-        byte[] packet = HeaderMaker.makeHeader(MessageType.WHISPER, command.substring(3).getBytes());
+        byte[] packet = HeaderAdder.addHeader(MessageType.WHISPER, command.substring(3).getBytes());
         sendPacket(packet);
     }
 
     private void processComment(String command) {
-        byte[] packet = HeaderMaker.makeHeader(MessageType.COMMENT, command.getBytes());
+        byte[] packet = HeaderAdder.addHeader(MessageType.COMMENT, command.getBytes());
         sendPacket(packet);
     }
 
