@@ -16,20 +16,25 @@ public class Client implements Runnable {
     private Boolean registered = false;
     private final FileManager fileManager;
 
+    private final ClientPacketSender clientPacketSender;
+
+
     Socket socket;
 
     public Client() {
         socket = new Socket();
         fileManager = new FileManager(this);
+        clientPacketSender = new ClientPacketSender(socket);
     }
     public void run() {
         try {
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", tcpClientPort));
             System.out.print("\n[ Success connecting ] \n");
+            ClientPacketReader clientPacketReader = new ClientPacketReader(socket);
 
             while (true) {
-                ClientPacketSender clientPacketSender = new ClientPacketSender(socket);
+                Message receivedMessage = clientPacketReader.readPacket();
 
             }
         } catch (IOException e) {

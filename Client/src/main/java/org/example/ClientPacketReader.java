@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.net.*;
 
 @Data
-public class ClientPacketReceiver implements PacketReader{
+public class ClientPacketReader implements PacketReader{
     private final Socket client;
 
     @Override
