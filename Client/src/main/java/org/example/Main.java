@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 public class Main {
     public static void main(String[] args) throws InterruptedException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        CommandProcessor cp = new CommandProcessor();
         try {
             Client client = new Client();
             Thread clientThread = new Thread(client);

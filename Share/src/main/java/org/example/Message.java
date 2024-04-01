@@ -1,23 +1,12 @@
 package org.example;
 
-import java.net.Socket;
+import lombok.Data;
 
+@Data
 public class Message {
+    private final int bodyLength;
+
     private final MessageType messageType;
+
     private final byte[] body;
-
-    public Message(MessageType messageType, byte[] body){
-        this.messageType = messageType;
-        this.body = body;
-
-    }
-
-    public MessageType getMessageType(){
-        return messageType;
-    }
-
-    public byte[] getBody(){
-        return body;
-    }
-
 }

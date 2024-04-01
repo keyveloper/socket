@@ -1,5 +1,7 @@
 package org.example;
 
+import lombok.Data;
+
 import javax.swing.text.AttributeSet;
 import javax.swing.text.FieldView;
 import javax.swing.text.Style;
@@ -21,46 +23,16 @@ public class Client implements Runnable {
         fileManager = new FileManager(this);
     }
     public void run() {
-        long threadId = Thread.currentThread().getId();
-        System.out.println("myid: "+  threadId);
         try {
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", tcpClientPort));
-            System.out.print("\n [ Success connecting ] \n");
+            System.out.print("\n[ Success connecting ] \n");
 
             while (true) {
-                InputStream inputStream = socket.getInputStream();
-                DataInputStream dataInputStream = new DataInputStream(inputStream);
+                ClientPacketSender clientPacketSender = new ClientPacketSender(socket);
 
-                int bodyLengthSize= 4;
-                int typeLengthSize = 4;
-                int inAllLength = dataInputStream.readInt();
-                if(inAllLength > 0) {
-                    byte[] inLengthByte = new byte[4];
-                    dataInputStream.readFully(inLengthByte);
-                    int messageLength = Share.readInputLength(inLengthByte);
-                    System.out.println("received meesageLenght: " + messageLength);
-
-                    byte[] inTypeByte = new byte[4];
-                    dataInputStream.readFully(inTypeByte);
-                    int typeInt = ByteBuffer.wrap(inTypeByte).getInt();
-                    MessageType inMessageType = MessageType.values()[typeInt];
-                    System.out.println("received type: " + inMessageType);
-
-                    byte[] inMessageByte = new byte[inAllLength - bodyLengthSize - typeLengthSize];
-                    dataInputStream.readFully(inMessageByte);
-                    System.out.println("inMessageByte: " + Arrays.toString(inMessageByte));
-
-                    Message message = new Message(inMessageType, inMessageByte);
-                    processMessage(message);
-
-                } else if(inAllLength == 0){
-                    // quit
-                    break;
-                }
             }
-
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
