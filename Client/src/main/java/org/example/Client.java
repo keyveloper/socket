@@ -9,6 +9,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class Client implements Runnable {
@@ -16,21 +17,18 @@ public class Client implements Runnable {
     private Boolean registered = false;
     private final FileManager fileManager;
 
-    private final ClientPacketSender clientPacketSender;
-
-
     Socket socket;
 
     public Client() {
         socket = new Socket();
         fileManager = new FileManager(this);
-        clientPacketSender = new ClientPacketSender(socket);
     }
     public void run() {
         try {
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", tcpClientPort));
             System.out.print("\n[ Success connecting ] \n");
+            ClientPacketSender clientPacketSender = new ClientPacketSender(socket);
             ClientPacketReader clientPacketReader = new ClientPacketReader(socket);
 
             while (true) {
@@ -42,34 +40,17 @@ public class Client implements Runnable {
         }
     }
 
-    public void processCommand(String command){
-        if (command.startsWith("/R") || command.startsWith("/r")) {
-            processRegister(command);
-            return;
-        }
-        if (!registered) {
-            System.out.println("Register first!! \n /R or /r id");
-            return;
-        }
-        if (command.startsWith("/Q") || command.startsWith("/q")) {
-            processFin();
-            return;
-        }
-        if (command.startsWith("/N") || command.startsWith("/n")) {
-            processChangeId(command);
-            return;
-        }
-        if (command.startsWith("/W") || command.startsWith("/w")) {
-            processWhisper(command);
-            return;
-        }
-        if (command.startsWith("/F") || command.startsWith("/f")) {
-            processFile(command);
-            return;
-        }
-        processComment(command);
+    public void processCommand(String command) {
+        CommandSeparator commandSeparator = new CommandSeparator(command);
+        MessageType messageType = commandSeparator.getMessageType();
+        HashMap<String, Object> contentMap = commandSeparator.getContentMap();
+
+        makePacket(messageType, contentMap);
     }
 
+    private void makePacket(MessageType messageType, HashMap<String, Object> contentMap) {
+
+    }
     private void processMessage(Message message) {
         System.out.println("start procee message: " + message.getMessageType());
         switch (message.getMessageType()) {
