@@ -33,11 +33,16 @@ public class CommandSeparator {
             int firstIdIndex = command.indexOf('"');
             int secondIdIndex = command.indexOf('"', firstIdIndex + 1);
 
-            contentMap.put("reciever", command.substring(firstIdIndex = 1, secondIdIndex));
+            contentMap.put("receiver", command.substring(firstIdIndex = 1, secondIdIndex));
             contentMap.put("comment", command.substring(secondIdIndex + 2).trim());
+            return;
         }
         if (command.startsWith("/F") || command.startsWith("/f")) {
             messageType = MessageType.FILE;
+            return;
         }
+
+        messageType = MessageType.COMMENT;
+        contentMap.put("comment", command);
     }
 }
