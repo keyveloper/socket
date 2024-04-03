@@ -5,6 +5,6 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class RegisterIdType implements Serializable {
+public class RegisterIdType implements Serializable, MessageType {
     private final String id;
 }

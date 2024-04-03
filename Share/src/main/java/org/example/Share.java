@@ -6,7 +6,7 @@ import static org.example.TypeChange.intToByteArray;
 
 public class Share {
     public static int portNum = 9999;
-    public static byte[] getTypeByte(MessageType messageType){
+    public static byte[] getTypeByte(MessageTypeLibrary messageType){
         int typeInt = messageType.ordinal();
         byte[] typeBytes = intToByteArray(typeInt);
 
@@ -14,7 +14,7 @@ public class Share {
     }
 
 
-    public static byte[] getPacketHeader(MessageType type, String message){
+    public static byte[] getPacketHeader(MessageTypeLibrary type, String message){
         // byte[] + byte[] + byte[]
         byte[] bodyByte = message.getBytes();
         // body의 길이
@@ -37,7 +37,7 @@ public class Share {
         return packet;
     }
 
-    public static byte[] getPacketHeaderVerByte(MessageType type, byte[] body) {
+    public static byte[] getPacketHeaderVerByte(MessageTypeLibrary type, byte[] body) {
         byte[] bodyLengthByte = intToByteArray(body.length);
         byte[] packetTypeByte = getTypeByte(type);
         byte[] packet = new byte[4 + 4 + body.length];

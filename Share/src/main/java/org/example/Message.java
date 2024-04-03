@@ -6,7 +6,7 @@ import lombok.Data;
 public class Message {
     private final int bodyLength;
 
-    private final MessageType messageType;
+    private final MessageTypeLibrary messageType;
 
     private final byte[] body;
 }

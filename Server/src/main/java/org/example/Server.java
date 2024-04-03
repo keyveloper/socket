@@ -75,12 +75,12 @@ public class Server{
             System.out.println("Id Reigsterd complete");
             countManager.register(socket);
             synchronized ( handlerLock ){
-                handlerMap.get(socket).sendTypeOnly(MessageType.REGISTER_SUCCESS);
+                handlerMap.get(socket).sendTypeOnly(MessageTypeLibrary.REGISTER_SUCCESS);
                 System.out.println("send ResisterSuceess");
             }
         } else {
             synchronized ( handlerLock ){
-                handlerMap.get(socket).sendTypeOnly(MessageType.ALREADY_EXIST_ID);
+                handlerMap.get(socket).sendTypeOnly(MessageTypeLibrary.ALREADY_EXIST_ID);
                 System.out.println("Already Exist ID");
             }
         }
@@ -109,24 +109,24 @@ public class Server{
         synchronized (handlerLock) {
             receiverHandler = handlerMap.get(receiverSocket);
         }
-        receiverHandler.sendPacket(MessageType.FILE_END, remainBody);
+        receiverHandler.sendPacket(MessageTypeLibrary.FILE_END, remainBody);
     }
 
     private void changeID(String id, Socket socket){
         String oldId = idManager.getIdBySocket(socket);
         if (idManager.changeId(id, socket)){
             synchronized ( handlerLock ){
-                handlerMap.get(socket).sendTypeOnly(MessageType.REGISTER_SUCCESS);
+                handlerMap.get(socket).sendTypeOnly(MessageTypeLibrary.REGISTER_SUCCESS);
 
                 for (Socket key : handlerMap.keySet()){
                     ClientHandler handler = handlerMap.get(key);
-                    handler.sendPacket(MessageType.COMMENT, getIdChangeMessage(oldId, socket).getBytes());
+                    handler.sendPacket(MessageTypeLibrary.COMMENT, getIdChangeMessage(oldId, socket).getBytes());
                 }
 
             }
         } else {
             synchronized ( handlerLock ){
-                handlerMap.get(socket).sendTypeOnly(MessageType.ALREADY_EXIST_ID);
+                handlerMap.get(socket).sendTypeOnly(MessageTypeLibrary.ALREADY_EXIST_ID);
                 System.out.println("Already Exist ID");
             }
         }
@@ -144,7 +144,7 @@ public class Server{
         Socket receiverSocket = idManager.getSocketById(receiverId);
 
         synchronized ( handlerLock ){
-            handlerMap.get(receiverSocket).sendPacket(MessageType.WHISPER, whisperMessage.getBytes());
+            handlerMap.get(receiverSocket).sendPacket(MessageTypeLibrary.WHISPER, whisperMessage.getBytes());
         }
     }
 
@@ -178,7 +178,7 @@ public class Server{
         synchronized ( handlerLock ){
             for (Socket key : handlerMap.keySet()){
                 ClientHandler handler = handlerMap.get(key);
-                handler.sendPacket(MessageType.NOTICE, outMessage.getBytes());
+                handler.sendPacket(MessageTypeLibrary.NOTICE, outMessage.getBytes());
             }
         }
 
@@ -213,7 +213,7 @@ public class Server{
         synchronized ( handlerLock ){
             for (Socket key : handlerMap.keySet()){
                 ClientHandler handler = handlerMap.get(key);
-                handler.sendPacket(MessageType.COMMENT, message.getBytes());
+                handler.sendPacket(MessageTypeLibrary.COMMENT, message.getBytes());
             }
         }
         countManager.add(socket);

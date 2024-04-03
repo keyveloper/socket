@@ -8,27 +8,27 @@ import java.util.HashMap;
 public class CommandSeparator {
     private final String command;
 
-    private MessageType messageType;
+    private MessageTypeLibrary messageType;
 
     private HashMap<String, Object> contentMap;
     private void separate() {
         if (command.startsWith("/r") || command.startsWith("/R")) {
-            messageType = MessageType.REGISTER_ID;
+            messageType = MessageTypeLibrary.REGISTER_ID;
             contentMap.put("id", command.substring(3));
             return;
         }
         if (command.startsWith("/Q") || command.startsWith("/q")) {
-            messageType = MessageType.FIN;
+            messageType = MessageTypeLibrary.FIN;
             return;
         }
         if (command.startsWith("/N") || command.startsWith("/n")) {
-            messageType = MessageType.CHANGE_ID;
+            messageType = MessageTypeLibrary.CHANGE_ID;
             contentMap.put("newID", command.substring(3));
             return;
         }
         if (command.startsWith("/W") || command.startsWith("/w")) {
             // /W "receiver" comment
-            messageType = MessageType.WHISPER;
+            messageType = MessageTypeLibrary.WHISPER;
 
             int firstIdIndex = command.indexOf('"');
             int secondIdIndex = command.indexOf('"', firstIdIndex + 1);
@@ -38,11 +38,11 @@ public class CommandSeparator {
             return;
         }
         if (command.startsWith("/F") || command.startsWith("/f")) {
-            messageType = MessageType.FILE;
+            messageType = MessageTypeLibrary.FILE;
             return;
         }
 
-        messageType = MessageType.COMMENT;
+        messageType = MessageTypeLibrary.COMMENT;
         contentMap.put("comment", command);
     }
 }

@@ -14,7 +14,7 @@ public class ClientPacketReader implements PacketReader{
     public Message readPacket() throws IOException {
         DataInputStream dataInputStream = new DataInputStream(client.getInputStream());
         int bodyLength = dataInputStream.readInt();
-        MessageType messageType = MessageType.values()[dataInputStream.readInt()];
+        MessageTypeLibrary messageType = MessageTypeLibrary.values()[dataInputStream.readInt()];
         byte[] body = new byte[bodyLength];
         dataInputStream.readFully(body);
 
