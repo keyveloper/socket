@@ -7,4 +7,5 @@ import java.io.Serializable;
 @Data
 public class CommentType implements Serializable, MessageType {
     private final String comment;
+    private final int typeNumber;
 }

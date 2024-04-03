@@ -1,5 +1,9 @@
 package org.example;
 
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
@@ -17,17 +21,14 @@ public class Server{
 
     private final Object handlerLock = new Object();
 
-    private boolean isRunning = true;
-    public Server() {
-    }
-
     public void start(){
         try{
             try (ServerSocket serverSocket = new ServerSocket()) {
                 serverSocket.bind(new InetSocketAddress(tcpServerPort));
                 System.out.println("Starting tcp Server: " + tcpServerPort);
                 System.out.println("[ Waiting ]\n");
-                while (isRunning) {
+                boolean isRunning = true;
+                while (true) {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("Connected " + clientSocket.getLocalPort() + " Port, From " + clientSocket.getRemoteSocketAddress().toString() + "\n");
 

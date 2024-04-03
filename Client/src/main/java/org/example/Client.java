@@ -19,9 +19,7 @@ public class Client implements Runnable {
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", tcpClientPort));
             System.out.print("\n[ Success connecting ] \n");
-            ClientPacketSender clientPacketSender = new ClientPacketSender(socket);
             ClientPacketReader clientPacketReader = new ClientPacketReader(socket);
-
             while (true) {
                 Message receivedMessage = clientPacketReader.readPacket();
 
@@ -32,12 +30,21 @@ public class Client implements Runnable {
         }
     }
 
-    public void processCommand(String command) {
-        CommandSeparator commandSeparator = new CommandSeparator(command);
-        Mess
+    public void processCommand(String command) throws IOException {
+        CommandSeparator commandSeparator = new CommandSeparator();
+        commandSeparator.separate(command);
+        byte[] packet = makePacket(commandSeparator.getMessageTypeCode(), commandSeparator.getContentMap());
+        sendPacket(packet);
+        // MessageType
+        // contentMap -> 그냥 넘겨주기
     }
 
+    private byte[] makePacket(MessageTypeCode messageType, HashMap<String, Object> contentMap) throws IOException {
+        return PacketMaker.makePacket(messageType, contentMap);
+    }
 
-
-
+    private void sendPacket(byte[] packet) throws IOException {
+        ClientPacketSender clientPacketSender = new ClientPacketSender(socket);
+        clientPacketSender.sendPacket(packet);
+    }
 }

@@ -1,9 +1,10 @@
 package org.example;
 
-public enum MessageTypeLibrary {
+public enum MessageTypeCode {
     REGISTER_ID,
+    REGISTER_STATUS,
     COMMENT,
-    REGISTER_SUCCESS,
+
     CHANGE_ID,
     CHANGE_ID_SUCCESS,
     WHISPER,

@@ -3,10 +3,13 @@ package org.example;
 import lombok.Data;
 
 @Data
-public class RegisterIdTypeMaker implements TypeMaker{
+public class RegisterIdTypeMaker implements TypeMaker {
     private final String id;
+    private int typeNumber;
+
     @Override
     public RegisterIdType make() {
-        return new RegisterIdType(id);
+        setTypeNumber(MessageTypeCode.REGISTER_ID.ordinal());
+        return new RegisterIdType(id, typeNumber);
     }
 }

@@ -1,19 +1,19 @@
 package org.example;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.net.*;
+import java.net.Socket;
 
-@Data
-public class ClientPacketReader implements PacketReader{
-    private final Socket client;
+@AllArgsConstructor
+public class ServerPacketReader implements PacketReader{
+    private final Socket server;
 
     @Override
-    public Message readPacket()  {
+    public Message readPacket() {
         try {
-            DataInputStream dataInputStream = new DataInputStream(client.getInputStream());
+            DataInputStream dataInputStream = new DataInputStream(server.getInputStream());
             int bodyLength = dataInputStream.readInt();
             MessageTypeCode messageTypeCode = MessageTypeCode.values()[dataInputStream.readInt()];
             byte[] body = new byte[bodyLength];
@@ -24,5 +24,4 @@ public class ClientPacketReader implements PacketReader{
             throw new RuntimeException(e);
         }
     }
-
 }
