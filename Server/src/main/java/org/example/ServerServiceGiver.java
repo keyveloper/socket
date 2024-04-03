@@ -9,17 +9,20 @@ import java.util.HashMap;
 public class ServerServiceGiver implements ServiceGiver{
     private final IdManager idManager;
     private final CountManager countManager;
+    private final ClientHandler clientHandler;
 
     @Override
-    public void service(MessageTypeCode messageTypeCode) {
-        switch (messageTypeCode) {
+    public void service(Message message) {
+        InputMessageProcessor inputMessageProcessor = new InputMessageProcessor();
+        switch (message.getMessageTypeCode()) {
             case REGISTER_ID:
-                registerId();
+                MessageType registerId = inputMessageProcessor.makeType(message);
+                registerId((RegisterIdType) registerId, message.getClientSocket());
         }
     }
 
-
-    public void registerId() {
+    public void registerId(RegisterIdType registerIdType, Socket socket) {
+        String id = registerIdType.getId();
         if (idManager.register(id, socket)){
             System.out.println("Id Reigsterd complete");
             countManager.register(socket);

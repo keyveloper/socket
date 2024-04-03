@@ -8,18 +8,18 @@ import java.net.Socket;
 
 @AllArgsConstructor
 public class ServerPacketReader implements PacketReader{
-    private final Socket server;
+    private final Socket clientSocket;
 
     @Override
     public Message readPacket() {
         try {
-            DataInputStream dataInputStream = new DataInputStream(server.getInputStream());
+            DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
             int bodyLength = dataInputStream.readInt();
             MessageTypeCode messageTypeCode = MessageTypeCode.values()[dataInputStream.readInt()];
             byte[] body = new byte[bodyLength];
             dataInputStream.readFully(body);
 
-            return new Message(bodyLength, messageTypeCode, body);
+            return new Message(bodyLength, messageTypeCode, body, clientSocket);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

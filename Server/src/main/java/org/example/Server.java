@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
@@ -13,6 +14,8 @@ import java.util.*;
 public class Server{
     public final int tcpServerPort = Share.portNum;
     private final HashMap<Socket, ClientHandler> handlerMap = new HashMap<>();
+    private final IdManager idManager = new IdManager(this);
+    private final CountManager countManager = new CountManager(this);
 
     private final ServiceGiver serviceGiver = new ServerServiceGiver(new IdManager(this), new CountManager(this));
 
@@ -32,7 +35,7 @@ public class Server{
                     ClientHandler clientHandler = new ClientHandler(this, clientSocket);
                     Thread thread = new Thread(clientHandler);
                     thread.start();
-                    synchronized ( handlerLock ) {
+                  synchronized ( handlerLock ) {
                         handlerMap.put(clientSocket, clientHandler);
                     }
                 }
@@ -43,38 +46,9 @@ public class Server{
     }
 
     public void service(Message message){
-        serviceGiver.service(message.getMessageType());
+        serviceGiver.service(message);
     }
 
-    private void resisterId(String id, Socket socket){
-
-
-    }
-
-    private void sendFileEnd(byte[] body) {
-        // body = idLength id fileName
-        System.out.println("sendFile body in end: " + Arrays.toString(body));
-        ByteBuffer byteBuffer = ByteBuffer.wrap(body);
-
-        // idlength(4) + id + fileNameLength(4) + fileName + seq + filebyte
-        int idLengthSize = Integer.BYTES;
-        int idLength = byteBuffer.getInt();
-        byte[] idByte = new byte[idLength];
-        byteBuffer.get(idByte);
-        String receiverId = new String(idByte, StandardCharsets.UTF_8);
-        System.out.println("receiver id: " + receiverId);
-
-        byte[] remainBody = new byte[body.length - idLengthSize - idByte.length];
-        byteBuffer.get(remainBody);
-        System.out.println("remianBody(with filename)" + Arrays.toString(remainBody));
-
-        Socket receiverSocket = idManager.getSocketById(receiverId);
-        ClientHandler receiverHandler;
-        synchronized (handlerLock) {
-            receiverHandler = handlerMap.get(receiverSocket);
-        }
-        receiverHandler.sendPacket(MessageTypeLibrary.FILE_END, remainBody);
-    }
 
     private void changeID(String id, Socket socket){
         String oldId = idManager.getIdBySocket(socket);
