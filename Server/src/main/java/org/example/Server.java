@@ -12,12 +12,9 @@ import java.util.*;
 
 public class Server{
     public final int tcpServerPort = Share.portNum;
-
-    private final IdManager idManager = new IdManager(this);
-
-    private final CountManager countManager = new CountManager(this);
-
     private final HashMap<Socket, ClientHandler> handlerMap = new HashMap<>();
+
+    private final ServiceGiver serviceGiver = new ServerServiceGiver(new IdManager(this), new CountManager(this));
 
     private final Object handlerLock = new Object();
 
@@ -45,46 +42,12 @@ public class Server{
         }
     }
 
-    public void processMessage(Message message, Socket senderSocket){
-        switch (message.getMessageType()){
-            case REGISTER_ID :
-                resisterId(new String(message.getBody()), senderSocket);
-                break;
-            case COMMENT:
-                sendComment(new String(message.getBody()),senderSocket);
-                break;
-            case CHANGE_ID:
-                changeID(new String(message.getBody()), senderSocket);
-                break;
-            case WHISPER:
-                sendWhisper(new String(message.getBody()), senderSocket);
-                break;
-            case FILE:
-                sendFile(message.getBody());
-                break;
-            case FILE_END:
-                sendFileEnd(message.getBody());
-                break;
-            case FIN:
-                noticeFin(senderSocket);
-                break;
-        }
+    public void service(Message message){
+        serviceGiver.service(message.getMessageType());
     }
 
     private void resisterId(String id, Socket socket){
-        if (idManager.register(id, socket)){
-            System.out.println("Id Reigsterd complete");
-            countManager.register(socket);
-            synchronized ( handlerLock ){
-                handlerMap.get(socket).sendTypeOnly(MessageTypeLibrary.REGISTER_SUCCESS);
-                System.out.println("send ResisterSuceess");
-            }
-        } else {
-            synchronized ( handlerLock ){
-                handlerMap.get(socket).sendTypeOnly(MessageTypeLibrary.ALREADY_EXIST_ID);
-                System.out.println("Already Exist ID");
-            }
-        }
+
 
     }
 

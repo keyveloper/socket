@@ -19,18 +19,11 @@ public class ClientHandler implements Runnable {
     public void run(){
         try {
             ServerPacketReader serverPacketReader = new ServerPacketReader(clientSocket);
+            ServerPacketSender serverPacketSender = new ServerPacketSender(clientSocket);
 
             while (true) {
-                DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
+                Message message = serverPacketReader.readPacket();
 
-                // body length
-                int bodyLength = getBodyLength(dataInputStream);
-                MessageTypeLibrary messageType = getMessageType(dataInputStream);
-                byte[] body = new byte[bodyLength];
-                dataInputStream.readFully(body);
-                System.out.println("bodyLength: " + bodyLength + "\n messageType: " + messageType + "\nbody: " + Arrays.toString(body));
-
-                Message message = new Message(messageType, body);
                 server.processMessage(message, clientSocket);
 
                 if (message.getMessageType() == MessageTypeLibrary.FIN) {
