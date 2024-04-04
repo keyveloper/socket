@@ -1,21 +1,14 @@
 package org.example;
 
+import lombok.NoArgsConstructor;
+
 import java.net.*;
 import java.util.*;
 
+@NoArgsConstructor
 public class CountManager {
     private final HashMap<Socket, Integer> messageCountMap = new HashMap<>();
     private final Object countLock = new Object();
-
-    private final Server server;
-
-    public CountManager(Server server){
-        this.server = server;
-    }
-
-    public Server getServer() {
-        return server;
-    }
 
     public void register(Socket socket){
         synchronized ( countLock ) {

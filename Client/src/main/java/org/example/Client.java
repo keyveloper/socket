@@ -1,29 +1,35 @@
 package org.example;
 
+import lombok.NoArgsConstructor;
+
 import java.io.*;
 import java.net.*;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.ArrayList;
 
+@NoArgsConstructor
 public class Client implements Runnable {
     private final int tcpClientPort = Share.portNum;
-    Socket socket;
 
-    public Client() {
-        socket = new Socket();
-    }
+    private final CommandProcessor commandProcessor = new CommandProcessor();
+
+    private final ClientServiceGiver clientServiceGiver = new ClientServiceGiver();
+    private Socket socket;
+
     public void run() {
         try {
+            socket = new Socket();
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", tcpClientPort));
             System.out.print("\n[ Success connecting ] \n");
             ClientPacketReader clientPacketReader = new ClientPacketReader(socket);
             while (true) {
                 Message receivedMessage = clientPacketReader.readPacket();
+                clientServiceGiver.service(receivedMessage, MessageProcessor.makeMessageType(receivedMessage));
 
-
+                if (receivedMessage.getMessageTypeCode() == MessageTypeCode.FIN_ACK) {
+                    socket.close();
+                    break;
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -31,19 +37,14 @@ public class Client implements Runnable {
     }
 
     public void processCommand(String command) throws IOException {
-        CommandSeparator commandSeparator = new CommandSeparator();
-        commandSeparator.separate(command);
-        byte[] packet = makePacket(commandSeparator.getMessageTypeCode(), commandSeparator.getContentMap());
-        sendPacket(packet);
-        // MessageType
-        // contentMap -> 그냥 넘겨주기
+        ArrayList<Object> arrayList = commandProcessor.extract(command);
+        // array:ost = [MessageTypeCode, messageType]
+        sendPacket((MessageTypeCode) arrayList.get(0), (MessageType) arrayList.get(1));
+
     }
 
-    private byte[] makePacket(MessageTypeCode messageType, HashMap<String, Object> contentMap) throws IOException {
-        return PacketMaker.makePacket(messageType, contentMap);
-    }
-
-    private void sendPacket(byte[] packet) throws IOException {
+    private void sendPacket(MessageTypeCode messageTypeCode, MessageType messageType) throws IOException {
+        byte[] packet = PacketMaker.makePacket(messageTypeCode, messageType);
         ClientPacketSender clientPacketSender = new ClientPacketSender(socket);
         clientPacketSender.sendPacket(packet);
     }

@@ -1,5 +1,8 @@
 package org.example;
 
+import lombok.Data;
+
+
 public interface MessageType{
-    public int typeNumber = 9999;
+    public int typeCodeNumber = 9999;
 }

@@ -13,13 +13,14 @@ import java.util.*;
 
 public class Server{
     public final int tcpServerPort = Share.portNum;
-    private final HashMap<Socket, ClientHandler> handlerMap = new HashMap<>();
-    private final IdManager idManager = new IdManager(this);
-    private final CountManager countManager = new CountManager(this);
+    @Getter
+    private final IdManager idManager = new IdManager();
+    @Getter
+    private final CountManager countManager = new CountManager();
+    @Getter
+    private final HandlerManger handlerManger = new HandlerManger();
 
-    private final ServiceGiver serviceGiver = new ServerServiceGiver(new IdManager(this), new CountManager(this));
-
-    private final Object handlerLock = new Object();
+    private final ServiceGiver serviceGiver = new ServerServiceGiver(this);
 
     public void start(){
         try{
@@ -35,9 +36,6 @@ public class Server{
                     ClientHandler clientHandler = new ClientHandler(this, clientSocket);
                     Thread thread = new Thread(clientHandler);
                     thread.start();
-                  synchronized ( handlerLock ) {
-                        handlerMap.put(clientSocket, clientHandler);
-                    }
                 }
             }
         } catch (IOException e) {
@@ -45,10 +43,9 @@ public class Server{
         }
     }
 
-    public void service(Message message){
-        serviceGiver.service(message);
+    public void service(Message message) throws IOException{
+        serviceGiver.service(message, MessageProcessor.makeMessageType(message));
     }
-
 
     private void changeID(String id, Socket socket){
         String oldId = idManager.getIdBySocket(socket);

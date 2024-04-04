@@ -19,7 +19,7 @@ public class ClientPacketReader implements PacketReader{
             byte[] body = new byte[bodyLength];
             dataInputStream.readFully(body);
 
-            return new Message(bodyLength, messageTypeCode, body);
+            return new Message(bodyLength, messageTypeCode, body, null);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

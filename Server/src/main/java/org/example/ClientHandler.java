@@ -19,12 +19,9 @@ public class ClientHandler implements Runnable {
     public void run(){
         try {
             ServerPacketReader serverPacketReader = new ServerPacketReader(clientSocket);
-            ServerPacketSender serverPacketSender = new ServerPacketSender(clientSocket);
-
             while (true) {
                 Message message = serverPacketReader.readPacket();
-                server.processMessage(message);
-
+                server.service(message);
             }
         } catch (EOFException e) {
             System.out.println("Client closed the connection.");
@@ -34,6 +31,11 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendPacket(byte[] body) {
+        ServerPacketSender serverPacketSender = new ServerPacketSender(clientSocket);
+        serverPacketSender.sendPacket(body);
     }
 
 }

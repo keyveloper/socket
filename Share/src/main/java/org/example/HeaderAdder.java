@@ -1,23 +1,19 @@
 package org.example;
 
-import java.nio.*;
+import lombok.Data;
 
+import java.nio.ByteBuffer;
+
+@Data
 public class HeaderAdder {
-    public static byte[] addHeader(MessageTypeLibrary messageType, byte[] body) {
-        // bodyLength + bodytype + body
-        int bodyLength = body.length;
-        ByteBuffer resultBuffer = ByteBuffer.allocate(Integer.BYTES * 2 + bodyLength);
-        resultBuffer.putInt(bodyLength);
-        resultBuffer.putInt(messageType.ordinal());
-        resultBuffer.put(body);
+    public static byte[] add(MessageTypeCode messageTypeCode, byte[] bodyPacket) {
+        int bodyLengthSize = Integer.BYTES;
+        int typeIntSize = Integer.BYTES;
+        ByteBuffer byteBuffer = ByteBuffer.allocate(bodyLengthSize + typeIntSize + bodyPacket.length);
+        byteBuffer.putInt(bodyPacket.length);
+        byteBuffer.putInt(messageTypeCode.ordinal());
+        byteBuffer.put(bodyPacket);
 
-        return resultBuffer.array();
-    }
-
-    public static byte[] addOnlyTypeHeader(MessageTypeLibrary messageType) {
-        ByteBuffer resultBuffer = ByteBuffer.allocate(Integer.BYTES * 2);
-        resultBuffer.putInt(0);
-        resultBuffer.putInt(messageType.ordinal());
-        return resultBuffer.array();
+        return byteBuffer.array();
     }
 }

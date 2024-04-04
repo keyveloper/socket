@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 
 @Data
-public class InputMessageProcessor {
+public class MessageProcessor {
     // read Message
     // make Type
-    public MessageType makeType(Message message) {
+    public static MessageType makeMessageType(Message message) {
         int bodyLength = message.getBodyLength();
-        MessageTypeCode messageTypeCode = message.getMessageType();
+        MessageTypeCode messageTypeCode = message.getMessageTypeCode();
         byte[] body = new byte[bodyLength];
         MessageType messageType = null;
         try{
@@ -31,5 +31,4 @@ public class InputMessageProcessor {
 
         return messageType;
     }
-
 }
