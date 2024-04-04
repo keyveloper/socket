@@ -24,10 +24,14 @@ repositories {
 dependencies {
     implementation project(path: ':Share')
     implementation project(':Share')
+    implementation project(path: ':Server')
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-engine'
     implementation 'org.projectlombok:lombok:1.18.28'
     annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.mockito:mockito-core:4.8.0'
+
 }
 
 test {

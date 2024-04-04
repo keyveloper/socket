@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 @NoArgsConstructor
 public class Client implements Runnable {
-    private final int tcpClientPort = Share.portNum;
+    private final int tcpClientPort = 9999;
 
     private final CommandProcessor commandProcessor = new CommandProcessor();
 
