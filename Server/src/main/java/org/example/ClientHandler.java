@@ -19,14 +19,14 @@ public class ClientHandler implements Runnable {
     public void run(){
         try {
             ServerPacketReader serverPacketReader = new ServerPacketReader(clientSocket);
-            while (true) {
-                Message message = serverPacketReader.readPacket();
-                server.service(message);
-            }
+            Message message = serverPacketReader.readPacket();
+            server.service(message);
+
+
         } catch (EOFException e) {
             System.out.println("Client closed the connection.");
         } catch (SocketException e) {
-            // socket이 예상치 못하게 종료
+            // socket out accidently
             System.out.println("Client connection was reset. ");
         } catch (IOException e) {
             e.printStackTrace();

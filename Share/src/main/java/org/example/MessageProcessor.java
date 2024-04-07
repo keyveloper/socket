@@ -5,6 +5,7 @@ import lombok.Data;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.Arrays;
 
 @Data
 public class MessageProcessor {
@@ -13,7 +14,8 @@ public class MessageProcessor {
     public static MessageType makeMessageType(Message message) {
         int bodyLength = message.getBodyLength();
         MessageTypeCode messageTypeCode = message.getMessageTypeCode();
-        byte[] body = new byte[bodyLength];
+        byte[] body = message.getBody();
+        System.out.println("inMessageProcessor: " + "\nbodyLength: " + bodyLength + "\nmessageTypeCode: " + messageTypeCode + "\nbody: " + Arrays.toString(body));
         MessageType messageType = null;
         try{
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(body);

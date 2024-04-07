@@ -43,7 +43,8 @@ public class Server{
     }
 
     public void service(Message message) throws IOException{
-        serviceGiver.service(message, MessageProcessor.makeMessageType(message));
+        MessageType messageType = MessageProcessor.makeMessageType(message);
+        serviceGiver.service(message, messageType);
     }
 
 //    private void changeID(String id, Socket socket){

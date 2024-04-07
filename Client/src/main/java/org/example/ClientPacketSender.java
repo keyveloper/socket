@@ -15,7 +15,6 @@ public class  ClientPacketSender implements PacketSender {
     public void sendPacket(byte[] packet)  {
         try {
             DataOutputStream dataOutputStream = new DataOutputStream(client.getOutputStream());
-            dataOutputStream.writeInt(packet.length);
             dataOutputStream.write(packet, 0, packet.length);
             dataOutputStream.flush();
         } catch (IOException e) {

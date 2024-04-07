@@ -5,19 +5,23 @@ import lombok.NoArgsConstructor;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
-@NoArgsConstructor
+
 public class Client implements Runnable {
     private final int tcpClientPort = 9999;
 
     private final CommandProcessor commandProcessor = new CommandProcessor();
 
     private final ClientServiceGiver clientServiceGiver = new ClientServiceGiver();
-    private Socket socket;
+    private final Socket socket;
+
+    public Client(Socket socket) {
+        this.socket = socket;
+    }
 
     public void run() {
         try {
-            socket = new Socket();
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", tcpClientPort));
             System.out.print("\n[ Success connecting ] \n");
@@ -40,12 +44,13 @@ public class Client implements Runnable {
         ArrayList<Object> arrayList = commandProcessor.extract(command);
         // array:ost = [MessageTypeCode, messageType]
         sendPacket((MessageTypeCode) arrayList.get(0), (MessageType) arrayList.get(1));
-
     }
 
     private void sendPacket(MessageTypeCode messageTypeCode, MessageType messageType) throws IOException {
         byte[] packet = PacketMaker.makePacket(messageTypeCode, messageType);
+        System.out.println("in client SendPacket \ntotal Packet : " + Arrays.toString(packet));
         ClientPacketSender clientPacketSender = new ClientPacketSender(socket);
         clientPacketSender.sendPacket(packet);
+
     }
 }
