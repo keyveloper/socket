@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 @Data
 public class WhisperType implements Serializable, MessageType {
-    private final String receiver;
+    // id = receiver or sender
+    private final String id;
     private final String comment;
 }

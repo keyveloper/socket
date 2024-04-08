@@ -1,9 +1,11 @@
 package org.example;
 
+import com.sun.source.tree.Scope;
 import lombok.Data;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 @Data
@@ -16,24 +18,88 @@ public class ServerServiceGiver implements ServiceGiver{
     // 소켓 정보가 필요하기 떄문에, message가 넘어오는게 좋음
     public void service(Message message, MessageType messageType) throws IOException {
         System.out.println("service start: " + messageType.toString());
-        ClientHandler clientHandler = server.getHandlerManger().get(message.getClientSocket());
+        ClientHandler senderHandler = server.getHandlerManger().get(message.getClientSocket());
         switch (message.getMessageTypeCode()) {
             case REGISTER_ID:
-                RegisterIdStatusType registerIdStatusType = registerIdService((RegisterIdType) messageType, message.getClientSocket());
-                System.out.println("service type object: " + registerIdStatusType.toString());
-                clientHandler.sendPacket(PacketMaker.makePacket(message.getMessageTypeCode(), messageType));
+                RegisterIdType registerIdType = (RegisterIdType) messageType;
+                RegisterIdStatusType RegisterIdstatusType = registerId(registerIdType.getId(), message.getClientSocket());
+                System.out.println("service type object: " + RegisterIdstatusType.toString());
+                senderHandler.sendPacket(PacketMaker.makePacket(message.getMessageTypeCode(), RegisterIdstatusType));
                 break;
+            case CHANGE_ID:
+                ChangeIdType changeIdType = (ChangeIdType) messageType;
+                RegisterIdStatusType changeStatusType = changeId(changeIdType.getChangeId(), message.getClientSocket());
+                System.out.println("change Success");
+                senderHandler.sendPacket(PacketMaker.makePacket(message.getMessageTypeCode(), changeStatusType));
+                break;
+            case WHISPER:
+                WhisperType whisperType = (WhisperType) messageType;
+                sendWhisper(whisperType.getId(), whisperType.getComment(), message.getClientSocket());
+                break;
+            case COMMENT:
+                CommentType commentType = (CommentType) messageType;
+                sendComment(commentType.getSenderId(), commentType.getComment(), message.getClientSocket());
+                break;
+            case FIN:
+                closeConnect(message.getClientSocket());
         }
     }
 
-    public RegisterIdStatusType registerIdService(RegisterIdType registerIdType, Socket socket) {
-        String id = registerIdType.getId();
+    private RegisterIdStatusType registerId(String id, Socket socket) {
         IdManager idManager = server.getIdManager();
-        CountManager countManager = server.getCountManager();
         RegisterIdStatusType registerIdStatusType = idManager.register(id, socket);
-        countManager.register(socket);
-
+        if (registerIdStatusType.getIsSuccess()) {
+            CountManager countManager = server.getCountManager();
+            countManager.register(socket);
+        }
         return registerIdStatusType;
     }
+
+    private RegisterIdStatusType changeId(String newId, Socket socket) {
+        IdManager idManager = server.getIdManager();
+        return idManager.changeId(newId, socket);
+    }
+
+    private void sendWhisper(String receiverId, String comment, Socket senderSocket) throws IOException {
+        Socket receiverSocket = server.getIdManager().getSocketById(receiverId);
+        String senderId = server.getIdManager().getIdBySocket(senderSocket);
+        ClientHandler receiverHandler = server.getHandlerManger().get(receiverSocket);
+        receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.WHISPER, new WhisperType(senderId, comment)));
+
+        plusCount(senderSocket);
+    }
+
+    private void plusCount(Socket sender) {
+        server.getCountManager().add(sender);
+    }
+
+    private void sendComment(String senderId, String comment, Socket senderSocket) throws IOException {
+        ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
+        CommentType commentType = new CommentType(comment);
+        commentType.setSenderId(senderId);
+        byte[] commentPacket = PacketMaker.makePacket(MessageTypeCode.COMMENT, commentType);
+        for (ClientHandler handler : handlers) {
+            handler.sendPacket(commentPacket);
+        }
+
+        plusCount(senderSocket);
+    }
+
+    private void closeConnect(Socket senderSocket) throws IOException {
+        String closeId = server.getIdManager().getIdBySocket(senderSocket);
+        int count = server.getCountManager().get(senderSocket);
+        String message = "ID: " + closeId + "is out\n total message: " + count;
+
+        server.getIdManager().remove(senderSocket);
+        server.getCountManager().remove(senderSocket);
+        server.getHandlerManger().remove(senderSocket);
+
+        ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
+        byte[] commentPacket = PacketMaker.makePacket(MessageTypeCode.NOTICE, new NoticeType(message));
+        for (ClientHandler handler : handlers) {
+            handler.sendPacket(commentPacket);
+        }
+    }
+
 }
 

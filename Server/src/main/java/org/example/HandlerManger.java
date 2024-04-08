@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 @NoArgsConstructor
@@ -29,5 +30,9 @@ public class HandlerManger {
         synchronized (handlerLock) {
             handlerMap.remove(clientSocket);
         }
+    }
+
+    public ArrayList<ClientHandler> getAllHandler() {
+        return new ArrayList<>(handlerMap.values());
     }
 }

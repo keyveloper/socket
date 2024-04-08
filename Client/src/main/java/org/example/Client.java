@@ -1,20 +1,25 @@
 package org.example;
 
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-
+@Setter
+@Getter
 public class Client implements Runnable {
     private final int tcpClientPort = 9999;
 
-    private final CommandProcessor commandProcessor = new CommandProcessor();
+    private final CommandProcessor commandProcessor = new CommandProcessor(this);
 
-    private final ClientServiceGiver clientServiceGiver = new ClientServiceGiver();
+    private final ClientServiceGiver clientServiceGiver = new ClientServiceGiver(this);
     private final Socket socket;
+
+    private Boolean isRegister;
 
     public Client(Socket socket) {
         this.socket = socket;
@@ -51,6 +56,5 @@ public class Client implements Runnable {
         System.out.println("in client SendPacket \ntotal Packet : " + Arrays.toString(packet));
         ClientPacketSender clientPacketSender = new ClientPacketSender(socket);
         clientPacketSender.sendPacket(packet);
-
     }
 }

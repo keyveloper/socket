@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public class Server{
+public class Server {
     public final int tcpServerPort = 9999;
     @Getter
     private final IdManager idManager = new IdManager();
@@ -22,8 +22,8 @@ public class Server{
 
     private final ServiceGiver serviceGiver = new ServerServiceGiver(this);
 
-    public void start(){
-        try{
+    public void start() {
+        try {
             try (ServerSocket serverSocket = new ServerSocket()) {
                 serverSocket.bind(new InetSocketAddress(tcpServerPort));
                 System.out.println("Starting tcp Server: " + tcpServerPort);
@@ -33,6 +33,7 @@ public class Server{
                     System.out.println("Connected " + clientSocket.getLocalPort() + " Port, From " + clientSocket.getRemoteSocketAddress().toString() + "\n");
 
                     ClientHandler clientHandler = new ClientHandler(this, clientSocket);
+                    handlerManger.register(clientSocket, clientHandler);
                     Thread thread = new Thread(clientHandler);
                     thread.start();
                 }
@@ -42,47 +43,13 @@ public class Server{
         }
     }
 
-    public void service(Message message) throws IOException{
+    public void service(Message message) throws IOException {
         MessageType messageType = MessageProcessor.makeMessageType(message);
         serviceGiver.service(message, messageType);
     }
+}
 
-//    private void changeID(String id, Socket socket){
-//        String oldId = idManager.getIdBySocket(socket);
-//        if (idManager.changeId(id, socket)){
-//            synchronized ( handlerLock ){
-//                handlerMap.get(socket).sendTypeOnly(MessageTypeLibrary.REGISTER_SUCCESS);
-//
-//                for (Socket key : handlerMap.keySet()){
-//                    ClientHandler handler = handlerMap.get(key);
-//                    handler.sendPacket(MessageTypeLibrary.COMMENT, getIdChangeMessage(oldId, socket).getBytes());
-//                }
-//
-//            }
-//        } else {
-//            synchronized ( handlerLock ){
-//                handlerMap.get(socket).sendTypeOnly(MessageTypeLibrary.ALREADY_EXIST_ID);
-//                System.out.println("Already Exist ID");
-//            }
-//        }
-//    }
-//
-//    private String getIdChangeMessage(String oldId, Socket socket) {
-//        return oldId + " changed ID: " + oldId + "  ->  " + idManager.getIdBySocket(socket);
-//    }
-//
-//    private void sendWhisper(String message, Socket socket) {
-//        System.out.println("start send whisper");
-//        String[] parts = message.split(" ", 2);
-//        String receiverId = parts[0];
-//        String whisperMessage = makeWhisperMessage(parts[1], socket);
-//        Socket receiverSocket = idManager.getSocketById(receiverId);
-//
-//        synchronized ( handlerLock ){
-//            handlerMap.get(receiverSocket).sendPacket(MessageTypeLibrary.WHISPER, whisperMessage.getBytes());
-//        }
-//    }
-//
+
 //    private void sendFile(byte[] body) {
 //        System.out.println("\nStrat sendFile!!");
 //        //System.out.println("Test packet Received!!" + Arrays.toString(body));
@@ -111,51 +78,5 @@ public class Server{
 //        String outMessage = makeSocketOutMessage(socket);
 //        removeData(socket);
 //        synchronized ( handlerLock ){
-//            for (Socket key : handlerMap.keySet()){
-//                ClientHandler handler = handlerMap.get(key);
-//                handler.sendPacket(MessageTypeLibrary.NOTICE, outMessage.getBytes());
-//            }
-//        }
+//       //    }
 //
-//        try {
-//            socket.close();
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-//
-//    private void removeData(Socket socket){
-//        idManager.remove(socket);
-//        countManager.remove(socket);
-//        synchronized ( handlerMap ){
-//            handlerMap.remove(socket);
-//        }
-//    }
-//
-//    private String makeSocketOutMessage(Socket socket){
-//        // deadLock?
-//        String id = idManager.getIdBySocket(socket);
-//        int count = countManager.get(socket);
-//        return "Id: " + id +"is out \ntotal message count: " + count;
-//    }
-//
-//    private String makeCommentMessage(Socket socket, String message){
-//        return idManager.getIdBySocket(socket) + " : " + message;
-//    }
-//
-//    private void sendComment(String message, Socket socket){
-//        message = makeCommentMessage(socket, message);
-//        synchronized ( handlerLock ){
-//            for (Socket key : handlerMap.keySet()){
-//                ClientHandler handler = handlerMap.get(key);
-//                handler.sendPacket(MessageTypeLibrary.COMMENT, message.getBytes());
-//            }
-//        }
-//        countManager.add(socket);
-//    }
-//
-//    private String makeWhisperMessage(String message, Socket socket){
-//        return "(whisper)" + idManager.getIdBySocket(socket) + ": " + message;
-//    }
-
-}

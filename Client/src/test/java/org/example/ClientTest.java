@@ -33,7 +33,8 @@
         @Test
         public void testExtractListInCommand() {
             // Given
-            CommandProcessor commandProcessor = new CommandProcessor();
+            Client client = mock(Client.class)
+            CommandProcessor commandProcessor = new CommandProcessor(client);
             String command = "/r myId";
 
             //When
@@ -52,7 +53,8 @@
         @Test
         public void testMakeRegisterIdPacket() throws IOException {
             // Given
-            CommandProcessor commandProcessor = new CommandProcessor();
+            Client client = mock(Client.class);
+            CommandProcessor commandProcessor = new CommandProcessor(client);
             String command = "/r myId";
 
             // When

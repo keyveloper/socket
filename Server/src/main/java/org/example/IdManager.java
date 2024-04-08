@@ -15,44 +15,53 @@ public class IdManager {
     // 1. id check
     // 2. id add
     public RegisterIdStatusType register(String id, Socket socket){
+        RegisterIdStatusType statusType;
         if (id.contains("\"")) {
-            RegisterIdStatusType registerIdStatusType = new RegisterIdStatusType(false);
-            registerIdStatusType.setNotice("contain not allowed character \"");
-            return registerIdStatusType;
-        }
-        if (!isDuplicationID(id)){
-            synchronized ( socketIdLock ){
-                idSocketMap.put(id, socket);
-                socketIdMap.put(socket, id);
-                System.out.println("register Success!! : " + id);
-                return new RegisterIdStatusType(true);
-            }
+            statusType = new RegisterIdStatusType(false, "contain not allowed character \"");
         } else {
-            System.out.println("register Failed: ");
-            RegisterIdStatusType registerIdStatusType = new RegisterIdStatusType(false);
-            registerIdStatusType.setNotice("Already Exist");
-            return registerIdStatusType;
+            synchronized (socketIdLock) {
+                if (!idSocketMap.containsKey(id)) {
+                    idSocketMap.put(id, socket);
+                    socketIdMap.put(socket, id);
+
+                    statusType = new RegisterIdStatusType(true, "register Success!!");
+                } else {
+                    statusType = new RegisterIdStatusType(false, "Already Exsit");
+                }
+            }
+        }
+
+        return statusType;
+    }
+
+    public RegisterIdStatusType changeId(String newId, Socket socket){
+        RegisterIdStatusType statusType;
+        synchronized (socketIdLock) {
+            if (socketIdMap.containsKey(socket)) {
+                if (!idSocketMap.containsKey(newId)) {
+                    String oldId = getIdBySocket(socket);
+                    idSocketMap.remove(oldId);
+                    idSocketMap.put(newId, socket);
+                    socketIdMap.put(socket, newId);
+                    statusType = new RegisterIdStatusType(true, "change Success");
+                } else {
+                    statusType = new RegisterIdStatusType(false, "Already Exist");
+                }
+            } else {
+                statusType = new RegisterIdStatusType(false, "Register first");
+            }
+        }
+        return statusType;
+    }
+
+    public void remove(Socket socket) {
+        synchronized (socketIdLock) {
+            String target = socketIdMap.get(socket);
+            idSocketMap.remove(target);
+            socketIdMap.remove(socket);
         }
     }
 
-    public boolean changeId(String id, Socket socket){
-        if(!isDuplicationID(id)){
-            synchronized ( socketIdLock ){
-                idSocketMap.remove(id);
-                idSocketMap.put(id, socket);
-                socketIdMap.put(socket, id);
-                return true;
-            }
-        } else {
-            return false;
-        }
-    }
-
-    private boolean isDuplicationID(String id){
-        synchronized ( socketIdLock ){
-            return idSocketMap.containsKey(id);
-        }
-    }
 
     public String getIdBySocket(Socket socket){
         synchronized ( socketIdLock ){
@@ -66,11 +75,4 @@ public class IdManager {
         }
     }
 
-    public void remove(Socket socket){
-        synchronized (socketIdLock){
-            String id = getIdBySocket(socket);
-            idSocketMap.remove(id);
-            socketIdMap.remove(socket);
-        }
-    }
 }
