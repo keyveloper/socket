@@ -6,6 +6,7 @@ import lombok.Data;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 @Data
@@ -23,14 +24,14 @@ public class ServerServiceGiver implements ServiceGiver{
             case REGISTER_ID:
                 RegisterIdType registerIdType = (RegisterIdType) messageType;
                 RegisterIdStatusType RegisterIdstatusType = registerId(registerIdType.getId(), message.getClientSocket());
-                System.out.println("service type object: " + RegisterIdstatusType.toString());
-                senderHandler.sendPacket(PacketMaker.makePacket(message.getMessageTypeCode(), RegisterIdstatusType));
+                System.out.println("service type object: " + RegisterIdstatusType);
+                senderHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.REGISTER_STATUS, RegisterIdstatusType));
                 break;
             case CHANGE_ID:
                 ChangeIdType changeIdType = (ChangeIdType) messageType;
                 RegisterIdStatusType changeStatusType = changeId(changeIdType.getChangeId(), message.getClientSocket());
                 System.out.println("change Success");
-                senderHandler.sendPacket(PacketMaker.makePacket(message.getMessageTypeCode(), changeStatusType));
+                senderHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.REGISTER_STATUS, changeStatusType));
                 break;
             case WHISPER:
                 WhisperType whisperType = (WhisperType) messageType;
@@ -38,7 +39,7 @@ public class ServerServiceGiver implements ServiceGiver{
                 break;
             case COMMENT:
                 CommentType commentType = (CommentType) messageType;
-                sendComment(commentType.getSenderId(), commentType.getComment(), message.getClientSocket());
+                sendComment(commentType.getComment(), message.getClientSocket());
                 break;
             case FIN:
                 closeConnect(message.getClientSocket());
@@ -76,11 +77,15 @@ public class ServerServiceGiver implements ServiceGiver{
         server.getCountManager().add(sender);
     }
 
-    private void sendComment(String senderId, String comment, Socket senderSocket) throws IOException {
+    private void sendComment(String comment, Socket senderSocket) throws IOException {
+        String senderId = server.getIdManager().getIdBySocket(senderSocket);
         ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
         CommentType commentType = new CommentType(comment);
         commentType.setSenderId(senderId);
+        System.out.println("sendComment: " + commentType);
         byte[] commentPacket = PacketMaker.makePacket(MessageTypeCode.COMMENT, commentType);
+        System.out.println("commentPacket: " + Arrays.toString(commentPacket));
+
         for (ClientHandler handler : handlers) {
             handler.sendPacket(commentPacket);
         }

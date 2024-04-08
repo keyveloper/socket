@@ -48,35 +48,3 @@ public class Server {
         serviceGiver.service(message, messageType);
     }
 }
-
-
-//    private void sendFile(byte[] body) {
-//        System.out.println("\nStrat sendFile!!");
-//        //System.out.println("Test packet Received!!" + Arrays.toString(body));
-//        ByteBuffer byteBuffer = ByteBuffer.wrap(body);
-//
-//        int idLengthSize = 4;
-//        int idLength = byteBuffer.getInt();
-//        byte[] idByte = new byte[idLength];
-//        byteBuffer.get(idByte);
-//        System.out.println(Arrays.toString(body));
-//        String receiveId = new String(idByte, StandardCharsets.UTF_8);
-//
-//        byte[] packet = new byte[body.length - idLengthSize - idLength];
-//        byteBuffer.get(packet);
-//        System.out.println("remian body: " + Arrays.toString(packet));
-//
-//        Socket receiverSocket = idManager.getSocketById(receiveId);
-//        ClientHandler receiverHandler;
-//        synchronized (handlerLock) {
-//            receiverHandler = handlerMap.get(receiverSocket);
-//        }
-//        receiverHandler.sendFile(packet);
-//    }
-//
-//    private void noticeFin(Socket socket){
-//        String outMessage = makeSocketOutMessage(socket);
-//        removeData(socket);
-//        synchronized ( handlerLock ){
-//       //    }
-//

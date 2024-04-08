@@ -4,5 +4,4 @@ import lombok.Data;
 
 
 public interface MessageType{
-
 }

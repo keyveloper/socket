@@ -26,6 +26,7 @@ public class FileManager {
         }
         seqFileMap.put(seq, fileByte);
         fileMap.put(fileName, seqFileMap);
+        System.out.println("save file!! \nseq: " + seq);
     }
 
     public void saveFile(String fileName) throws IllegalAccessException {

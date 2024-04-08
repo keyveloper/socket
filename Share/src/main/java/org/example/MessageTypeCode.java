@@ -7,7 +7,6 @@ public enum MessageTypeCode {
     CHANGE_ID,
     WHISPER,
     FILE,
-    FILE_END,
     NOTICE,
     FIN,
     FIN_ACK,

@@ -37,8 +37,9 @@ public class CommandProcessor {
             returnArray.add(MessageTypeCode.WHISPER);
             int firstIdIndex = command.indexOf('"');
             int secondIdIndex = command.indexOf('"', firstIdIndex + 1);
-
-            returnArray.add(new WhisperType(command.substring(firstIdIndex, secondIdIndex), command.substring(secondIdIndex + 2).trim()));
+            String receiverId = command.substring(firstIdIndex + 1, secondIdIndex);
+            System.out.println("receiver Id: " + receiverId);
+            returnArray.add(new WhisperType(receiverId, command.substring(secondIdIndex + 2).trim()));
             isCommandValid = true;
         }
         if (command.startsWith("/F") || command.startsWith("/f")) {
@@ -61,12 +62,16 @@ public class CommandProcessor {
     private void sendFile(String command) {
         int firstIdIndex = command.indexOf('"');
         int secondIdIndex = command.indexOf('"', firstIdIndex + 1);
-        int filePathStartIndex = secondIdIndex + 2;
+        int filePathStartIndex = secondIdIndex + 1;
+        System.out.println("filePathStartIndex: " + filePathStartIndex);
         int lastBackSlashIndex = command.lastIndexOf("\\");
         int extensionStartIndex = command.lastIndexOf(".");
 
-        String receiverId = command.substring(firstIdIndex, secondIdIndex);
-        String filePath = command.substring(filePathStartIndex);
+        String receiverId = command.substring(firstIdIndex + 1, secondIdIndex);
+        System.out.println("receiverId: " + receiverId);
+        String filePath = command.substring(filePathStartIndex + 1);
+        System.out.println("filePath: " + filePath);
+
         String fileName = command.substring(lastBackSlashIndex + 1, extensionStartIndex);
 
         System.out.println("receiverId : " + receiverId + "\nfilePath: " + filePath + "\nfileName: " + fileName);

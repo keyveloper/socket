@@ -20,7 +20,6 @@ public class PacketMaker {
         objectOutputStream.flush();
         byte[] body = byteArrayOutputStream.toByteArray();
         byte[] result = HeaderAdder.add(messageTypeCode, body);
-        System.out.println("result: " + Arrays.toString(result));
         return result;
     }
 

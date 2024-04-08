@@ -34,16 +34,19 @@ public class Client implements Runnable {
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", tcpClientPort));
             System.out.print("\n[ Success connecting ] \n");
-            ClientPacketReader clientPacketReader = new ClientPacketReader(socket);
             clientPacketSender = new ClientPacketSender(socket);
             while (true) {
-                Message receivedMessage = clientPacketReader.readPacket();
-                clientServiceGiver.service(receivedMessage, MessageProcessor.makeMessageType(receivedMessage));
+                DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
 
-                if (receivedMessage.getMessageTypeCode() == MessageTypeCode.FIN_ACK) {
-                    socket.close();
-                    break;
+                int bodyLength = dataInputStream.readInt();
+                if(bodyLength > 0) {
+                    MessageTypeCode messageTypeCode = MessageTypeCode.values()[dataInputStream.readInt()];
+                    byte[] body = new byte[bodyLength];
+                    dataInputStream.readFully(body);
+                    Message inMessage = new Message(bodyLength, messageTypeCode, body, null);
+                    clientServiceGiver.service(inMessage, MessageProcessor.makeMessageType(inMessage));
                 }
+
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -62,8 +65,8 @@ public class Client implements Runnable {
     }
 
     private void sendPacket(MessageTypeCode messageTypeCode, MessageType messageType) throws IOException {
+
         byte[] packet = PacketMaker.makePacket(messageTypeCode, messageType);
-        System.out.println("in client SendPacket \ntotal Packet : " + Arrays.toString(packet));
         clientPacketSender.sendPacket(packet);
     }
 

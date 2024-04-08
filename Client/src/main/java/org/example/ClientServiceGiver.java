@@ -53,7 +53,7 @@ public class ClientServiceGiver implements ServiceGiver{
     }
 
     private void readComment(CommentType commentType) {
-        System.out.println(commentType.getComment());
+        System.out.println(commentType.getSenderId() + ": " + commentType.getComment());
     }
 
     private void readNotice(NoticeType noticeType) {

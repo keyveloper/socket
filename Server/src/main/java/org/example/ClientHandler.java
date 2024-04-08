@@ -18,10 +18,15 @@ public class ClientHandler implements Runnable {
     @Override
     public void run(){
         try {
-            ServerPacketReader serverPacketReader = new ServerPacketReader(clientSocket);
-            Message message = serverPacketReader.readPacket();
-            server.service(message);
+            while (true) {
+                ServerPacketReader serverPacketReader = new ServerPacketReader(clientSocket);
+                Message message = serverPacketReader.readPacket();
+                server.service(message);
 
+                if (message.getMessageTypeCode() == MessageTypeCode.FIN) {
+                    break;
+                }
+            }
 
         } catch (EOFException e) {
             System.out.println("Client closed the connection.");
@@ -33,9 +38,10 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void sendPacket(byte[] body) {
+    public void sendPacket(byte[] packet) {
+        System.out.println("in client Handler start send packet");
         ServerPacketSender serverPacketSender = new ServerPacketSender(clientSocket);
-        serverPacketSender.sendPacket(body);
+        serverPacketSender.sendPacket(packet);
     }
 
 }
