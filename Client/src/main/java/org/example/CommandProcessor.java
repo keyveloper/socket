@@ -43,9 +43,7 @@ public class CommandProcessor {
         }
         if (command.startsWith("/F") || command.startsWith("/f")) {
             // "/F "receiver" filePath "
-            returnArray.add(MessageTypeCode.FILE);
-            returnArray.add(makeFileType(command));
-            isCommandValid = true;
+            sendFile(command);
         }
 
         if (!command.startsWith("/")) {
@@ -60,8 +58,7 @@ public class CommandProcessor {
         return returnArray;
     }
 
-    private FileType makeFileType(String command) {
-        FileType fileType = null;
+    private void sendFile(String command) {
         int firstIdIndex = command.indexOf('"');
         int secondIdIndex = command.indexOf('"', firstIdIndex + 1);
         int filePathStartIndex = secondIdIndex + 2;
@@ -81,15 +78,18 @@ public class CommandProcessor {
             while ((bytesRead = fileInputStream.read(fileBuffer)) != -1) {
                 byte[] actualRead = Arrays.copyOf(fileBuffer, bytesRead);
 
-                fileType = new FileType(receiverId, fileName, seq, actualRead);
+                FileType fileType = new FileType(false, receiverId, fileName, seq, actualRead);
                 seq += 1;
+                client.fileSend(fileType);
             }
+            // end -> true
+            FileType endFileType = new FileType(true, receiverId, fileName, -1, null);
+            client.fileSend(endFileType);
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        return fileType;
     }
 }

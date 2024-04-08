@@ -22,6 +22,19 @@ public class ClientServiceGiver implements ServiceGiver{
             case NOTICE:
                 readNotice((NoticeType) messageType);
                 break;
+            case FILE:
+                FileType fileType = (FileType) messageType;
+                if (fileType.getIsEnd()) {
+                    storeFilePiece(fileType);
+                } else {
+                    try {
+                        saveFile(fileType);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                break;
+
         }
     }
 
@@ -45,6 +58,14 @@ public class ClientServiceGiver implements ServiceGiver{
 
     private void readNotice(NoticeType noticeType) {
         System.out.println(noticeType.getNotice());
+    }
+
+    private void storeFilePiece(FileType fileType) {
+        client.getFileManager().storeFilePiece(fileType.getFileName(), fileType.getSeq(), fileType.getFileByte());
+    }
+
+    private void saveFile(FileType fileType) throws IllegalAccessException {
+        client.getFileManager().saveFile(fileType.getFileName());
     }
 
 }

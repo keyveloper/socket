@@ -19,7 +19,11 @@ public class Client implements Runnable {
     private final ClientServiceGiver clientServiceGiver = new ClientServiceGiver(this);
     private final Socket socket;
 
+    private ClientPacketSender clientPacketSender;
+
     private Boolean isRegister;
+
+    private final FileManager fileManager = new FileManager(this);
 
     public Client(Socket socket) {
         this.socket = socket;
@@ -31,6 +35,7 @@ public class Client implements Runnable {
             socket.connect(new InetSocketAddress("localhost", tcpClientPort));
             System.out.print("\n[ Success connecting ] \n");
             ClientPacketReader clientPacketReader = new ClientPacketReader(socket);
+            clientPacketSender = new ClientPacketSender(socket);
             while (true) {
                 Message receivedMessage = clientPacketReader.readPacket();
                 clientServiceGiver.service(receivedMessage, MessageProcessor.makeMessageType(receivedMessage));
@@ -51,10 +56,15 @@ public class Client implements Runnable {
         sendPacket((MessageTypeCode) arrayList.get(0), (MessageType) arrayList.get(1));
     }
 
+    public void fileSend(FileType fileType) throws IOException{
+        byte[] filePacket = PacketMaker.makePacket(MessageTypeCode.FILE, fileType);
+        clientPacketSender.sendPacket(filePacket);
+    }
+
     private void sendPacket(MessageTypeCode messageTypeCode, MessageType messageType) throws IOException {
         byte[] packet = PacketMaker.makePacket(messageTypeCode, messageType);
         System.out.println("in client SendPacket \ntotal Packet : " + Arrays.toString(packet));
-        ClientPacketSender clientPacketSender = new ClientPacketSender(socket);
         clientPacketSender.sendPacket(packet);
     }
+
 }

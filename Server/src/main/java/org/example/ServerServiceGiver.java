@@ -42,6 +42,9 @@ public class ServerServiceGiver implements ServiceGiver{
                 break;
             case FIN:
                 closeConnect(message.getClientSocket());
+                break;
+            case FILE:
+                sendFile((FileType) messageType);
         }
     }
 
@@ -99,6 +102,10 @@ public class ServerServiceGiver implements ServiceGiver{
         for (ClientHandler handler : handlers) {
             handler.sendPacket(commentPacket);
         }
+    }
+    private void sendFile(FileType fileType) throws IOException{
+        Socket receiverSocket = server.getIdManager().getSocketById(fileType.getReceiver());
+        server.getHandlerManger().get(receiverSocket).sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE, fileType));
     }
 
 }

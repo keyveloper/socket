@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 @Data
 public class FileType implements Serializable, MessageType{
+    private final Boolean isEnd;
     private final String receiver;
     private final String fileName;
     private final int seq;
