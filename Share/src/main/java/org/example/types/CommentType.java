@@ -3,6 +3,7 @@ package org.example.types;
 import lombok.Data;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 @Data
 public class CommentType implements MessageType {
@@ -22,10 +23,12 @@ public class CommentType implements MessageType {
     @Override
     public MessageType fromBytes(byte[] bytes) {
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-        byte[] idBytes = new byte[byteBuffer.getInt()];
-        byteBuffer.put(idBytes);
+
+        int idLength = byteBuffer.getInt();
+        byte[] idBytes = new byte[idLength];
+        byteBuffer.get(idBytes);
         byte[] commentBytes = new byte[byteBuffer.remaining()];
-        byteBuffer.put(commentBytes);
+        byteBuffer.get(commentBytes);
 
         return new CommentType(new String(idBytes), new String(commentBytes));
     }
