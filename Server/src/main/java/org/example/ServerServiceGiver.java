@@ -1,13 +1,13 @@
 package org.example;
 
-import com.sun.source.tree.Scope;
 import lombok.Data;
+import message.types.*;
+import org.example.types.*;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
 @Data
 public class ServerServiceGiver implements ServiceGiver{
@@ -80,8 +80,7 @@ public class ServerServiceGiver implements ServiceGiver{
     private void sendComment(String comment, Socket senderSocket) throws IOException {
         String senderId = server.getIdManager().getIdBySocket(senderSocket);
         ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
-        CommentType commentType = new CommentType(comment);
-        commentType.setSenderId(senderId);
+        CommentType commentType = new CommentType(senderId, comment);
         System.out.println("sendComment: " + commentType);
         byte[] commentPacket = PacketMaker.makePacket(MessageTypeCode.COMMENT, commentType);
         System.out.println("commentPacket: " + Arrays.toString(commentPacket));

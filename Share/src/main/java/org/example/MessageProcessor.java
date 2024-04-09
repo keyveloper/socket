@@ -2,10 +2,11 @@ package org.example;
 
 import lombok.Data;
 
+import org.example.types.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.Arrays;
 
 @Data
 public class MessageProcessor {

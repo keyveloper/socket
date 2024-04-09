@@ -1,8 +1,6 @@
-package org.example;
+package org.example.types;
 
 import lombok.Data;
-
-import java.io.Serializable;
 
 @Data
 public class RegisterIdType implements MessageType {

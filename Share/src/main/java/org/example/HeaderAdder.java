@@ -1,9 +1,9 @@
 package org.example;
 
 import lombok.Data;
+import org.example.types.MessageTypeCode;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 @Data
 public class HeaderAdder {

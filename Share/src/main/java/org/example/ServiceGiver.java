@@ -1,6 +1,8 @@
 package org.example;
 
 
+import org.example.types.MessageType;
+
 import java.io.IOException;
 
 public interface ServiceGiver {

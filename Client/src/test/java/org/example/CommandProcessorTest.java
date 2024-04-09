@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.types.WhisperType;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,7 +15,7 @@ class CommandProcessorTest {
 
 
         // When
-        String command = "/w mom hello?";
+        String command = "/w \"mom\" hello?";
         ProcessedObject processedObject = commandProcessor.extract(command);
         WhisperType whisperType = (WhisperType) processedObject.getMessageType();
         String receiver = whisperType.getId();
@@ -22,6 +23,6 @@ class CommandProcessorTest {
 
         // Then
         assertEquals("mom", receiver);
-        assertEquals("hello?", receiver);
+        assertEquals("hello?", comment);
     }
 }

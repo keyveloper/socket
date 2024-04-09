@@ -1,4 +1,4 @@
-package org.example;
+package org.example.types;
 
 public enum MessageTypeCode {
     REGISTER_ID,

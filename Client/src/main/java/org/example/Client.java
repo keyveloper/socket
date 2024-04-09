@@ -1,13 +1,13 @@
 package org.example;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.types.FileType;
+import org.example.types.MessageType;
+import org.example.types.MessageTypeCode;
 
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 @Setter
 @Getter
@@ -22,6 +22,7 @@ public class Client implements Runnable {
     private ClientPacketSender clientPacketSender;
 
     private Boolean isRegister;
+    private String clientId;
 
     private final FileManager fileManager = new FileManager(this);
 
@@ -65,7 +66,6 @@ public class Client implements Runnable {
     }
 
     private void sendPacket(MessageTypeCode messageTypeCode, MessageType messageType) throws IOException {
-
         byte[] packet = PacketMaker.makePacket(messageTypeCode, messageType);
         clientPacketSender.sendPacket(packet);
     }

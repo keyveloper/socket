@@ -1,12 +1,11 @@
-package org.example;
+package org.example.types;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.nio.ByteBuffer;
 
 @Data
-public class RegisterIdStatusType implements MessageType{
+public class RegisterIdStatusType implements MessageType {
     private final Boolean isSuccess;
     private final String notice;
     @Override

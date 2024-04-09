@@ -1,12 +1,11 @@
-package org.example;
+package org.example.types;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.nio.ByteBuffer;
 
 @Data
-public class FileType implements MessageType{
+public class FileType implements MessageType {
     private final Boolean isEnd;
     private final String receiver;
     private final String fileName;

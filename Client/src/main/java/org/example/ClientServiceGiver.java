@@ -1,6 +1,8 @@
 package org.example;
 
 import lombok.Data;
+import message.types.*;
+import org.example.types.*;
 
 import java.io.IOException;
 

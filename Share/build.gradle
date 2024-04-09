@@ -25,6 +25,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-engine'
     implementation 'org.projectlombok:lombok:1.18.28'
+    testImplementation 'junit:junit:4.13.1'
     annotationProcessor 'org.projectlombok:lombok'
 }
 

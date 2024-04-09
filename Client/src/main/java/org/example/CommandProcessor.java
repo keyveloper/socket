@@ -1,11 +1,11 @@
 package org.example;
 
 import lombok.Data;
+import org.example.types.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 @Data
@@ -40,7 +40,7 @@ public class CommandProcessor {
         }
 
         if (!command.startsWith("/")) {
-            return new ProcessedObject(MessageTypeCode.COMMENT, new CommentType(command));
+            return new ProcessedObject(MessageTypeCode.COMMENT, new CommentType(client.getClientId(),command));
         }
         throw new IncorrectCommandException("Incorrect Command: " + command);
     }

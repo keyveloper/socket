@@ -1,6 +1,7 @@
 package org.example;
 
 import lombok.NoArgsConstructor;
+import org.example.types.RegisterIdStatusType;
 
 import java.net.*;
 import java.util.*;

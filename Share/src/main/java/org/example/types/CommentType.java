@@ -1,8 +1,7 @@
-package org.example;
+package org.example.types;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.nio.ByteBuffer;
 
 @Data

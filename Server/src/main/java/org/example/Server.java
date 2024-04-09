@@ -1,15 +1,10 @@
 package org.example;
 
-import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
+import org.example.types.MessageType;
 
-import java.awt.*;
 import java.io.*;
 import java.net.*;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 public class Server {
     public final int tcpServerPort = 9999;

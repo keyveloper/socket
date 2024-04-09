@@ -1,13 +1,12 @@
 package org.example;
 
 import lombok.Data;
+import org.example.types.MessageType;
+import org.example.types.MessageTypeCode;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.HashMap;
 
 @Data
 public class PacketMaker {

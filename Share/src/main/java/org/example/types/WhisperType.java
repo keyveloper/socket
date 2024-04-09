@@ -1,15 +1,11 @@
-package org.example;
+package org.example.types;
 
-import jdk.incubator.vector.ByteVector;
 import lombok.Data;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Serializable;
+;
 import java.nio.ByteBuffer;
 
 @Data
-public class WhisperType implements  MessageType {
+public class WhisperType implements MessageType {
     // id = receiver or sender
     private final String id;
     private final String comment;

@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 @Data
-public class  ClientPacketSender implements PacketSender {
+public class ClientPacketSender implements PacketSender {
     private final Socket client;
 
     @Override

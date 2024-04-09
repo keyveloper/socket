@@ -1,6 +1,7 @@
 package org.example;
 
 import lombok.AllArgsConstructor;
+import org.example.types.MessageTypeCode;
 
 import java.io.DataInputStream;
 import java.io.IOException;

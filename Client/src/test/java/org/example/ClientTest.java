@@ -1,6 +1,8 @@
     package org.example;
 
 
+    import org.example.types.MessageType;
+    import org.example.types.RegisterIdType;
     import org.junit.jupiter.api.Test;
     import org.mockito.*;
 

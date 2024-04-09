@@ -1,9 +1,10 @@
 package org.example;
 
+import org.example.types.MessageTypeCode;
+
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.Arrays;
 
 public class ClientHandler implements Runnable {
     private final Socket clientSocket;
