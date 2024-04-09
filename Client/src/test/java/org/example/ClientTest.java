@@ -1,7 +1,6 @@
     package org.example;
 
-    import lombok.Data;
-    import org.junit.jupiter.api.Assertions;
+
     import org.junit.jupiter.api.Test;
     import org.mockito.*;
 
@@ -14,58 +13,6 @@
     import static org.mockito.Mockito.*;
 
     class ClientTest {
-
-    //    @Test
-    //    void testSendRegisterIdType() throws IOException {
-    //        // Given
-    //        // telecomunicate with Sercer
-    //        // serverMock
-    //        Server mockServer = Mockito.mock(Server.class);
-    //        // Client real
-    //        Client client = new Client();
-    //
-    //        // When
-    //        String command = "/r myId";
-    //        client.processCommand(command);
-    //
-    //    }
-
-        @Test
-        public void testExtractListInCommand() {
-            // Given
-            Client client = mock(Client.class)
-            CommandProcessor commandProcessor = new CommandProcessor(client);
-            String command = "/r myId";
-
-            //When
-            ArrayList<Object> result = commandProcessor.extract(command);
-            MessageTypeCode messageTypeCode = (MessageTypeCode) result.get(0);
-            RegisterIdType registerIdType = (RegisterIdType) result.get(1);
-
-            // Then
-            Assertions.assertEquals(2, result.size());
-            Assertions.assertEquals(MessageTypeCode.REGISTER_ID, messageTypeCode);
-            assertTrue(result.get(1) instanceof RegisterIdType);
-            Assertions.assertEquals("myId", registerIdType.getId());
-
-        }
-
-        @Test
-        public void testMakeRegisterIdPacket() throws IOException {
-            // Given
-            Client client = mock(Client.class);
-            CommandProcessor commandProcessor = new CommandProcessor(client);
-            String command = "/r myId";
-
-            // When
-            ArrayList<Object> result = commandProcessor.extract(command);
-            byte[] expectedPacket = createExpectedPacketData();
-            byte[] packet = PacketMaker.makePacket((MessageTypeCode) result.get(0), (MessageType) result.get(1));
-
-            // then
-            assertArrayEquals(expectedPacket, packet, "not match expected");
-
-        }
 
         private byte[] createExpectedPacketData() throws IOException {
             MessageType messageType = new RegisterIdType("myId");

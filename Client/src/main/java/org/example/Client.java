@@ -54,9 +54,9 @@ public class Client implements Runnable {
     }
 
     public void processCommand(String command) throws IOException {
-        ArrayList<Object> arrayList = commandProcessor.extract(command);
+        ProcessedObject processedObject = commandProcessor.extract(command);
         // array:ost = [MessageTypeCode, messageType]
-        sendPacket((MessageTypeCode) arrayList.get(0), (MessageType) arrayList.get(1));
+        sendPacket(processedObject.getMessageTypeCode(), processedObject.getMessageType());
     }
 
     public void fileSend(FileType fileType) throws IOException{

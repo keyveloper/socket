@@ -11,36 +11,28 @@ import java.util.Arrays;
 @Data
 public class CommandProcessor {
     private final Client client;
-    public ArrayList<Object> extract(String command) {
+    public ProcessedObject extract(String command) {
         // ArrayList = [MessageTypeCode, MessageType]
-        ArrayList<Object> returnArray = new ArrayList<>();
-        boolean isCommandValid = false;
         if (command.startsWith("/r") || command.startsWith("/R")) {
-            returnArray.add(MessageTypeCode.REGISTER_ID);
             String id = command.substring(3);
-            returnArray.add(new RegisterIdType(id));
-            isCommandValid = true;
+            return new ProcessedObject(MessageTypeCode.REGISTER_ID, new RegisterIdType(id));
         }
         if (command.startsWith("/Q") || command.startsWith("/q")) {
-            returnArray.add(MessageTypeCode.FIN);
-            returnArray.add(new NoContentType("FIN"));
-            isCommandValid = true;
+            return new ProcessedObject(MessageTypeCode.FIN, new NoticeType("FIN"));
         }
         if (command.startsWith("/N") || command.startsWith("/n")) {
-            returnArray.add(MessageTypeCode.CHANGE_ID);
-            String id = command.substring(3);
-            returnArray.add(new ChangeIdType(id));
-            isCommandValid = true;
+            String newId = command.substring(3);
+            return new ProcessedObject(MessageTypeCode.CHANGE_ID, new ChangeIdType(newId));
         }
         if (command.startsWith("/W") || command.startsWith("/w")) {
             // /W "receiver" comment
-            returnArray.add(MessageTypeCode.WHISPER);
             int firstIdIndex = command.indexOf('"');
             int secondIdIndex = command.indexOf('"', firstIdIndex + 1);
             String receiverId = command.substring(firstIdIndex + 1, secondIdIndex);
-            System.out.println("receiver Id: " + receiverId);
-            returnArray.add(new WhisperType(receiverId, command.substring(secondIdIndex + 2).trim()));
-            isCommandValid = true;
+            String comment = command.substring(secondIdIndex +2);
+
+            System.out.println("In Process command: /w\nreceiverId" + receiverId + "\ncomment: " + command);
+            return new ProcessedObject(MessageTypeCode.WHISPER, new WhisperType(receiverId, comment));
         }
         if (command.startsWith("/F") || command.startsWith("/f")) {
             // "/F "receiver" filePath "
@@ -48,15 +40,9 @@ public class CommandProcessor {
         }
 
         if (!command.startsWith("/")) {
-            returnArray.add(MessageTypeCode.COMMENT);
-            returnArray.add(new CommentType(command));
-            isCommandValid = true;
+            return new ProcessedObject(MessageTypeCode.COMMENT, new CommentType(command));
         }
-        if (!isCommandValid) {
-            throw new IncorrectCommandException("Incorrect Command: " + command);
-        }
-
-        return returnArray;
+        throw new IncorrectCommandException("Incorrect Command: " + command);
     }
 
     private void sendFile(String command) {
