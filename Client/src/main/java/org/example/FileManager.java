@@ -1,61 +1,34 @@
 package org.example;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.example.types.FileType;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.io.*;
 
 @Data
 public class FileManager {
-    private final Client client;
-    private final HashMap<String, TreeMap<Integer, byte[]>> fileMap = new HashMap<>();
+    private final String fileName;
+    private String writePath;
+    private RandomAccessFile file;
 
-    public void storeFilePiece(String fileName, int seq, byte[] fileByte) {
-        TreeMap<Integer, byte[]> seqFileMap;
-        if (fileMap.containsKey(fileName)) {
-            seqFileMap = fileMap.get(fileName);
-        } else {
-            seqFileMap = new TreeMap<>();
-
-        }
-        seqFileMap.put(seq, fileByte);
-        fileMap.put(fileName, seqFileMap);
-        System.out.println("save file!! \nseq: " + seq);
-    }
-
-    public void saveFile(String fileName) throws IllegalAccessException {
-        String savePath = "C:\\Users\\user\\Desktop\\BEmetoring\\file_test\\output";
-        byte[] totalFileByte = combineFile(fileName);
-
+    public void set(){
+        // fileName에 해당하는 빈 파일 set하기
         try {
-            String randomFileName = UUID.randomUUID() + ".txt";
-            File file = new File(savePath, randomFileName);
-            FileOutputStream fileOutputStream =  new FileOutputStream(file);
-            fileOutputStream.write(totalFileByte);
-            fileOutputStream.flush();
-            System.out.println("File saved successfully: " + file.getAbsolutePath());
+            RandomAccessFile file = new RandomAccessFile(writePath + fileName, "rw" );
+            file.close();
+
+            System.out.println("empty file maded: " + writePath + fileName);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-
     }
 
-    private byte[] combineFile(String fileName) throws IllegalAccessException {
-        TreeMap<Integer, byte[]> seqFileMap = fileMap.get(fileName);
-        if (seqFileMap == null) {
-            throw new IllegalAccessException("fileName not Found: " + fileName);
+    public void save(FileType fileType) {
+        if (this.file == null) {
+            throw new FileNotSetException("file wasn't set");
         }
 
-        ByteBuffer combineBuffer = ByteBuffer.allocate(seqFileMap.values().stream().mapToInt(arr -> arr.length).sum());
-        seqFileMap.forEach((seq, bytes) -> combineBuffer.put(bytes));
-        return combineBuffer.array();
+
+
     }
-
-
 }

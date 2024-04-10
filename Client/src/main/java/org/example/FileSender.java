@@ -1,6 +1,7 @@
 package org.example;
 
 import lombok.Data;
+import org.example.types.FileEndType;
 import org.example.types.FileStartType;
 import org.example.types.FileType;
 import org.example.types.MessageTypeCode;
@@ -34,7 +35,7 @@ public class FileSender {
                 clientPacketSender.sendPacket(packet);
             }
             // end -> true
-            FileType endFileType = new FileType(true, receiverId, fileName, -1, null);
+            clientPacketSender.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_END, new FileEndType(receiverId, fileName)));
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {

@@ -8,6 +8,7 @@ import org.example.types.MessageTypeCode;
 
 import java.io.*;
 import java.net.*;
+import java.util.HashMap;
 
 @Setter
 @Getter
@@ -15,16 +16,14 @@ public class Client implements Runnable {
     private final int tcpClientPort = 9999;
 
     private final CommandProcessor commandProcessor = new CommandProcessor(this);
+    private final HashMap<String, FileManager> fileManagerHashMap = new HashMap<>();
 
-    private final ClientServiceGiver clientServiceGiver = new ClientServiceGiver(this);
+    private final ClientServiceGiver clientServiceGiver = new ClientServiceGiver(this, fileManagerHashMap);
     private final Socket socket;
 
     private ClientPacketSender clientPacketSender;
-
     private Boolean isRegister;
     private String clientId;
-
-    private final FileManager fileManager = new FileManager(this);
 
     public Client(Socket socket) {
         this.socket = socket;
