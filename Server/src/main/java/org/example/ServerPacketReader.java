@@ -23,7 +23,7 @@ public class ServerPacketReader implements PacketReader{
             dataInputStream.readFully(body);
             System.out.println("In ServerPacket Read\nbodyLength: " + bodyLength +"\nMessage Type Code: " + messageTypeCode + "\n body: " + Arrays.toString(body));
 
-            return new Message(bodyLength, messageTypeCode, body, clientSocket);
+            return new Message(messageTypeCode, body, clientSocket);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -4,9 +4,6 @@ import lombok.Data;
 
 import org.example.types.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 
 @Data
 public class MessageProcessor {
@@ -15,42 +12,41 @@ public class MessageProcessor {
     public static MessageType makeMessageType(Message message) {
         MessageTypeCode messageTypeCode = message.getMessageTypeCode();
         byte[] body = message.getBody();
-        MessageType messageType = null;
-        try{
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(body);
-            ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-
-            switch (messageTypeCode) {
-                case REGISTER_ID:
-                    messageType = (RegisterIdType) objectInputStream.readObject();
-                    break;
-                case REGISTER_STATUS:
-                    messageType = (RegisterIdStatusType) objectInputStream.readObject();
-                    break;
-                case WHISPER:
-                    messageType = (WhisperType) objectInputStream.readObject();
-                    break;
-                case FILE:
-                    messageType = (FileType) objectInputStream.readObject();
-                    break;
-                case COMMENT:
-                    messageType = (CommentType) objectInputStream.readObject();
-                    break;
-                case NOTICE:
-                    messageType = (NoticeType) objectInputStream.readObject();
-                    break;
-                case FIN:
-                    messageType = (NoContentType) objectInputStream.readObject();
-                    break;
-                case CHANGE_ID:
-                    messageType = (ChangeIdType) objectInputStream.readObject();
-                    break;
+        return switch (messageTypeCode) {
+            // body -> decode -> MessageType
+            case REGISTER_ID -> {
+                RegisterIdType registerDecoder = new RegisterIdType("decoder");
+                yield registerDecoder.fromBytes(body);
             }
-
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-
-        return messageType;
+            case REGISTER_STATUS -> {
+                RegisterIdStatusType statusDecoder = new RegisterIdStatusType(true, "decoder");
+                yield statusDecoder.fromBytes(body);
+            }
+            case WHISPER -> {
+                WhisperType whisperDecoder = new WhisperType("decoder", "decoder");
+                yield whisperDecoder.fromBytes(body);
+            }
+            case FILE -> {
+                FileType fileDecoder = new FileType(true, "decoder", "decoder", 0, null);
+                yield fileDecoder.fromBytes(body);
+            }
+            case COMMENT -> {
+                CommentType commentDecoder = new CommentType("decoder", "decoder");
+                yield commentDecoder.fromBytes(body);
+            }
+            case NOTICE -> {
+                NoticeType noticeDecoder = new NoticeType("decoder");
+                yield noticeDecoder.fromBytes(body);
+            }
+            case FIN -> {
+                NoContentType finDecoder = new NoContentType("decoder");
+                yield finDecoder.fromBytes(body);
+            }
+            case CHANGE_ID -> {
+                ChangeIdType changeIdDecoder = new ChangeIdType("decoder");
+                yield changeIdDecoder.fromBytes(body);
+            }
+            default -> null;
+        };
     }
 }

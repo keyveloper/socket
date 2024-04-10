@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-public class ChangeIDTypeTest {
+public class ChangeIdTypeTest {
     @Test
     public void convertTest() {
         // Given

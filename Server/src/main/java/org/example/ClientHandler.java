@@ -19,8 +19,8 @@ public class ClientHandler implements Runnable {
     @Override
     public void run(){
         try {
+            ServerPacketReader serverPacketReader = new ServerPacketReader(clientSocket);
             while (true) {
-                ServerPacketReader serverPacketReader = new ServerPacketReader(clientSocket);
                 Message message = serverPacketReader.readPacket();
                 server.service(message);
 

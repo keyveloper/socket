@@ -1,7 +1,6 @@
 package org.example;
 
 import lombok.Data;
-import message.types.*;
 import org.example.types.*;
 
 import java.io.IOException;
@@ -9,6 +8,7 @@ import java.io.IOException;
 @Data
 public class ClientServiceGiver implements ServiceGiver{
     private final Client client;
+
     @Override
     public void service(Message message, MessageType messageType) throws IOException {
         switch (message.getMessageTypeCode()) {

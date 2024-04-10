@@ -1,7 +1,6 @@
 package org.example;
 
 import lombok.Data;
-import message.types.*;
 import org.example.types.*;
 
 import java.io.IOException;
@@ -12,6 +11,8 @@ import java.util.Arrays;
 @Data
 public class ServerServiceGiver implements ServiceGiver{
     private final Server server;
+    private final IdManager idManager;
+    private final CountManager countManager;
 
     // message -> InputMessageProccessor가 해결 -> 이거 사실 서버에서 해도됨
     // 서버에서 하는걸로 하고 -> server에서 meesageType객체와, 소켓을 넘겨주면 되잖소?
@@ -50,23 +51,20 @@ public class ServerServiceGiver implements ServiceGiver{
     }
 
     private RegisterIdStatusType registerId(String id, Socket socket) {
-        IdManager idManager = server.getIdManager();
         RegisterIdStatusType registerIdStatusType = idManager.register(id, socket);
         if (registerIdStatusType.getIsSuccess()) {
-            CountManager countManager = server.getCountManager();
             countManager.register(socket);
         }
         return registerIdStatusType;
     }
 
     private RegisterIdStatusType changeId(String newId, Socket socket) {
-        IdManager idManager = server.getIdManager();
         return idManager.changeId(newId, socket);
     }
 
     private void sendWhisper(String receiverId, String comment, Socket senderSocket) throws IOException {
-        Socket receiverSocket = server.getIdManager().getSocketById(receiverId);
-        String senderId = server.getIdManager().getIdBySocket(senderSocket);
+        Socket receiverSocket = idManager.getSocketById(receiverId);
+        String senderId = idManager.getIdBySocket(senderSocket);
         ClientHandler receiverHandler = server.getHandlerManger().get(receiverSocket);
         receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.WHISPER, new WhisperType(senderId, comment)));
 
@@ -74,11 +72,11 @@ public class ServerServiceGiver implements ServiceGiver{
     }
 
     private void plusCount(Socket sender) {
-        server.getCountManager().add(sender);
+        countManager.add(sender);
     }
 
     private void sendComment(String comment, Socket senderSocket) throws IOException {
-        String senderId = server.getIdManager().getIdBySocket(senderSocket);
+        String senderId = idManager.getIdBySocket(senderSocket);
         ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
         CommentType commentType = new CommentType(senderId, comment);
         System.out.println("sendComment: " + commentType);
@@ -92,13 +90,13 @@ public class ServerServiceGiver implements ServiceGiver{
         plusCount(senderSocket);
     }
 
-    private void closeConnect(Socket senderSocket) throws IOException {
-        String closeId = server.getIdManager().getIdBySocket(senderSocket);
-        int count = server.getCountManager().get(senderSocket);
+    private void closeConnect(Socket senderSocket) {
+        String closeId = idManager.getIdBySocket(senderSocket);
+        int count = countManager.get(senderSocket);
         String message = "ID: " + closeId + "is out\n total message: " + count;
 
-        server.getIdManager().remove(senderSocket);
-        server.getCountManager().remove(senderSocket);
+        idManager.remove(senderSocket);
+        countManager.remove(senderSocket);
         server.getHandlerManger().remove(senderSocket);
 
         ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
@@ -107,10 +105,9 @@ public class ServerServiceGiver implements ServiceGiver{
             handler.sendPacket(commentPacket);
         }
     }
-    private void sendFile(FileType fileType) throws IOException{
-        Socket receiverSocket = server.getIdManager().getSocketById(fileType.getReceiver());
+    private void sendFile(FileType fileType) {
+        Socket receiverSocket = idManager.getSocketById(fileType.getReceiver());
         server.getHandlerManger().get(receiverSocket).sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE, fileType));
     }
-
 }
 

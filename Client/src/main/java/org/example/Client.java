@@ -2,7 +2,7 @@ package org.example;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.example.types.FileType;
+import org.example.types.FileStartType;
 import org.example.types.MessageType;
 import org.example.types.MessageTypeCode;
 
@@ -44,7 +44,7 @@ public class Client implements Runnable {
                     MessageTypeCode messageTypeCode = MessageTypeCode.values()[dataInputStream.readInt()];
                     byte[] body = new byte[bodyLength];
                     dataInputStream.readFully(body);
-                    Message inMessage = new Message(bodyLength, messageTypeCode, body, null);
+                    Message inMessage = new Message(messageTypeCode, body, null);
                     clientServiceGiver.service(inMessage, MessageProcessor.makeMessageType(inMessage));
                 }
 
@@ -55,17 +55,17 @@ public class Client implements Runnable {
     }
 
     public void processCommand(String command) throws IOException {
-        ProcessedObject processedObject = commandProcessor.extract(command);
+        ProcessedObject processedObject = commandProcessor.extract(command, isRegister);
         // array:ost = [MessageTypeCode, messageType]
-        sendPacket(processedObject.getMessageTypeCode(), processedObject.getMessageType());
+        if (processedObject.getMessageTypeCode() == MessageTypeCode.FILE_START) {
+            FileSender fileSender = new FileSender((FileStartType) processedObject.getMessageType(), clientPacketSender);
+            fileSender.sendFile();
+        } else {
+            sendPacket(processedObject.getMessageTypeCode(), processedObject.getMessageType());
+        }
     }
 
-    public void fileSend(FileType fileType) throws IOException{
-        byte[] filePacket = PacketMaker.makePacket(MessageTypeCode.FILE, fileType);
-        clientPacketSender.sendPacket(filePacket);
-    }
-
-    private void sendPacket(MessageTypeCode messageTypeCode, MessageType messageType) throws IOException {
+    private void sendPacket(MessageTypeCode messageTypeCode, MessageType messageType){
         byte[] packet = PacketMaker.makePacket(messageTypeCode, messageType);
         clientPacketSender.sendPacket(packet);
     }

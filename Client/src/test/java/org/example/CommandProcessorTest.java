@@ -16,7 +16,7 @@ class CommandProcessorTest {
 
         // When
         String command = "/w \"mom\" hello?";
-        ProcessedObject processedObject = commandProcessor.extract(command);
+        ProcessedObject processedObject = commandProcessor.extract(command, true);
         WhisperType whisperType = (WhisperType) processedObject.getMessageType();
         String receiver = whisperType.getId();
         String comment = whisperType.getComment();
