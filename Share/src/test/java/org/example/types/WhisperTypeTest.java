@@ -1,18 +1,16 @@
-package org.example;
+package org.example.types;
 
-import org.example.types.FileType;
 import org.example.types.MessageType;
+import org.example.types.WhisperType;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.File;
 
-public class FileTypeTest {
+public class WhisperTypeTest {
     @Test
-    public void convertFileTest() {
+    public void convertTest() {
         // Given
-        byte[] fileByte = {101};
-        FileType testType = new FileType(false, "receiver", "fileName", 0, fileByte);
+        WhisperType testType = new WhisperType("id", "hellow?");
 
         // When
         byte[] testTypeByte = testType.toBytes();
@@ -20,6 +18,5 @@ public class FileTypeTest {
 
         // Then
         assertEquals(testType, convertedType);
-
     }
 }

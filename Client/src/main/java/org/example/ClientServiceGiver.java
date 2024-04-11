@@ -12,7 +12,7 @@ public class ClientServiceGiver implements ServiceGiver{
     private final HashMap<String, FileManager> fileManagerHashMap;
 
     @Override
-    public void service(Message message, MessageType messageType) throws IOException {
+    public void service(Message message, MessageType messageType) {
         switch (message.getMessageTypeCode()) {
             case REGISTER_STATUS -> {
                 readIdStatus((RegisterIdStatusType) messageType);
@@ -25,6 +25,7 @@ public class ClientServiceGiver implements ServiceGiver{
             }
             case FILE_START -> {
                 addFileManager((FileStartType) messageType);
+                setFile((FileStartType) messageType);
             }
             case FILE -> {
                 saveFile((FileType) messageType);
@@ -41,10 +42,11 @@ public class ClientServiceGiver implements ServiceGiver{
     private void readIdStatus(RegisterIdStatusType statusType) {
         if (statusType.getIsSuccess()) {
             client.setIsRegister(true);
-            System.out.println(statusType.getNotice());
+            client.setClientId(statusType.getRegisterId());
+            System.out.println("id: " + statusType.getRegisterId() + " " + statusType.getNotice());
         }
         else {
-            System.out.println("Register Failed\nreason: " + statusType.getNotice());
+            System.out.println("id: "+  statusType.getRegisterId() + " was failed to register\nreason: " + statusType.getNotice());
         }
     }
 
@@ -62,7 +64,16 @@ public class ClientServiceGiver implements ServiceGiver{
 
 
     private void addFileManager(FileStartType fileStartType) {
-        fileManagerHashMap.put(fileStartType.getFileName(), new FileManager(fileStartType.getFileName()));
+        String fileName = fileStartType.getFileName();
+        if (fileManagerHashMap.containsKey(fileName)) {
+            fileName = fileName + 1;
+        }
+        fileManagerHashMap.put(fileName, new FileManager(fileStartType.getFileName()));
+    }
+
+    private void setFile(FileStartType fileStartType) {
+        FileManager fileManager = fileManagerHashMap.get(fileStartType.getFileName());
+        fileManager.set();
     }
 
     private void saveFile(FileType fileType) {

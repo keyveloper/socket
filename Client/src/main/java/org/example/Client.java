@@ -22,7 +22,7 @@ public class Client implements Runnable {
     private final Socket socket;
 
     private ClientPacketSender clientPacketSender;
-    private Boolean isRegister;
+    private Boolean isRegister = false;
     private String clientId;
 
     public Client(Socket socket) {

@@ -1,15 +1,15 @@
-package org.example;
+package org.example.types;
 
 import org.example.types.MessageType;
-import org.example.types.RegisterIdType;
+import org.example.types.NoticeType;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class RegisterIdTest {
+public class NoticeTypeTest {
     @Test
     public void convert() {
         // Given
-        RegisterIdType test = new RegisterIdType("dd");
+        NoticeType test = new NoticeType("notice");
 
         // When
         byte[] testBytes = test.toBytes();
@@ -17,5 +17,6 @@ public class RegisterIdTest {
 
         // Then
         assertEquals(test, convertedType);
+
     }
 }

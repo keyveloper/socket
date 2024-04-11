@@ -3,7 +3,6 @@ package org.example;
 import lombok.Data;
 import org.example.types.*;
 
-import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,7 +17,7 @@ public class ServerServiceGiver implements ServiceGiver{
     // 서버에서 하는걸로 하고 -> server에서 meesageType객체와, 소켓을 넘겨주면 되잖소?
     @Override
     // 소켓 정보가 필요하기 떄문에, message가 넘어오는게 좋음
-    public void service(Message message, MessageType messageType) throws IOException {
+    public void service(Message message, MessageType messageType) {
         System.out.println("service start: " + messageType.toString());
         ClientHandler senderHandler = server.getHandlerManger().get(message.getClientSocket());
         switch (message.getMessageTypeCode()) {
@@ -30,9 +29,11 @@ public class ServerServiceGiver implements ServiceGiver{
                 break;
             case CHANGE_ID:
                 ChangeIdType changeIdType = (ChangeIdType) messageType;
+                String oldId = idManager.getIdBySocket(message.getClientSocket());
                 RegisterIdStatusType changeStatusType = changeId(changeIdType.getChangeId(), message.getClientSocket());
                 System.out.println("change Success");
                 senderHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.REGISTER_STATUS, changeStatusType));
+                sendIdChangeNotice(oldId,changeStatusType);
                 break;
             case WHISPER:
                 WhisperType whisperType = (WhisperType) messageType;
@@ -62,7 +63,7 @@ public class ServerServiceGiver implements ServiceGiver{
         return idManager.changeId(newId, socket);
     }
 
-    private void sendWhisper(String receiverId, String comment, Socket senderSocket) throws IOException {
+    private void sendWhisper(String receiverId, String comment, Socket senderSocket){
         Socket receiverSocket = idManager.getSocketById(receiverId);
         String senderId = idManager.getIdBySocket(senderSocket);
         ClientHandler receiverHandler = server.getHandlerManger().get(receiverSocket);
@@ -75,7 +76,7 @@ public class ServerServiceGiver implements ServiceGiver{
         countManager.add(sender);
     }
 
-    private void sendComment(String comment, Socket senderSocket) throws IOException {
+    private void sendComment(String comment, Socket senderSocket)  {
         String senderId = idManager.getIdBySocket(senderSocket);
         ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
         CommentType commentType = new CommentType(senderId, comment);
@@ -99,15 +100,25 @@ public class ServerServiceGiver implements ServiceGiver{
         countManager.remove(senderSocket);
         server.getHandlerManger().remove(senderSocket);
 
-        ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
-        byte[] commentPacket = PacketMaker.makePacket(MessageTypeCode.NOTICE, new NoticeType(message));
-        for (ClientHandler handler : handlers) {
-            handler.sendPacket(commentPacket);
-        }
+        sendNoticeToAll(new NoticeType(message));
     }
     private void sendFile(FileType fileType) {
         Socket receiverSocket = idManager.getSocketById(fileType.getReceiver());
         server.getHandlerManger().get(receiverSocket).sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE, fileType));
+    }
+
+    private void sendIdChangeNotice(String oldId, RegisterIdStatusType statusType) {
+        if (statusType.getIsSuccess()) {
+            sendNoticeToAll(new NoticeType(oldId + "changed ID " + "{" + oldId + " -> " +statusType.getRegisterId() + "}"));
+        }
+    }
+
+    private void sendNoticeToAll(NoticeType noticeType) {
+        ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
+        byte[] noticePacket = PacketMaker.makePacket(MessageTypeCode.NOTICE, noticeType);
+        for (ClientHandler handler : handlers) {
+            handler.sendPacket(noticePacket);
+        }
     }
 }
 

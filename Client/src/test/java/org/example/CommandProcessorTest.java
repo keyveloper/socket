@@ -1,7 +1,11 @@
 package org.example;
 
+import org.example.types.FileStartType;
 import org.example.types.WhisperType;
 import org.junit.jupiter.api.Test;
+
+import java.nio.file.Files;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import static org.mockito.Mockito.mock;
@@ -24,5 +28,24 @@ class CommandProcessorTest {
         // Then
         assertEquals("mom", receiver);
         assertEquals("hello?", comment);
+    }
+
+    @Test
+    void processFileTypes() {
+        // Given
+        Client client = mock(Client.class);
+        CommandProcessor commandProcessor = new CommandProcessor(client);
+        String command = "/f \"receiver\" \"C:\\Users\\yangd\\Desktop\\BE\\test\\test.txt\"";
+
+        // When
+        ProcessedObject processedObject = commandProcessor.extract(command, true);
+        FileStartType fileStartType = (FileStartType) processedObject.getMessageType();
+        String receiver = fileStartType.getReceiver();
+        String fileName = fileStartType.getFileName();
+        String filePath = fileStartType.getFilePath();
+        // Then
+        assertEquals("receiver", receiver);
+        assertEquals("test", fileName);
+        assertEquals("\"C:\\Users\\yangd\\Desktop\\BE\\test\\test.txt\"", filePath);
     }
 }

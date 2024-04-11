@@ -1,4 +1,4 @@
-package org.example;
+package org.example.types;
 
 import org.example.types.ChangeIdType;
 import org.junit.jupiter.api.Test;

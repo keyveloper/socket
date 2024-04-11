@@ -1,4 +1,4 @@
-package org.example;
+package org.example.types;
 
 
 import org.example.types.MessageType;
@@ -10,7 +10,7 @@ public class RegisterIdStatusTypeTest {
     @Test
     public void convertTest() {
         // Given
-        RegisterIdStatusType test = new RegisterIdStatusType(true, "failed");
+        RegisterIdStatusType test = new RegisterIdStatusType(true, "rr", "dd");
 
         // When
         byte[] testBytes = test.toBytes();

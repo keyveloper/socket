@@ -6,6 +6,8 @@ import lombok.Data;
 public class FileStartType implements MessageType {
     private final String receiver;
     private final String fileName;
+
+    // only for Sender Client
     private String filePath;
 
     @Override

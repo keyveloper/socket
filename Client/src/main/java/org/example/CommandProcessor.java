@@ -7,14 +7,15 @@ import org.example.types.*;
 public class CommandProcessor {
     private final Client client;
     public ProcessedObject extract(String command, boolean isRegister) {
-        if (!isRegister) {
-            throw new NotRegisterException();
-        }
-        // ArrayList = [MessageTypeCode, MessageType]
         if (command.startsWith("/r") || command.startsWith("/R")) {
             String id = command.substring(3);
             return new ProcessedObject(MessageTypeCode.REGISTER_ID, new RegisterIdType(id));
         }
+
+        if (!isRegister) {
+            throw new NotRegisterException();
+        }
+
         if (command.startsWith("/Q") || command.startsWith("/q")) {
             return new ProcessedObject(MessageTypeCode.FIN, new NoticeType("FIN"));
         }

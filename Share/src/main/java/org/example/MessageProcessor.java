@@ -19,7 +19,7 @@ public class MessageProcessor {
                 yield registerDecoder.fromBytes(body);
             }
             case REGISTER_STATUS -> {
-                RegisterIdStatusType statusDecoder = new RegisterIdStatusType(true, "decoder");
+                RegisterIdStatusType statusDecoder = new RegisterIdStatusType(true, "","decoder");
                 yield statusDecoder.fromBytes(body);
             }
             case WHISPER -> {

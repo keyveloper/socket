@@ -18,16 +18,16 @@ public class IdManager {
     public RegisterIdStatusType register(String id, Socket socket){
         RegisterIdStatusType statusType;
         if (id.contains("\"")) {
-            statusType = new RegisterIdStatusType(false, "contain not allowed character \"");
+            statusType = new RegisterIdStatusType(false, id, "contain not allowed character \"");
         } else {
             synchronized (socketIdLock) {
                 if (!idSocketMap.containsKey(id)) {
                     idSocketMap.put(id, socket);
                     socketIdMap.put(socket, id);
 
-                    statusType = new RegisterIdStatusType(true, "register Success!!");
+                    statusType = new RegisterIdStatusType(true, id,"register Success!!");
                 } else {
-                    statusType = new RegisterIdStatusType(false, "Already Exsit");
+                    statusType = new RegisterIdStatusType(false, id,"Already Exsit");
                 }
             }
         }
@@ -44,12 +44,12 @@ public class IdManager {
                     idSocketMap.remove(oldId);
                     idSocketMap.put(newId, socket);
                     socketIdMap.put(socket, newId);
-                    statusType = new RegisterIdStatusType(true, "change Success");
+                    statusType = new RegisterIdStatusType(true, newId,"change Success");
                 } else {
-                    statusType = new RegisterIdStatusType(false, "Already Exist");
+                    statusType = new RegisterIdStatusType(false, newId, "Already Exist");
                 }
             } else {
-                statusType = new RegisterIdStatusType(false, "Register first");
+                statusType = new RegisterIdStatusType(false, newId, "Register first");
             }
         }
         return statusType;
