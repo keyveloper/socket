@@ -19,44 +19,64 @@ public class ServerServiceGiver implements ServiceGiver{
     // 소켓 정보가 필요하기 떄문에, message가 넘어오는게 좋음
     public void service(Message message, MessageType messageType) {
         System.out.println("service start: " + messageType.toString());
-        ClientHandler senderHandler = server.getHandlerManger().get(message.getClientSocket());
+        ClientHandler senderHandler = server.getHandlerManger().get(message.getSender());
         switch (message.getMessageTypeCode()) {
             case REGISTER_ID:
                 RegisterIdType registerIdType = (RegisterIdType) messageType;
-                RegisterIdStatusType RegisterIdstatusType = registerId(registerIdType.getId(), message.getClientSocket());
+                RegisterIdStatusType RegisterIdstatusType = registerId(registerIdType.getId(), message.getSender());
                 System.out.println("service type object: " + RegisterIdstatusType);
                 senderHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.REGISTER_STATUS, RegisterIdstatusType));
                 break;
             case CHANGE_ID:
                 ChangeIdType changeIdType = (ChangeIdType) messageType;
-                String oldId = idManager.getIdBySocket(message.getClientSocket());
-                RegisterIdStatusType changeStatusType = changeId(changeIdType.getChangeId(), message.getClientSocket());
+                String oldId = idManager.getIdBySocket(message.getSender());
+                RegisterIdStatusType changeStatusType = changeId(changeIdType.getChangeId(), message.getSender());
                 System.out.println("change Success");
                 senderHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.REGISTER_STATUS, changeStatusType));
                 sendIdChangeNotice(oldId,changeStatusType);
                 break;
             case WHISPER:
                 WhisperType whisperType = (WhisperType) messageType;
-                sendWhisper(whisperType.getId(), whisperType.getComment(), message.getClientSocket());
+                sendWhisper(whisperType.getId(), whisperType.getComment(), message.getSender());
                 break;
             case COMMENT:
                 CommentType commentType = (CommentType) messageType;
-                sendComment(commentType.getComment(), message.getClientSocket());
+                sendComment(commentType.getComment(), message.getSender());
                 break;
             case FIN:
-                closeConnect(message.getClientSocket());
+                closeConnect(message.getSender());
+                break;
+            case FILE_START:
+                sendFileStart((FileStartType) messageType, message.getSender());
                 break;
             case FILE:
                 sendFile((FileType) messageType);
+                break;
+            case FILE_END:
+                sendFileEnd((FileEndType) messageType, message.getSender());
         }
     }
 
-    private RegisterIdStatusType registerId(String id, Socket socket) {
-        RegisterIdStatusType registerIdStatusType = idManager.register(id, socket);
+    private RegisterIdStatusType registerId(String id, Socket sender) {
+        RegisterIdStatusType registerIdStatusType = idManager.register(id, sender);
         if (registerIdStatusType.getIsSuccess()) {
-            countManager.register(socket);
+            countManager.register(sender);
         }
         return registerIdStatusType;
+    }
+
+    private void sendFileStart(FileStartType fileStartType, Socket sender) {
+        Socket receiverSocket = idManager.getSocketById(fileStartType.getId());
+        ClientHandler receiverHandler = server.getHandlerManger().get(receiverSocket);
+
+        receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_START, new FileStartType(idManager.getIdBySocket(sender), fileStartType.getFileName())));
+    }
+
+    private void sendFileEnd(FileEndType fileEndType, Socket sender) {
+        Socket receiverSocket = idManager.getSocketById(fileEndType.getId());
+        ClientHandler receiverHandler = server.getHandlerManger().get(receiverSocket);
+
+        receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_END, new FileEndType(idManager.getIdBySocket(sender), fileEndType.getFileName())));
     }
 
     private RegisterIdStatusType changeId(String newId, Socket socket) {
@@ -100,7 +120,7 @@ public class ServerServiceGiver implements ServiceGiver{
         countManager.remove(senderSocket);
         server.getHandlerManger().remove(senderSocket);
 
-        sendNoticeToAll(new NoticeType(message));
+        sendNoticeToAll(new NoticeType(NoticeCode.FIN, message));
     }
     private void sendFile(FileType fileType) {
         Socket receiverSocket = idManager.getSocketById(fileType.getReceiver());
@@ -109,7 +129,7 @@ public class ServerServiceGiver implements ServiceGiver{
 
     private void sendIdChangeNotice(String oldId, RegisterIdStatusType statusType) {
         if (statusType.getIsSuccess()) {
-            sendNoticeToAll(new NoticeType(oldId + "changed ID " + "{" + oldId + " -> " +statusType.getRegisterId() + "}"));
+            sendNoticeToAll(new NoticeType(NoticeCode.ID_CHANGE, oldId + "changed ID " + "{" + oldId + " -> " +statusType.getRegisterId() + "}"));
         }
     }
 

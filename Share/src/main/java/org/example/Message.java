@@ -12,5 +12,5 @@ public class Message {
 
     private final byte[] body;
 
-    private final Socket clientSocket;
+    private final Socket sender;
 }

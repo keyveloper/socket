@@ -18,7 +18,7 @@ public class ClientPacketSender implements PacketSender {
             dataOutputStream.write(packet, 0, packet.length);
             dataOutputStream.flush();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("dataStream was closed!");
         }
     }
 

@@ -7,16 +7,19 @@ import java.util.Arrays;
 
 @Data
 public class FileEndType implements MessageType{
-    private final String receiver;
+    // id = receiver, sender
+    private final String id;
     private final String fileName;
 
     @Override
     public byte[] toBytes() {
-        int RECEIVER_LENGTH_SIZE = Integer.BYTES;
+        int ID_LENGTH_SIZE = Integer.BYTES;
         int FILE_NAME_LENGTH_SIZE = Integer.BYTES;
-        ByteBuffer buffer = ByteBuffer.allocate(RECEIVER_LENGTH_SIZE + FILE_NAME_LENGTH_SIZE + receiver.length() + fileName.length());
-        buffer.putInt(receiver.length());
-        buffer.put(receiver.getBytes());
+
+
+        ByteBuffer buffer = ByteBuffer.allocate(ID_LENGTH_SIZE +  id.length() + FILE_NAME_LENGTH_SIZE + fileName.length());
+        buffer.putInt(id.length());
+        buffer.put(id.getBytes());
         buffer.putInt(fileName.length());
 
         buffer.put(fileName.getBytes());

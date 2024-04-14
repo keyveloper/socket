@@ -35,7 +35,7 @@ public class ClientHandler implements Runnable {
             // socket out accidently
             System.out.println("Client connection was reset. ");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("IOException occur");
         }
     }
 

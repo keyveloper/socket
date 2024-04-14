@@ -1,5 +1,6 @@
 package org.example;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.types.FileStartType;
@@ -37,7 +38,6 @@ public class Client implements Runnable {
             clientPacketSender = new ClientPacketSender(socket);
             while (true) {
                 DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
-
                 int bodyLength = dataInputStream.readInt();
                 if(bodyLength > 0) {
                     MessageTypeCode messageTypeCode = MessageTypeCode.values()[dataInputStream.readInt()];
@@ -46,10 +46,9 @@ public class Client implements Runnable {
                     Message inMessage = new Message(messageTypeCode, body, null);
                     clientServiceGiver.service(inMessage, MessageProcessor.makeMessageType(inMessage));
                 }
-
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("Server connection End");
         }
     }
 
@@ -58,10 +57,11 @@ public class Client implements Runnable {
         // array:ost = [MessageTypeCode, messageType]
         if (processedObject.getMessageTypeCode() == MessageTypeCode.FILE_START) {
             FileSender fileSender = new FileSender((FileStartType) processedObject.getMessageType(), clientPacketSender);
+            System.out.println("new file sender added\nFILE_START: " + processedObject.getMessageType());
+            fileSender.sendStart();
             fileSender.sendFile();
-        } else {
-            sendPacket(processedObject.getMessageTypeCode(), processedObject.getMessageType());
         }
+        sendPacket(processedObject.getMessageTypeCode(), processedObject.getMessageType());
     }
 
     private void sendPacket(MessageTypeCode messageTypeCode, MessageType messageType){

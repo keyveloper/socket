@@ -1,9 +1,9 @@
 package org.example;
 
 import lombok.Data;
+import lombok.ToString;
 import org.example.types.*;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 @Data
@@ -24,17 +24,18 @@ public class ClientServiceGiver implements ServiceGiver{
                 readWhisper((WhisperType) messageType);
             }
             case FILE_START -> {
+                System.out.println("[IN ServiceGiver] File_START");
                 addFileManager((FileStartType) messageType);
                 setFile((FileStartType) messageType);
             }
             case FILE -> {
                 saveFile((FileType) messageType);
-
             }
             case FILE_END -> {
+                removeFileManager((FileEndType) messageType);
             }
             case NOTICE -> {
-                readNotice((NoticeType) messageType);
+                processNotice((NoticeType) messageType);
             }
         }
     }
@@ -58,26 +59,52 @@ public class ClientServiceGiver implements ServiceGiver{
         System.out.println(commentType.getSenderId() + ": " + commentType.getComment());
     }
 
-    private void readNotice(NoticeType noticeType) {
-        System.out.println(noticeType.getNotice());
+    private void processNotice(NoticeType noticeType) {
+        switch (noticeType.getNoticeCode()) {
+            case COMMON, FIN -> {
+                readMessage(noticeType.getNotice());
+            }
+            case ID_CHANGE -> {
+                informIdChange();
+            }
+        }
+    }
+
+    private void readMessage(String message) {
+        System.out.println(message);
+    }
+    private void informIdChange() {
+
     }
 
 
     private void addFileManager(FileStartType fileStartType) {
+        System.out.println("start add FIle manger");
         String fileName = fileStartType.getFileName();
         if (fileManagerHashMap.containsKey(fileName)) {
             fileName = fileName + 1;
         }
-        fileManagerHashMap.put(fileName, new FileManager(fileStartType.getFileName()));
+        fileManagerHashMap.put(fileName, new FileManager(fileStartType.getFileName(), fileStartType.getId()));
+        System.out.println("new FileManger added");
     }
 
     private void setFile(FileStartType fileStartType) {
+        System.out.println("start set file");
         FileManager fileManager = fileManagerHashMap.get(fileStartType.getFileName());
         fileManager.set();
     }
 
     private void saveFile(FileType fileType) {
+        System.out.println("start save FIle");
         FileManager fileManger = fileManagerHashMap.get(fileType.getFileName());
         fileManger.save(fileType);
     }
+
+    private void removeFileManager(FileEndType fileEndType) {
+        FileManager fileManger = fileManagerHashMap.get(fileEndType.getFileName());
+        fileManger.writeSender();
+        fileManagerHashMap.remove(fileEndType.getFileName());
+        System.out.println("remove key: " + fileEndType.getFileName() + "\nmap: " + fileManagerHashMap);
+    }
+
 }
