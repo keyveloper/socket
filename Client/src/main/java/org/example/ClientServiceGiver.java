@@ -79,10 +79,11 @@ public class ClientServiceGiver implements ServiceGiver{
         System.out.println(changeIdType.getOldId() + " changed ID -> " + changeIdType.getNewId());
 
         // inform to serverHandler
-        if (client.getServerHandler().isSendingFile()) {
+        if (client.getServerHandler().checkFileSending()) {
             client.getServerHandler().informReceiverChange(changeIdType.getOldId(),changeIdType.getNewId());
         }
     }
+
 
     private void addFileManager(FileStartType fileStartType) {
         System.out.println("start add FIle manger");

@@ -48,8 +48,8 @@ public class FileSender {
             System.out.println("fileInputStream error");
         }
     }
-
     public void changReceiver(String receiver) {
         this.receiver = receiver;
     }
+
 }

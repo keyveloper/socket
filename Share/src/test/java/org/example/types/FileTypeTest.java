@@ -1,5 +1,10 @@
 package org.example.types;
 
+<<<<<<< HEAD
+=======
+import org.example.types.FileType;
+import org.example.types.MessageType;
+>>>>>>> eee515ed7a3cb19ef0b7276a1af5fb1c4b1c4470
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

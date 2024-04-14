@@ -23,6 +23,7 @@ public class CommandProcessor {
             String newId = command.substring(3);
             return new ProcessedObject(MessageTypeCode.CHANGE_ID, new ChangeIdType(client.getClientId(), newId));
         }
+
         if (command.startsWith("/W") || command.startsWith("/w")) {
             // /W "receiver" comment
             int firstIdIndex = command.indexOf('"');

@@ -54,6 +54,7 @@ public class MessageProcessor {
                 ChangeIdType changeIdDecoder = new ChangeIdType("decoder", "decoder");
                 yield changeIdDecoder.fromBytes(body);
             }
+
             default -> null;
         };
     }

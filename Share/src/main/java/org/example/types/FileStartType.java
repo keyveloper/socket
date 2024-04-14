@@ -8,6 +8,8 @@ import java.nio.ByteBuffer;
 public class FileStartType implements MessageType {
     private final String id;
     private final String fileName;
+
+
     // only for Sender Client
     private String filePath;
 

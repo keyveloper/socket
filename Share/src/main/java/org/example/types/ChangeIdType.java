@@ -20,7 +20,6 @@ public class ChangeIdType implements MessageType {
         return buffer.array();
     }
 
-    @Override
     public MessageType fromBytes(byte[] bytes) {
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         int oldIdLength = buffer.getInt();
@@ -31,5 +30,4 @@ public class ChangeIdType implements MessageType {
 
         return new ChangeIdType(new String(oldIdBytes), new String(newIdBytes));
     }
-
 }

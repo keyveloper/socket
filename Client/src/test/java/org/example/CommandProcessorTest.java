@@ -40,7 +40,11 @@ class CommandProcessorTest {
         // When
         ProcessedObject processedObject = commandProcessor.extract(command, true);
         FileStartType fileStartType = (FileStartType) processedObject.getMessageType();
+<<<<<<< HEAD
         String receiver = fileStartType.getId();
+=======
+        String receiver = fileStartType.getReceiver();
+>>>>>>> eee515ed7a3cb19ef0b7276a1af5fb1c4b1c4470
         String fileName = fileStartType.getFileName();
         String filePath = fileStartType.getFilePath();
         // Then

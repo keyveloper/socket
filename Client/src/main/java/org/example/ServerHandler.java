@@ -8,6 +8,7 @@ import org.example.types.MessageTypeCode;
 import java.util.HashMap;
 
 
+
 @Data
 public class ServerHandler implements Runnable{
     private final Client client;
@@ -55,4 +56,6 @@ public class ServerHandler implements Runnable{
     public boolean checkFileSending() {
         return isSendingFile;
     }
+
+
 }

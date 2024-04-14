@@ -141,7 +141,6 @@ public class ServerServiceGiver implements ServiceGiver{
         }
 
     }
-
     private void sendNoticeToAll(NoticeType noticeType) {
         ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
         byte[] noticePacket = PacketMaker.makePacket(MessageTypeCode.NOTICE, noticeType);
@@ -149,5 +148,7 @@ public class ServerServiceGiver implements ServiceGiver{
             handler.sendPacket(noticePacket);
         }
     }
-}
+
+
+    }
 

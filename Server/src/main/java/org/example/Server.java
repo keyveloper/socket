@@ -22,7 +22,7 @@ public class Server {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Connected " + clientSocket.getLocalPort() + " Port, From " + clientSocket.getRemoteSocketAddress().toString() + "\n");
 
-                ClientHandler clientHandler = new ClientHandler(clientSocket, this);
+                ClientHandler clientHandler = new ClientHandler(this, clientSocket);
                 handlerManger.register(clientSocket, clientHandler);
                 Thread thread = new Thread(clientHandler);
                 thread.start();
