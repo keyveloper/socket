@@ -22,7 +22,7 @@ public class Client implements Runnable {
     private final ClientServiceGiver clientServiceGiver = new ClientServiceGiver(this, fileManagerHashMap);
     private final Socket socket;
 
-    private ClientPacketSender clientPacketSender;
+    private final ServerHandler serverHandler = new ServerHandler(this);
     private Boolean isRegister = false;
     private String clientId;
 
@@ -35,17 +35,9 @@ public class Client implements Runnable {
             System.out.println("\n[ Request ... ]");
             socket.connect(new InetSocketAddress("localhost", tcpClientPort));
             System.out.print("\n[ Success connecting ] \n");
-            clientPacketSender = new ClientPacketSender(socket);
             while (true) {
-                DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
-                int bodyLength = dataInputStream.readInt();
-                if(bodyLength > 0) {
-                    MessageTypeCode messageTypeCode = MessageTypeCode.values()[dataInputStream.readInt()];
-                    byte[] body = new byte[bodyLength];
-                    dataInputStream.readFully(body);
-                    Message inMessage = new Message(messageTypeCode, body, null);
-                    clientServiceGiver.service(inMessage, MessageProcessor.makeMessageType(inMessage));
-                }
+                Thread thread = new Thread(serverHandler);
+                thread.start();
             }
         } catch (IOException e) {
             System.out.println("Server connection End");
@@ -67,6 +59,10 @@ public class Client implements Runnable {
     private void sendPacket(MessageTypeCode messageTypeCode, MessageType messageType){
         byte[] packet = PacketMaker.makePacket(messageTypeCode, messageType);
         clientPacketSender.sendPacket(packet);
+    }
+
+    public void service(Message message) {
+        clientServiceGiver.service(message, MessageProcessor.makeMessageType(message));
     }
 
 }
