@@ -21,6 +21,9 @@ public class ServerHandler implements Runnable{
         ClientPacketReader clientPacketReader = new ClientPacketReader(client.getSocket());
         while (true) {
             Message message = clientPacketReader.readPacket();
+            if (message == null) {
+                break;
+            }
             client.service(message);
         }
     }

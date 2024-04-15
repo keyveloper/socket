@@ -5,6 +5,7 @@ import org.example.types.MessageTypeCode;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 
 @Data
 
@@ -25,39 +26,23 @@ public class ClientHandler implements Runnable {
             while (true) {
                 System.out.println("start read!");
                 Message message = serverPacketReader.readPacket();
-                server.service(message);
-
-                if (message.getMessageTypeCode() == MessageTypeCode.FIN) {
+                if (message == null) {
+                    System.out.println("message is null!!");
+                    // [bodyLength, typeCode, finCodee, notice""]
+                    int FIN_CODE_SIZE = 4;
+                    ByteBuffer buffer = ByteBuffer.allocate(FIN_CODE_SIZE + "".length());
+                    buffer.putInt(NoticeCode.FIN.ordinal());
+                    buffer.put("".getBytes());
+                    Message outMessage = new Message(MessageTypeCode.FIN, buffer.array(), clientSocket);
+                    server.service(outMessage);
                     break;
+                } else {
+                    server.service(message);
                 }
             }
 
-        } catch (EOFException e) {
-            System.out.println("End of stream");
-            Message outMessage = new Message(MessageTypeCode.FIN, null, clientSocket);
-            try {
-                server.service(outMessage);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-
-        } catch (SocketException e) {
-            // socket out accidently
-            System.out.println("Client connection was reset. ");
-            Message outMessage = new Message(MessageTypeCode.FIN, null, clientSocket);
-            try {
-                server.service(outMessage);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
         } catch (IOException e) {
-            System.out.println("IOException occur");
-            Message outMessage = new Message(MessageTypeCode.FIN, null, clientSocket);
-            try {
-                server.service(outMessage);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
+            throw new RuntimeException(e);
         }
     }
 

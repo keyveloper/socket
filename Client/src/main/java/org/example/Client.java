@@ -1,11 +1,10 @@
 package org.example;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.types.FileStartType;
-import org.example.types.MessageType;
 import org.example.types.MessageTypeCode;
+import org.example.types.NoticeType;
 
 import java.io.*;
 import java.net.*;
@@ -48,16 +47,36 @@ public class Client implements Runnable {
 
     public void processCommand(String command) throws IOException {
         ProcessedObject processedObject = commandProcessor.extract(command, isRegister);
+        if (processedObject == null) {
+            System.out.println("\"Register First\\n /r or /R your ID\"\n type correct command!!\n");
+            return;
+        }
         // array:ost = [MessageTypeCode, messageType]
         if (processedObject.getMessageTypeCode() == MessageTypeCode.FILE_START) {
             serverHandler.sendFileStart((FileStartType) processedObject.getMessageType());
+            return;
+        }
+        if (processedObject.getMessageTypeCode() == MessageTypeCode.FIN) {
+            closeSocket((NoticeType) processedObject.getMessageType());
+            return;
         }
         serverHandler.sendPacket(processedObject.getMessageTypeCode(), processedObject.getMessageType());
+
+
     }
 
 
     public void service(Message message) {
         clientServiceGiver.service(message, MessageProcessor.makeMessageType(message));
+    }
+
+    private void closeSocket(NoticeType finType) {
+        serverHandler.sendPacket(MessageTypeCode.FIN,finType);
+        try {
+            socket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

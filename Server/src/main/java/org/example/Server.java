@@ -37,6 +37,7 @@ public class Server {
     }
 
     public void service(Message message) throws IOException {
+        System.out.println("\n [service start] \n message : " + message);
         MessageType messageType = MessageProcessor.makeMessageType(message);
         serviceGiver.service(message, messageType);
     }

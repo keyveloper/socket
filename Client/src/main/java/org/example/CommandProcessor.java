@@ -3,17 +3,23 @@ package org.example;
 import lombok.Data;
 import org.example.types.*;
 
+import java.util.Arrays;
+import java.util.HashMap;
+
 @Data
 public class CommandProcessor {
     private final Client client;
     public ProcessedObject extract(String command, boolean isRegister) {
         if (command.startsWith("/r") || command.startsWith("/R")) {
+            if (command.substring(3).isEmpty()) {
+                return null;
+            }
             String id = command.substring(3);
             return new ProcessedObject(MessageTypeCode.REGISTER_ID, new RegisterIdType(id));
         }
 
         if (!isRegister) {
-            throw new NotRegisterException();
+            return null;
         }
 
         if (command.startsWith("/Q") || command.startsWith("/q")) {

@@ -1,11 +1,13 @@
 package org.example;
 
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.net.*;
 import java.util.*;
 
 @NoArgsConstructor
+@ToString
 public class CountManager {
     private final HashMap<Socket, Integer> messageCountMap = new HashMap<>();
     private final Object countLock = new Object();
@@ -14,6 +16,7 @@ public class CountManager {
         synchronized ( countLock ) {
             messageCountMap.put(socket, 0);
         }
+        print();
     }
     public void add(Socket socket){
         synchronized ( countLock ) {
@@ -21,6 +24,7 @@ public class CountManager {
                 messageCountMap.put(socket, messageCountMap.get(socket) + 1);
             }
         }
+        print();
     }
 
     public void remove(Socket socket){
@@ -30,6 +34,10 @@ public class CountManager {
     }
     public Integer get(Socket socket){
         return messageCountMap.get(socket);
+    }
+
+    public void print() {
+        System.out.println("messageCountMap: " + messageCountMap);
     }
 
 }

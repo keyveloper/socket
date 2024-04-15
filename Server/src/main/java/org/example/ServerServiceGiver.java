@@ -49,6 +49,7 @@ public class ServerServiceGiver implements ServiceGiver{
                 break;
             case FILE_END:
                 sendFileEnd((FileEndType) messageType, message.getSender());
+                break;
         }
     }
 
@@ -118,6 +119,9 @@ public class ServerServiceGiver implements ServiceGiver{
     }
 
     private void closeConnect(Socket senderSocket) {
+        System.out.println("closeConnect start: " + senderSocket);
+        countManager.print();
+
         String closeId = idManager.getIdBySocket(senderSocket);
         int count = countManager.get(senderSocket);
         String message = "ID: " + closeId + "is out\n total message: " + count;

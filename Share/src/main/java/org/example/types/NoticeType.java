@@ -4,6 +4,7 @@ import lombok.Data;
 import org.example.NoticeCode;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 @Data
 public class NoticeType implements MessageType {

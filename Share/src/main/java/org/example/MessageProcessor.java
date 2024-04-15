@@ -10,9 +10,8 @@ public class MessageProcessor {
     // read Message
     // make Type
     public static MessageType makeMessageType(Message message) {
-        MessageTypeCode messageTypeCode = message.getMessageTypeCode();
         byte[] body = message.getBody();
-        return switch (messageTypeCode) {
+        return switch (message.getMessageTypeCode()) {
             // body -> decode -> MessageType
             case REGISTER_ID -> {
                 RegisterIdType registerDecoder = new RegisterIdType("decoder");

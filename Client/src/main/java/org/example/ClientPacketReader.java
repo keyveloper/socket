@@ -6,6 +6,7 @@ import org.example.types.MessageTypeCode;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Arrays;
 
 @Data
@@ -21,9 +22,12 @@ public class ClientPacketReader implements PacketReader{
             dataInputStream.readFully(body);
 
             return new Message(messageTypeCode, body, null);
+        } catch (SocketException e) {
+            System.out.println("connection closed!!");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return null;
     }
 
 }
