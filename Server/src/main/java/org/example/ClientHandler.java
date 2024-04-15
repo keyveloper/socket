@@ -33,12 +33,31 @@ public class ClientHandler implements Runnable {
             }
 
         } catch (EOFException e) {
-            System.out.println("Client closed the connection.");
+            System.out.println("End of stream");
+            Message outMessage = new Message(MessageTypeCode.FIN, null, clientSocket);
+            try {
+                server.service(outMessage);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+
         } catch (SocketException e) {
             // socket out accidently
             System.out.println("Client connection was reset. ");
+            Message outMessage = new Message(MessageTypeCode.FIN, null, clientSocket);
+            try {
+                server.service(outMessage);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         } catch (IOException e) {
             System.out.println("IOException occur");
+            Message outMessage = new Message(MessageTypeCode.FIN, null, clientSocket);
+            try {
+                server.service(outMessage);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 

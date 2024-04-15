@@ -35,4 +35,8 @@ public class HandlerManger {
     public ArrayList<ClientHandler> getAllHandler() {
         return new ArrayList<>(handlerMap.values());
     }
+
+    public boolean checkEmpty() {
+        return handlerMap.isEmpty();
+    }
 }

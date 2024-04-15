@@ -4,8 +4,10 @@ import lombok.AllArgsConstructor;
 import org.example.types.MessageTypeCode;
 
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Arrays;
 
 @AllArgsConstructor
@@ -24,8 +26,13 @@ public class ServerPacketReader implements PacketReader{
             System.out.println("In ServerPacket Read\nbodyLength: " + bodyLength +"\nMessage Type Code: " + messageTypeCode + "\n body: " + Arrays.toString(body));
 
             return new Message(messageTypeCode, body, clientSocket);
+        } catch (EOFException e) {
+            System.out.println("Client closed the connection");
+        } catch (SocketException e) {
+            System.out.println("Client connection was reset");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return null;
     }
 }

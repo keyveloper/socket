@@ -16,12 +16,9 @@ public class ClientPacketReader implements PacketReader{
         try {
             DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
             int bodyLength = dataInputStream.readInt();
-            System.out.println(bodyLength);
             MessageTypeCode messageTypeCode = MessageTypeCode.values()[dataInputStream.readInt()];
-            System.out.println(messageTypeCode);
             byte[] body = new byte[bodyLength];
             dataInputStream.readFully(body);
-            System.out.println(Arrays.toString(body));
 
             return new Message(messageTypeCode, body, null);
         } catch (IOException e) {
