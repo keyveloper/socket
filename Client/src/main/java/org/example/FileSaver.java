@@ -5,10 +5,10 @@ import org.example.types.FileType;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.util.UUID;
 
 @Data
-public class FileManager {
-    private final String fileName;
+public class FileSaver {
     private final String sender;
     private final String directory = "C:\\Users\\yangd\\Desktop\\BE\\test\\output\\";
     private RandomAccessFile file;
@@ -24,19 +24,12 @@ public class FileManager {
         }
     }
 
+
     private String generateUniqueFileName() {
-        String fullPath = directory + File.separator + fileName;
-        File file = new File(fullPath);
-        int count = 1;
-        while (file.exists()) {
-            fullPath = directory + File.separator + fileName + "_" + count;
-            file = new File(fullPath);
-            count++;
-        }
-        return fullPath;
+        return directory + UUID.randomUUID();
     }
 
-    public void save(FileType fileType) {
+    public void save(int seq, byte[] fileBytes) {
         long FILE_SEGMENT_SIZE = 1024 * 1024;
         // seq, fileByte[]
         if (this.file == null) {
@@ -44,10 +37,10 @@ public class FileManager {
         }
 
         try {
-            file.seek(FILE_SEGMENT_SIZE * fileType.getSeq());
-            file.write(fileType.getFileByte());
+            file.seek(FILE_SEGMENT_SIZE * seq);
+            file.write(fileBytes);
         } catch (IOException e) {
-            System.out.println("can't write file" + fileType);
+            System.out.println("can't write file");
         }
     }
 
@@ -56,7 +49,6 @@ public class FileManager {
         try {
             int SPACE_BAR_SIZE = 1;
             file.seek(file.length());
-
             ByteBuffer senderBuffer = ByteBuffer.allocate(SPACE_BAR_SIZE + sender.length());
             senderBuffer.put(" from ".getBytes());
             senderBuffer.put(sender.getBytes());

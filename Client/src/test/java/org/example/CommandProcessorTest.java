@@ -1,10 +1,7 @@
 package org.example;
 
-import org.example.types.FileStartType;
 import org.example.types.WhisperType;
 import org.junit.jupiter.api.Test;
-
-import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.*;
 

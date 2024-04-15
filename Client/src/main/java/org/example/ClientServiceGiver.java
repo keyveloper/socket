@@ -1,7 +1,6 @@
 package org.example;
 
 import lombok.Data;
-import lombok.ToString;
 import org.example.types.*;
 
 import java.util.HashMap;
@@ -9,7 +8,7 @@ import java.util.HashMap;
 @Data
 public class ClientServiceGiver implements ServiceGiver{
     private final Client client;
-    private final HashMap<String, FileManager> fileManagerHashMap;
+    private final HashMap<String, FileSaver> fileSaverHashMap = new HashMap<>();
 
     @Override
     public void service(Message message, MessageType messageType) {
@@ -27,14 +26,8 @@ public class ClientServiceGiver implements ServiceGiver{
             case CHANGE_ID -> {
                 informIdChange((ChangeIdType) messageType);
             }
-
-            case FILE_START -> {
-                System.out.println("[IN ServiceGiver] File_START");
-                addFileManager((FileStartType) messageType);
-                setFile((FileStartType) messageType);
-            }
             case FILE -> {
-                saveFile((FileType) messageType);
+                fileSaveStart((FileType) messageType);
             }
             case FILE_END -> {
                 removeFileManager((FileEndType) messageType);
@@ -43,6 +36,13 @@ public class ClientServiceGiver implements ServiceGiver{
                 processNotice((NoticeType) messageType);
             }
         }
+    }
+
+    private void fileSaveStart(FileType fileType) {
+        String fileMangerKey = addFileSaver(fileType.getFileName(), fileType.getSender());
+        FileSaver fileSaver = fileSaverHashMap.get(fileMangerKey);
+        fileSaver.set();
+        fileSaver.save(fileType.getSeq(), fileType.getFileByte());
     }
 
     private void readIdStatus(RegisterIdStatusType statusType) {
@@ -79,39 +79,27 @@ public class ClientServiceGiver implements ServiceGiver{
         System.out.println(changeIdType.getOldId() + " changed ID -> " + changeIdType.getNewId());
 
         // inform to serverHandler
-        if (client.getServerHandler().checkFileSending()) {
+        if (client.getServerHandler().checkFileSender(changeIdType.getOldId())) {
             client.getServerHandler().informReceiverChange(changeIdType.getOldId(),changeIdType.getNewId());
         }
     }
 
 
-    private void addFileManager(FileStartType fileStartType) {
+    private String addFileSaver(String fileName, String sender) {
         System.out.println("start add FIle manger");
-        String fileName = fileStartType.getFileName();
-        if (fileManagerHashMap.containsKey(fileName)) {
+        if (fileSaverHashMap.containsKey(fileName)) {
             fileName = fileName + 1;
         }
-        fileManagerHashMap.put(fileName, new FileManager(fileStartType.getFileName(), fileStartType.getId()));
-        System.out.println("new FileManger added");
-    }
-
-    private void setFile(FileStartType fileStartType) {
-        System.out.println("start set file");
-        FileManager fileManager = fileManagerHashMap.get(fileStartType.getFileName());
-        fileManager.set();
-    }
-
-    private void saveFile(FileType fileType) {
-        System.out.println("start save FIle");
-        FileManager fileManger = fileManagerHashMap.get(fileType.getFileName());
-        fileManger.save(fileType);
+        fileSaverHashMap.put(fileName, new FileSaver(sender));
+        System.out.println("new fileManger added: " + fileSaverHashMap);
+        return fileName;
     }
 
     private void removeFileManager(FileEndType fileEndType) {
-        FileManager fileManger = fileManagerHashMap.get(fileEndType.getFileName());
+        FileSaver fileManger = fileSaverHashMap.get(fileEndType.getFileName());
         fileManger.writeSender();
-        fileManagerHashMap.remove(fileEndType.getFileName());
-        System.out.println("remove key: " + fileEndType.getFileName() + "\nmap: " + fileManagerHashMap);
+        fileSaverHashMap.remove(fileEndType.getFileName());
+        System.out.println("remove key: " + fileEndType.getFileName() + "\nmap: " + fileSaverHashMap);
     }
 
 }

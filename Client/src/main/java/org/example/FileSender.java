@@ -2,7 +2,6 @@ package org.example;
 
 import lombok.Data;
 import org.example.types.FileEndType;
-import org.example.types.FileStartType;
 import org.example.types.FileType;
 import org.example.types.MessageTypeCode;
 
@@ -15,6 +14,7 @@ import java.util.Arrays;
 public class FileSender {
     private final String fileName;
     private final String filePath;
+    private final String sender;
     private String receiver;
     private final ServerHandler serverHandler;
 
@@ -32,21 +32,26 @@ public class FileSender {
                 byte[] actualRead = Arrays.copyOf(fileBuffer, bytesRead);
                 System.out.println("File read: " + Arrays.toString(actualRead));
 
-                FileType fileType = new FileType(false, receiver, fileName, seq, actualRead);
+                FileType fileType = new FileType(false, sender, receiver, fileName, seq, actualRead);
                 seq += 1;
                 serverHandler.sendPacket(MessageTypeCode.FILE, fileType);
                 System.out.println("seq: " + seq + "file was sent!!");
             }
-            System.out.println("} \nFile read End ");
-            // end -> true
-            serverHandler.sendPacket(MessageTypeCode.FILE_END, new FileEndType(receiver, fileName));
-            serverHandler.setSendingFile(false);
+            sendEnd();
             fileInputStream.close();
+            // end -> true
+
         } catch (FileNotFoundException e) {
             System.out.println("Can not find file");
         } catch (IOException e) {
             System.out.println("fileInputStream error");
         }
+    }
+
+    private void sendEnd() {
+        System.out.println("} \nFile read End ");
+        serverHandler.sendPacket(MessageTypeCode.FILE_END, new FileEndType(receiver, fileName));
+        serverHandler.removeFileSender(receiver);
     }
     public void changReceiver(String receiver) {
         this.receiver = receiver;

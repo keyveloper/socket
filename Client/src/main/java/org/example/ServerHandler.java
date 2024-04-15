@@ -1,7 +1,6 @@
 package org.example;
 
 import lombok.Data;
-import org.example.types.FileStartType;
 import org.example.types.MessageType;
 import org.example.types.MessageTypeCode;
 
@@ -33,20 +32,23 @@ public class ServerHandler implements Runnable{
         clientPacketSender.sendPacket(packet);
     }
 
-    public void sendFileStart(FileStartType fileStartType) {
-        FileSender fileSender = setFileSender(fileStartType);
-        clientPacketSender.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_START, fileStartType));
-        fileSender.sendFile();
-
-    }
-
     private FileSender setFileSender(FileStartType fileStartType) {
-        isSendingFile = true;
-        FileSender fileSender = new FileSender(fileStartType.getFileName(), fileStartType.getFilePath(), this);
+        FileSender fileSender = new FileSender(client.getClientId(), fileStartType.getId(), fileStartType.getFilePath(), this);
         fileSender.setReceiver(fileStartType.getId());
         fileSenderHashMap.put(fileStartType.getId(), fileSender);
         return fileSender;
     }
+    public void sendFileStart(FileStartType fileStartType) {
+        FileSender fileSender = setFileSender(fileStartType);
+        isSendingFile = true;
+        clientPacketSender.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE, fileStartType));
+        fileSender.sendFile();
+    }
+
+    public void removeFileSender(String receiver) {
+        fileSenderHashMap.remove(receiver);
+    }
+
 
     // 기존 아이디 받아와야해
     public void informReceiverChange(String oldId, String newId) {
@@ -56,8 +58,8 @@ public class ServerHandler implements Runnable{
         fileSenderHashMap.put(newId, fileSender);
     }
 
-    public boolean checkFileSending() {
-        return isSendingFile;
+    public boolean checkFileSender(String id) {
+        return fileSenderHashMap.containsKey(id);
     }
 
 

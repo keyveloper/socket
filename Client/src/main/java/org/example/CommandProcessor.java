@@ -37,7 +37,6 @@ public class CommandProcessor {
             String receiverId = command.substring(firstIdIndex + 1, secondIdIndex);
             String comment = command.substring(secondIdIndex +2);
 
-            System.out.println("In Process command: /w\nreceiverId" + receiverId + "\ncomment: " + command);
             return new ProcessedObject(MessageTypeCode.WHISPER, new WhisperType(receiverId, comment));
         }
         if (command.startsWith("/F") || command.startsWith("/f")) {

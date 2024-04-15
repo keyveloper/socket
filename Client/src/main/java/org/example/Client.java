@@ -2,13 +2,11 @@ package org.example;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.example.types.FileStartType;
 import org.example.types.MessageTypeCode;
 import org.example.types.NoticeType;
 
 import java.io.*;
 import java.net.*;
-import java.util.HashMap;
 
 @Setter
 @Getter
@@ -16,12 +14,11 @@ public class Client implements Runnable {
     private final int tcpClientPort = 9999;
 
     private final CommandProcessor commandProcessor = new CommandProcessor(this);
-    private final HashMap<String, FileManager> fileManagerHashMap = new HashMap<>();
 
     private final Socket socket;
     private final ClientPacketSender clientPacketSender;
     private final ServerHandler serverHandler;
-    private final ClientServiceGiver clientServiceGiver = new ClientServiceGiver(this, fileManagerHashMap);
+    private final ClientServiceGiver clientServiceGiver = new ClientServiceGiver(this);
 
     private Boolean isRegister = false;
     private String clientId;
