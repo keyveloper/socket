@@ -15,11 +15,9 @@ public class ServerPacketSender implements PacketSender{
     @Override
     public void sendPacket(byte[] packet) {
         try {
-            System.out.println("[[IN Server Packet Sender ]]" + Arrays.toString(packet));
             DataOutputStream dataOutputStream = new DataOutputStream(server.getOutputStream());
             dataOutputStream.write(packet, 0, packet.length);
             dataOutputStream.flush();
-            System.out.println("[[IN Server Packet Sender ]] packet sent");
         } catch (EOFException e) {
             System.out.println("End of Stream");
         } catch (SocketException e) {

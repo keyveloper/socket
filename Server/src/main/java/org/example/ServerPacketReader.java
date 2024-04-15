@@ -16,7 +16,6 @@ public class ServerPacketReader implements PacketReader{
 
     @Override
     public Message readPacket() {
-        System.out.println("start readPacket in Server");
         try {
             DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
             int bodyLength = dataInputStream.readInt();
@@ -26,7 +25,6 @@ public class ServerPacketReader implements PacketReader{
             }
             byte[] body = new byte[bodyLength];
             dataInputStream.readFully(body);
-            System.out.println("In ServerPacket Read\nbodyLength: " + bodyLength +"\nMessage Type Code: " + messageTypeCode + "\n body: " + Arrays.toString(body));
 
             return new Message(messageTypeCode, body, clientSocket);
         } catch (EOFException e) {

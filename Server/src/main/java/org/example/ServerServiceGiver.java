@@ -69,18 +69,14 @@ public class ServerServiceGiver implements ServiceGiver{
         }
     }
 
-    private void sendFileStart(FileType fileType, Socket sender) {
-        Socket receiverSocket = idManager.getSocketById(fileType.getReceiver());
-        ClientHandler receiverHandler = server.getHandlerManger().get(receiverSocket);
-
-        receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE, new FileType(fileType.getSender(), fileType.getReceiver(), fileType.getFileName(), fileType.getSeq(), fileType.getFileByte())));
-    }
-
     private void sendFileEnd(FileEndType fileEndType, Socket sender) {
         Socket receiverSocket = idManager.getSocketById(fileEndType.getId());
         ClientHandler receiverHandler = server.getHandlerManger().get(receiverSocket);
 
-        receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_END, new FileEndType(idManager.getIdBySocket(sender), fileEndType.getFileName())));
+        FileEndType endType = new FileEndType(idManager.getIdBySocket(sender), fileEndType.getFileName());
+        System.out.println("[server serviceGiver] fileEndType" + endType);
+        receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_END, endType));
+
     }
 
     private RegisterIdStatusType changeId(String newId, Socket socket) {

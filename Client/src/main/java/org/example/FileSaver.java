@@ -10,7 +10,7 @@ import java.util.UUID;
 @Data
 public class FileSaver {
     private final String sender;
-    private final String directory = "C:\\Users\\yangd\\Desktop\\BE\\test\\output\\";
+    private final String directory = "C:\\Users\\user\\Desktop\\BEmetoring\\test\\output\\";
     private RandomAccessFile file;
 
     private void set(){
@@ -30,13 +30,11 @@ public class FileSaver {
     }
 
     public void save(int seq, byte[] fileBytes) {
-        if (file == null) {
-            set();
-        }
         long FILE_SEGMENT_SIZE = 1024 * 1024;
         // seq, fileByte[]
         if (this.file == null) {
-            throw new FileNotSetException("file wasn't set");
+            System.out.println("set empty File!!");
+            set();
         }
 
         try {

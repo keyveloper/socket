@@ -38,6 +38,7 @@ public class ServerHandler implements Runnable{
             fileSender = fileSenderHashMap.get(fileType.getReceiver());
         } else {
             fileSender = new FileSender(fileType.getFileName(), fileType.getFilePath(), fileType.getSender(), this);
+            fileSender.setReceiver(fileType.getReceiver());
             fileSenderHashMap.put(fileSender.getReceiver(), fileSender);
         }
         fileSender.sendFile();

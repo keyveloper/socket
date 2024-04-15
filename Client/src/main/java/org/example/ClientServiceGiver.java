@@ -45,6 +45,7 @@ public class ClientServiceGiver implements ServiceGiver{
             fileSaver = fileSaverHashMap.get(fileType.getFileName());
         } else {
             fileSaver = new FileSaver(fileType.getSender());
+            fileSaverHashMap.put(fileType.getFileName(), fileSaver);
         }
         fileSaver.save(fileType.getSeq(), fileType.getFileByte());
     }
@@ -88,20 +89,11 @@ public class ClientServiceGiver implements ServiceGiver{
         }
     }
 
-
-    private String addFileSaver(String fileName, String sender) {
-        System.out.println("start add FIle manger");
-        if (fileSaverHashMap.containsKey(fileName)) {
-            fileName = fileName + 1;
-        }
-        fileSaverHashMap.put(fileName, new FileSaver(sender));
-        System.out.println("new fileManger added: " + fileSaverHashMap);
-        return fileName;
-    }
-
     private void removeFileManager(FileEndType fileEndType) {
-        FileSaver fileManger = fileSaverHashMap.get(fileEndType.getFileName());
-        fileManger.writeSender();
+        System.out.println("[In client Service]\n fileEndType" + fileEndType);
+        FileSaver fileSaver = fileSaverHashMap.get(fileEndType.getFileName());
+        System.out.println("fileSaver: " + fileSaver);
+        fileSaver.writeSender();
         fileSaverHashMap.remove(fileEndType.getFileName());
         System.out.println("remove key: " + fileEndType.getFileName() + "\nmap: " + fileSaverHashMap);
     }
