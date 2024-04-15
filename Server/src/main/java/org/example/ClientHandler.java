@@ -24,7 +24,6 @@ public class ClientHandler implements Runnable {
         try {
             ServerPacketReader serverPacketReader = new ServerPacketReader(clientSocket);
             while (true) {
-                System.out.println("start read!");
                 Message message = serverPacketReader.readPacket();
                 if (message == null) {
                     System.out.println("message is null!!");
@@ -47,7 +46,6 @@ public class ClientHandler implements Runnable {
     }
 
     public void sendPacket(byte[] packet) {
-        System.out.println("in client Handler start send packet");
         ServerPacketSender serverPacketSender = new ServerPacketSender(clientSocket);
         serverPacketSender.sendPacket(packet);
     }

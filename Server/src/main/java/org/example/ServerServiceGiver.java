@@ -18,7 +18,6 @@ public class ServerServiceGiver implements ServiceGiver{
     @Override
     // 소켓 정보가 필요하기 떄문에, message가 넘어오는게 좋음
     public void service(Message message, MessageType messageType) {
-        System.out.println("service start: " + messageType.toString());
         ClientHandler senderHandler = server.getHandlerManger().get(message.getSender());
         switch (message.getMessageTypeCode()) {
             case REGISTER_ID:
@@ -74,7 +73,6 @@ public class ServerServiceGiver implements ServiceGiver{
         ClientHandler receiverHandler = server.getHandlerManger().get(receiverSocket);
 
         FileEndType endType = new FileEndType(idManager.getIdBySocket(sender), fileEndType.getFileName());
-        System.out.println("[server serviceGiver] fileEndType" + endType);
         receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_END, endType));
 
     }
