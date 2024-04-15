@@ -1,6 +1,7 @@
 package org.example;
 
 import lombok.Data;
+import org.example.types.FileType;
 import org.example.types.MessageType;
 import org.example.types.MessageTypeCode;
 
@@ -13,7 +14,6 @@ public class ServerHandler implements Runnable{
     private final Client client;
     private final ClientPacketSender clientPacketSender;
     private final HashMap<String, FileSender> fileSenderHashMap = new HashMap<>();
-    private boolean isSendingFile;
 
     @Override
     public void run() {
@@ -31,17 +31,15 @@ public class ServerHandler implements Runnable{
         byte[] packet = PacketMaker.makePacket(messageTypeCode, messageType);
         clientPacketSender.sendPacket(packet);
     }
-
-    private FileSender setFileSender(FileStartType fileStartType) {
-        FileSender fileSender = new FileSender(client.getClientId(), fileStartType.getId(), fileStartType.getFilePath(), this);
-        fileSender.setReceiver(fileStartType.getId());
-        fileSenderHashMap.put(fileStartType.getId(), fileSender);
-        return fileSender;
-    }
-    public void sendFileStart(FileStartType fileStartType) {
-        FileSender fileSender = setFileSender(fileStartType);
-        isSendingFile = true;
-        clientPacketSender.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE, fileStartType));
+    public void sendFileStart(FileType fileType) {
+        // FileSenderHashMap = <Receiver, FileSender>
+        FileSender fileSender;
+        if (fileSenderHashMap.containsKey(fileType.getReceiver())) {
+            fileSender = fileSenderHashMap.get(fileType.getReceiver());
+        } else {
+            fileSender = new FileSender(fileType.getFileName(), fileType.getFilePath(), fileType.getSender(), this);
+            fileSenderHashMap.put(fileSender.getReceiver(), fileSender);
+        }
         fileSender.sendFile();
     }
 
@@ -50,7 +48,7 @@ public class ServerHandler implements Runnable{
     }
 
 
-    // 기존 아이디 받아와야해
+    // get old Id Receiver Sender
     public void informReceiverChange(String oldId, String newId) {
         FileSender fileSender = fileSenderHashMap.get(oldId);
         fileSender.changReceiver(newId);

@@ -39,9 +39,13 @@ public class ClientServiceGiver implements ServiceGiver{
     }
 
     private void fileSaveStart(FileType fileType) {
-        String fileMangerKey = addFileSaver(fileType.getFileName(), fileType.getSender());
-        FileSaver fileSaver = fileSaverHashMap.get(fileMangerKey);
-        fileSaver.set();
+        // fileSaverMap = <fileName, FileSaver>
+        FileSaver fileSaver;
+        if (fileSaverHashMap.containsKey(fileType.getFileName())) {
+            fileSaver = fileSaverHashMap.get(fileType.getFileName());
+        } else {
+            fileSaver = new FileSaver(fileType.getSender());
+        }
         fileSaver.save(fileType.getSeq(), fileType.getFileByte());
     }
 

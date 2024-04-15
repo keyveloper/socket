@@ -25,10 +25,6 @@ public class MessageProcessor {
                 WhisperType whisperDecoder = new WhisperType("decoder", "decoder");
                 yield whisperDecoder.fromBytes(body);
             }
-            case FILE_START -> {
-                FileStartType fileStartDecoder = new FileStartType("decoder", "decoder");
-                yield fileStartDecoder.fromBytes(body);
-            }
             case FILE -> {
                 FileType fileDecoder = new FileType(true, "decoder", "decoder", 0, null);
                 yield fileDecoder.fromBytes(body);

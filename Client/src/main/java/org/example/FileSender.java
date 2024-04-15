@@ -32,7 +32,7 @@ public class FileSender {
                 byte[] actualRead = Arrays.copyOf(fileBuffer, bytesRead);
                 System.out.println("File read: " + Arrays.toString(actualRead));
 
-                FileType fileType = new FileType(false, sender, receiver, fileName, seq, actualRead);
+                FileType fileType = new FileType(sender, receiver, fileName, seq, actualRead);
                 seq += 1;
                 serverHandler.sendPacket(MessageTypeCode.FILE, fileType);
                 System.out.println("seq: " + seq + "file was sent!!");
@@ -40,7 +40,6 @@ public class FileSender {
             sendEnd();
             fileInputStream.close();
             // end -> true
-
         } catch (FileNotFoundException e) {
             System.out.println("Can not find file");
         } catch (IOException e) {

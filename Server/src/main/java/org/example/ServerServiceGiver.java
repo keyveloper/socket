@@ -41,9 +41,6 @@ public class ServerServiceGiver implements ServiceGiver{
             case FIN:
                 closeConnect(message.getSender());
                 break;
-            case FILE_START:
-                sendFileStart((FileStartType) messageType, message.getSender());
-                break;
             case FILE:
                 sendFile((FileType) messageType);
                 break;
@@ -72,11 +69,11 @@ public class ServerServiceGiver implements ServiceGiver{
         }
     }
 
-    private void sendFileStart(FileStartType fileStartType, Socket sender) {
-        Socket receiverSocket = idManager.getSocketById(fileStartType.getId());
+    private void sendFileStart(FileType fileType, Socket sender) {
+        Socket receiverSocket = idManager.getSocketById(fileType.getReceiver());
         ClientHandler receiverHandler = server.getHandlerManger().get(receiverSocket);
 
-        receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_START, new FileStartType(idManager.getIdBySocket(sender), fileStartType.getFileName())));
+        receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE, new FileType(fileType.getSender(), fileType.getReceiver(), fileType.getFileName(), fileType.getSeq(), fileType.getFileByte())));
     }
 
     private void sendFileEnd(FileEndType fileEndType, Socket sender) {

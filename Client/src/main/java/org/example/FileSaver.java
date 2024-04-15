@@ -13,7 +13,7 @@ public class FileSaver {
     private final String directory = "C:\\Users\\yangd\\Desktop\\BE\\test\\output\\";
     private RandomAccessFile file;
 
-    public void set(){
+    private void set(){
         String filePath = generateUniqueFileName();
         // fileName에 해당하는 빈 파일 set하기
         try {
@@ -30,6 +30,9 @@ public class FileSaver {
     }
 
     public void save(int seq, byte[] fileBytes) {
+        if (file == null) {
+            set();
+        }
         long FILE_SEGMENT_SIZE = 1024 * 1024;
         // seq, fileByte[]
         if (this.file == null) {
@@ -47,12 +50,9 @@ public class FileSaver {
     public void writeSender() {
         // write Sender in End
         try {
-            int SPACE_BAR_SIZE = 1;
             file.seek(file.length());
-            ByteBuffer senderBuffer = ByteBuffer.allocate(SPACE_BAR_SIZE + sender.length());
-            senderBuffer.put(" from ".getBytes());
-            senderBuffer.put(sender.getBytes());
-            file.write(senderBuffer.array());
+            String writer = " from " + sender;
+            file.write(writer.getBytes());
             file.close();
         } catch (IOException e) {
             System.out.println("can't write writer");

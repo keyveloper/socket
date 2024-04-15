@@ -55,9 +55,9 @@ public class CommandProcessor {
             System.out.println("filePath: " + filePath);
 
             String fileName = command.substring(lastBackSlashIndex + 1, extensionStartIndex);
-            FileStartType fileStartType = new FileStartType(receiverId, fileName);
-            fileStartType.setFilePath(filePath);
-            return new ProcessedObject(MessageTypeCode.FILE_START, fileStartType);
+            FileType startType = new FileType(client.getClientId(), receiverId, fileName, -1, null);
+            startType.setFilePath(filePath);
+            return new ProcessedObject(MessageTypeCode.FILE, startType);
 
         }
 

@@ -2,6 +2,7 @@ package org.example;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.example.types.FileType;
 import org.example.types.MessageTypeCode;
 import org.example.types.NoticeType;
 
@@ -49,8 +50,8 @@ public class Client implements Runnable {
             return;
         }
         // array:ost = [MessageTypeCode, messageType]
-        if (processedObject.getMessageTypeCode() == MessageTypeCode.FILE_START) {
-            serverHandler.sendFileStart((FileStartType) processedObject.getMessageType());
+        if (processedObject.getMessageTypeCode() == MessageTypeCode.FILE) {
+            serverHandler.sendFileStart((FileType) processedObject.getMessageType());
             return;
         }
         if (processedObject.getMessageTypeCode() == MessageTypeCode.FIN) {
