@@ -1,5 +1,6 @@
 package org.example;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Data;
 import org.example.types.FileType;
 import org.example.types.MessageType;
@@ -23,7 +24,11 @@ public class ServerHandler implements Runnable{
             if (message == null) {
                 break;
             }
-            client.service(message);
+            try {
+                client.service(message);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

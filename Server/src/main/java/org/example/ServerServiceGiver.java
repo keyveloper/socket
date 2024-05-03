@@ -125,6 +125,9 @@ public class ServerServiceGiver implements ServiceGiver{
     }
     private void sendFile(FileType fileType) {
         Socket receiverSocket = idManager.getSocketById(fileType.getReceiver());
+        if (receiverSocket == null) {
+            return;
+        }
         server.getHandlerManger().get(receiverSocket).sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE, fileType));
     }
 

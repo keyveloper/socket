@@ -1,8 +1,6 @@
 package org.example;
 
-import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;

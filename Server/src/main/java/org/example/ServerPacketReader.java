@@ -8,7 +8,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.Arrays;
 
 @AllArgsConstructor
 public class ServerPacketReader implements PacketReader{

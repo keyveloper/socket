@@ -21,7 +21,8 @@ public class Server {
             System.out.println("[ Waiting ]\n");
             while (!serverSocket.isClosed()) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("Connected " + clientSocket.getLocalPort() + " Port, From " + clientSocket.getRemoteSocketAddress().toString() + "\n");
+                System.out.println("Connected " + clientSocket.getLocalPort() + " Port, From " +
+                        clientSocket.getRemoteSocketAddress().toString() + "\n");
 
                 ClientHandler clientHandler = new ClientHandler(this, clientSocket);
                 handlerManger.register(clientSocket, clientHandler);
@@ -38,6 +39,7 @@ public class Server {
 
     public void service(Message message) throws IOException {
         MessageType messageType = MessageProcessor.makeMessageType(message);
+        System.out.println("In Server service method\n[converted MessageType]" + messageType);
         serviceGiver.service(message, messageType);
     }
 

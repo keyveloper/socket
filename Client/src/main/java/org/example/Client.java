@@ -1,5 +1,6 @@
 package org.example;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.types.FileType;
@@ -59,12 +60,9 @@ public class Client implements Runnable {
             return;
         }
         serverHandler.sendPacket(processedObject.getMessageTypeCode(), processedObject.getMessageType());
-
-
     }
 
-
-    public void service(Message message) {
+    public void service(Message message) throws JsonProcessingException {
         clientServiceGiver.service(message, MessageProcessor.makeMessageType(message));
     }
 

@@ -4,7 +4,6 @@ import lombok.Data;
 import org.example.types.MessageTypeCode;
 import java.io.*;
 import java.net.Socket;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
 
 @Data
