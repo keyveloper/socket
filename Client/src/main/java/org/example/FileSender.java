@@ -14,12 +14,12 @@ import java.util.UUID;
 
 @Data
 public class FileSender {
+    private final String sender;
     private final String filePath;
     private final ServerHandler serverHandler;
     private UUID tokenId;
 
     public void sendFile() {
-
         try {
             System.out.println("File read start {\n");
             FileInputStream fileInputStream = new FileInputStream(filePath);
@@ -29,7 +29,7 @@ public class FileSender {
             while ((bytesRead = fileInputStream.read(fileBuffer)) != -1) {
                 byte[] actualRead = Arrays.copyOf(fileBuffer, bytesRead);
 
-                FileType fileType = new FileType(sender, receiver, fileName, seq, actualRead, null);
+                FileType fileType = new FileType(sender, tokenId, seq, actualRead);
                 seq += 1;
                 serverHandler.sendPacket(MessageTypeCode.FILE, fileType);
                 System.out.println("seq: " + seq + "file was sent!!\n fileLength: " + actualRead.length);
@@ -49,8 +49,4 @@ public class FileSender {
         serverHandler.sendPacket(MessageTypeCode.FILE_END, new FileEndType(receiver, fileName));
         serverHandler.removeFileSender(receiver);
     }
-    public void changReceiver(String receiver) {
-        this.receiver = receiver;
-    }
-
 }

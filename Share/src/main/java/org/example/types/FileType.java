@@ -12,6 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 public class FileType implements MessageType {
+    private final String sender;
     private final UUID tokenId;
     private final int seq;
     private final byte[] fileByte;

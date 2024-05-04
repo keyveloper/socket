@@ -16,7 +16,6 @@ public class ServerHandler implements Runnable{
     private final Client client;
     private final ClientPacketSender clientPacketSender;
     private final HashMap<UUID, FileSender> fileSenderHashMap = new HashMap<>();
-
     @Override
     public void run() {
         ClientPacketReader clientPacketReader = new ClientPacketReader(client.getSocket());
@@ -40,7 +39,7 @@ public class ServerHandler implements Runnable{
 
     public void setFileSender(FileStartInfo fileStartInfo) {
         // FileSenderMap : {"fileId" : "FileSender"}
-        fileSenderHashMap.put(fileStartInfo.getFileId(), new FileSender(fileStartInfo.getFilePath(), this));
+        fileSenderHashMap.put(fileStartInfo.getFileId(), new FileSender(client.getClientId(), fileStartInfo.getFilePath(), this));
         sendPacket(MessageTypeCode.File_START_INFO, fileStartInfo);
     }
 

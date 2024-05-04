@@ -4,11 +4,13 @@ import lombok.Data;
 import org.example.types.*;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 @Data
 public class ClientServiceGiver implements ServiceGiver{
     private final Client client;
-    private final HashMap<String, FileSaver> fileSaverHashMap = new HashMap<>();
+    private final HashMap<UUID, FileSaver> fileSaverHashMap = new HashMap<>();
+    private final ServerHandler serverHandler;
 
     @Override
     public void service(Message message, MessageType messageType) {
@@ -35,19 +37,29 @@ public class ClientServiceGiver implements ServiceGiver{
             case NOTICE -> {
                 processNotice((NoticeType) messageType);
             }
+            case File_Token -> {
+                FileToken fileToken = (FileToken) messageType;
+                setTokenId(fileToken.getFileId(), fileToken.getTokenId())
+            }
         }
     }
 
     private void fileSaveStart(FileType fileType) {
-        // fileSaverMap = <fileName, FileSaver>
+        // fileSaverMap = <tokenID(UUID), FileSaver>
         FileSaver fileSaver;
-        if (fileSaverHashMap.containsKey(fileType.getFileName())) {
-            fileSaver = fileSaverHashMap.get(fileType.getFileName());
+        if (fileSaverHashMap.containsKey(fileType.getTokenId())) {
+            fileSaver = fileSaverHashMap.get(fileType.getTokenId());
         } else {
             fileSaver = new FileSaver(fileType.getSender());
-            fileSaverHashMap.put(fileType.getFileName(), fileSaver);
+            fileSaverHashMap.put(fileType.getTokenId(), fileSaver);
         }
         fileSaver.save(fileType.getSeq(), fileType.getFileByte());
+    }
+
+    private void setTokenId(UUID fileId, UUID tokenId) {
+        FileSender fileSender = serverHandler.getFileSenderHashMap().get(fileId);
+        fileSender.setTokenId(tokenId);
+        fileSender.sendFile();
     }
 
     private void readIdStatus(RegisterIdStatusType statusType) {

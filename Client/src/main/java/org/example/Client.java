@@ -2,6 +2,7 @@ package org.example;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.types.FileStartInfo;
 import org.example.types.FileType;
@@ -13,25 +14,18 @@ import java.net.*;
 
 @Setter
 @Getter
+@NoArgsConstructor
 public class Client implements Runnable {
     private final int tcpClientPort = 9999;
 
     private final CommandProcessor commandProcessor = new CommandProcessor(this);
-
-    private final Socket socket;
-    private final ClientPacketSender clientPacketSender;
-    private final ServerHandler serverHandler;
-    private final ClientServiceGiver clientServiceGiver = new ClientServiceGiver(this);
+    private final Socket socket = new Socket();
+    private final ClientPacketSender clientPacketSender = new ClientPacketSender(socket);
+    private final ServerHandler serverHandler = new ServerHandler(this, clientPacketSender);
+    private final ClientServiceGiver clientServiceGiver = new ClientServiceGiver(this, serverHandler);
 
     private Boolean isRegister = false;
     private String clientId;
-
-    public Client(Socket socket) {
-        this.socket = socket;
-        clientPacketSender = new ClientPacketSender(socket);
-        serverHandler = new ServerHandler(this, clientPacketSender);
-    }
-
     public void run() {
         try {
             System.out.println("\n[ Request ... ]");

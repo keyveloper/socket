@@ -85,7 +85,7 @@ public class ServerServiceGiver implements ServiceGiver{
     private void changeId(ChangeIdType changeIdType, Socket sender) {
         RegisterIdStatusType changeStatusType = changeId(changeIdType.getNewId(), sender);
 
-        ClientHandler senderHandler = server.getHandlerManger().get(sender);
+        ClientHandler senderHandler = handlerManger.get(sender);
         senderHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.REGISTER_STATUS, changeStatusType));
 
         if (changeStatusType.getIsSuccess()) {
@@ -95,7 +95,7 @@ public class ServerServiceGiver implements ServiceGiver{
 
     private void sendFileEnd(FileEndType fileEndType, Socket sender) {
         Socket receiverSocket = idManager.getSocketById(fileEndType.getId());
-        ClientHandler receiverHandler = server.getHandlerManger().get(receiverSocket);
+        ClientHandler receiverHandler = handlerManger.get(receiverSocket);
 
         FileEndType endType = new FileEndType(idManager.getIdBySocket(sender), fileEndType.getFileName());
         receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_END, endType));
@@ -108,7 +108,7 @@ public class ServerServiceGiver implements ServiceGiver{
     private void sendWhisper(String receiverId, String comment, Socket senderSocket){
         Socket receiverSocket = idManager.getSocketById(receiverId);
         String senderId = idManager.getIdBySocket(senderSocket);
-        ClientHandler receiverHandler = server.getHandlerManger().get(receiverSocket);
+        ClientHandler receiverHandler = handlerManger.get(receiverSocket);
         receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.WHISPER, new WhisperType(senderId, comment)));
 
         plusCount(senderSocket);
@@ -120,7 +120,7 @@ public class ServerServiceGiver implements ServiceGiver{
 
     private void sendComment(String comment, Socket senderSocket)  {
         String senderId = idManager.getIdBySocket(senderSocket);
-        ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
+        ArrayList<ClientHandler> handlers = handlerManger.getAllHandler();
         CommentType commentType = new CommentType(senderId, comment);
         System.out.println("sendComment: " + commentType);
         byte[] commentPacket = PacketMaker.makePacket(MessageTypeCode.COMMENT, commentType);
@@ -143,20 +143,17 @@ public class ServerServiceGiver implements ServiceGiver{
 
         idManager.remove(senderSocket);
         countManager.remove(senderSocket);
-        server.getHandlerManger().remove(senderSocket);
+        handlerManger.remove(senderSocket);
 
         sendNoticeToAll(new NoticeType(NoticeCode.FIN, message));
     }
     private void sendFile(FileType fileType) {
-        Socket receiverSocket = idManager.getSocketById(fileType.getReceiver());
-        if (receiverSocket == null) {
-            return;
-        }
-        server.getHandlerManger().get(receiverSocket).sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE, fileType));
+        Socket receiverSocket = fileTokenManger.getReceiver(fileType.getTokenId());
+        handlerManger.get(receiverSocket).sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE, fileType));
     }
 
     private void sendIdChangeToAll(String oldId, String newId) {
-        ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
+        ArrayList<ClientHandler> handlers = handlerManger.getAllHandler();
         ChangeIdType changeIdType = new ChangeIdType(oldId, newId);
         for (ClientHandler handler : handlers) {
             handler.sendPacket(PacketMaker.makePacket(MessageTypeCode.CHANGE_ID, changeIdType));
@@ -164,7 +161,7 @@ public class ServerServiceGiver implements ServiceGiver{
 
     }
     private void sendNoticeToAll(NoticeType noticeType) {
-        ArrayList<ClientHandler> handlers = server.getHandlerManger().getAllHandler();
+        ArrayList<ClientHandler> handlers = handlerManger.getAllHandler();
         byte[] noticePacket = PacketMaker.makePacket(MessageTypeCode.NOTICE, noticeType);
         for (ClientHandler handler : handlers) {
             handler.sendPacket(noticePacket);
