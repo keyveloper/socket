@@ -50,7 +50,7 @@ public class ServerServiceGiver implements ServiceGiver{
                 sendFile((FileType) messageType);
                 break;
             case FILE_END:
-                sendFileEnd((FileEndType) messageType, message.getSender());
+                sendFileEnd((FileEndType) messageType);
                 break;
         }
     }
@@ -93,12 +93,9 @@ public class ServerServiceGiver implements ServiceGiver{
         }
     }
 
-    private void sendFileEnd(FileEndType fileEndType, Socket sender) {
-        Socket receiverSocket = idManager.getSocketById(fileEndType.getId());
-        ClientHandler receiverHandler = handlerManger.get(receiverSocket);
-
-        FileEndType endType = new FileEndType(idManager.getIdBySocket(sender), fileEndType.getFileName());
-        receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_END, endType));
+    private void sendFileEnd(FileEndType fileEndType) {
+        ClientHandler receiverHandler = handlerManger.get(fileTokenManger.getSender(fileEndType.getTokenId()));
+        receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_END, fileEndType));
     }
 
     private RegisterIdStatusType changeId(String newId, Socket socket) {

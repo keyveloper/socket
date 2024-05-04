@@ -8,14 +8,14 @@ import lombok.NoArgsConstructor;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 public class FileEndType implements MessageType{
     // id = receiver, sender
-    private final String id;
-    private final String fileName;
+    private final UUID tokenId;
     @Override
     public byte[] toBytes() {
         try {

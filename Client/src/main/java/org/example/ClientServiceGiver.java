@@ -15,31 +15,23 @@ public class ClientServiceGiver implements ServiceGiver{
     @Override
     public void service(Message message, MessageType messageType) {
         switch (message.getMessageTypeCode()) {
-            case REGISTER_STATUS -> {
-                readIdStatus((RegisterIdStatusType) messageType);
-            }
-            case COMMENT -> {
-                readComment((CommentType) messageType);
-            }
-            case WHISPER -> {
-                readWhisper((WhisperType) messageType);
-            }
+            case REGISTER_STATUS -> readIdStatus((RegisterIdStatusType) messageType);
 
-            case CHANGE_ID -> {
-                informIdChange((ChangeIdType) messageType);
-            }
-            case FILE -> {
-                fileSaveStart((FileType) messageType);
-            }
-            case FILE_END -> {
-                removeFileManager((FileEndType) messageType);
-            }
-            case NOTICE -> {
-                processNotice((NoticeType) messageType);
-            }
+            case COMMENT -> readComment((CommentType) messageType);
+
+            case WHISPER -> readWhisper((WhisperType) messageType);
+
+            case CHANGE_ID -> informIdChange((ChangeIdType) messageType);
+
+            case FILE -> fileSaveStart((FileType) messageType);
+
+            case FILE_END -> removeFileManager((FileEndType) messageType);
+
+            case NOTICE -> processNotice((NoticeType) messageType);
+
             case File_Token -> {
                 FileToken fileToken = (FileToken) messageType;
-                setTokenId(fileToken.getFileId(), fileToken.getTokenId())
+                setTokenId(fileToken.getFileId(), fileToken.getTokenId());
             }
         }
     }
@@ -83,9 +75,7 @@ public class ClientServiceGiver implements ServiceGiver{
 
     private void processNotice(NoticeType noticeType) {
         switch (noticeType.getNoticeCode()) {
-            case COMMON, FIN -> {
-                readMessage(noticeType.getNotice());
-            }
+            case COMMON, FIN -> readMessage(noticeType.getNotice());
         }
     }
 
@@ -103,11 +93,12 @@ public class ClientServiceGiver implements ServiceGiver{
 
     private void removeFileManager(FileEndType fileEndType) {
         System.out.println("[In client Service]\n fileEndType" + fileEndType);
-        FileSaver fileSaver = fileSaverHashMap.get(fileEndType.getFileName());
+        // fileSaver = {"tokeId": Saver}
+        FileSaver fileSaver = fileSaverHashMap.get(fileEndType.getTokenId());
         System.out.println("fileSaver: " + fileSaver);
         fileSaver.writeSender();
-        fileSaverHashMap.remove(fileEndType.getFileName());
-        System.out.println("remove key: " + fileEndType.getFileName() + "\nmap: " + fileSaverHashMap);
+        fileSaverHashMap.remove(fileEndType.getTokenId());
+        System.out.println("remove key: " + fileEndType.getTokenId() + "\nmap: " + fileSaverHashMap);
     }
 
 }

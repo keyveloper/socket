@@ -15,6 +15,7 @@ import java.util.UUID;
 @Data
 public class FileSender {
     private final String sender;
+    private final UUID fileId;
     private final String filePath;
     private final ServerHandler serverHandler;
     private UUID tokenId;
@@ -46,7 +47,7 @@ public class FileSender {
 
     private void sendEnd() {
         System.out.println("} \nFile read End ");
-        serverHandler.sendPacket(MessageTypeCode.FILE_END, new FileEndType(receiver, fileName));
-        serverHandler.removeFileSender(receiver);
+        serverHandler.sendPacket(MessageTypeCode.FILE_END, new FileEndType(tokenId));
+        serverHandler.removeFileSender(fileId);
     }
 }

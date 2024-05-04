@@ -3,7 +3,6 @@ package org.example;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Data;
 import org.example.types.FileStartInfo;
-import org.example.types.FileType;
 import org.example.types.MessageType;
 import org.example.types.MessageTypeCode;
 
@@ -36,33 +35,12 @@ public class ServerHandler implements Runnable{
         byte[] packet = PacketMaker.makePacket(messageTypeCode, messageType);
         clientPacketSender.sendPacket(packet);
     }
-
     public void setFileSender(FileStartInfo fileStartInfo) {
         // FileSenderMap : {"fileId" : "FileSender"}
-        fileSenderHashMap.put(fileStartInfo.getFileId(), new FileSender(client.getClientId(), fileStartInfo.getFilePath(), this));
+        fileSenderHashMap.put(fileStartInfo.getFileId(), new FileSender(client.getClientId(), fileStartInfo.getFileId(), fileStartInfo.getFilePath(), this));
         sendPacket(MessageTypeCode.File_START_INFO, fileStartInfo);
     }
-
-    public void setTokenId(UUID fileId, UUID tokenId) {
-
+    public void removeFileSender(UUID fileId) {
+        fileSenderHashMap.remove(fileId);
     }
-
-    public void removeFileSender(String receiver) {
-        fileSenderHashMap.remove(receiver);
-    }
-
-
-    // get old Id Receiver Sender
-    public void informReceiverChange(String oldId, String newId) {
-        FileSender fileSender = fileSenderHashMap.get(oldId);
-        fileSender.changReceiver(newId);
-        fileSenderHashMap.remove(oldId);
-        fileSenderHashMap.put(newId, fileSender);
-    }
-
-    public boolean checkFileSender(String id) {
-        return fileSenderHashMap.containsKey(id);
-    }
-
-
 }
