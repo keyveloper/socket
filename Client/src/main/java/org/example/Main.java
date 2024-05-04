@@ -12,8 +12,8 @@ public class Main {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
 
         try {
-            Socket socket = new Socket();
-            Client client = new Client(socket);
+
+            Client client = new Client();
             Thread clientThread = new Thread(client);
             clientThread.start();
 

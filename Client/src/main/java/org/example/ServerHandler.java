@@ -43,4 +43,5 @@ public class ServerHandler implements Runnable{
     public void removeFileSender(UUID fileId) {
         fileSenderHashMap.remove(fileId);
     }
+    // get old Id Receiver Sender
 }

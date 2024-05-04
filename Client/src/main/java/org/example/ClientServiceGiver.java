@@ -84,11 +84,7 @@ public class ClientServiceGiver implements ServiceGiver{
     }
     private void informIdChange(ChangeIdType changeIdType) {
         System.out.println(changeIdType.getOldId() + " changed ID -> " + changeIdType.getNewId());
-
         // inform to serverHandler
-        if (client.getServerHandler().checkFileSender(changeIdType.getOldId())) {
-            client.getServerHandler().informReceiverChange(changeIdType.getOldId(),changeIdType.getNewId());
-        }
     }
 
     private void removeFileManager(FileEndType fileEndType) {
