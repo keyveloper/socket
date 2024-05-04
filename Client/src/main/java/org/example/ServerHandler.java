@@ -41,6 +41,11 @@ public class ServerHandler implements Runnable{
     public void setFileSender(FileStartInfo fileStartInfo) {
         // FileSenderMap : {"fileId" : "FileSender"}
         fileSenderHashMap.put(fileStartInfo.getFileId(), new FileSender(fileStartInfo.getFilePath(), this));
+        sendPacket(MessageTypeCode.File_START_INFO, fileStartInfo);
+    }
+
+    public void setTokenId(UUID fileId, UUID tokenId) {
+
     }
 
     public void removeFileSender(String receiver) {

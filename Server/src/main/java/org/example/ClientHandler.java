@@ -10,7 +10,6 @@ import java.nio.ByteBuffer;
 
 public class ClientHandler implements Runnable {
     private final Socket clientSocket;
-
     private final Server server;
 
     public ClientHandler(Server server, Socket clientSocket) {

@@ -13,6 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor(force = true)
 public class FileToken implements MessageType{
     private final UUID tokenId;
+    private final UUID fileId;
 
     @Override
     public byte[] toBytes() {

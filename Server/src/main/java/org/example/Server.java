@@ -1,16 +1,21 @@
 package org.example;
 
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.example.types.MessageType;
 import java.io.*;
 import java.net.*;
 
 
+@NoArgsConstructor
+@Getter
+@Setter
 public class Server {
     public final int tcpServerPort = 9999;
-    private final ServiceGiver serviceGiver = new ServerServiceGiver(this, new IdManager(), new CountManager());
-    @Getter
     private final HandlerManger handlerManger = new HandlerManger();
+    private final ServiceGiver serviceGiver = new ServerServiceGiver(handlerManger);
 
     public void start() {
         ServerSocket serverSocket;
