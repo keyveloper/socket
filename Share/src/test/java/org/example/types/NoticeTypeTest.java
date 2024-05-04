@@ -1,5 +1,6 @@
 package org.example.types;
 
+import org.example.NoticeCode;
 import org.example.types.MessageType;
 import org.example.types.NoticeType;
 import org.junit.jupiter.api.Test;
@@ -9,11 +10,11 @@ public class NoticeTypeTest {
     @Test
     public void convert() {
         // Given
-        NoticeType test = new NoticeType("notice");
+        NoticeType test = new NoticeType(NoticeCode.COMMON,"notice");
 
         // When
         byte[] testBytes = test.toBytes();
-        MessageType convertedType = test.fromBytes(testBytes);
+        MessageType convertedType = NoticeType.fromBytes(testBytes);
 
         // Then
         assertEquals(test, convertedType);

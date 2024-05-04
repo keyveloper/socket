@@ -20,7 +20,7 @@ public class CommentTypeTest {
         // When
         byte[] testTypeBytes = testType.toBytes();
         System.out.println("testTypeByte:" + Arrays.toString(testTypeBytes));
-        MessageType convertedType = testType.fromBytes(testTypeBytes);
+        MessageType convertedType = CommentType.fromBytes(testTypeBytes);
 
         assertEquals(testType, convertedType);
     }

@@ -28,12 +28,15 @@ public class Server {
                 handlerManger.register(clientSocket, clientHandler);
                 Thread thread = new Thread(clientHandler);
                 thread.start();
+                thread.wait();
                 if (handlerManger.checkEmpty()) {
                     shutDown(serverSocket);
                 }
             }
         } catch (IOException ex) {
             throw new RuntimeException(ex);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

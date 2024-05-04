@@ -12,7 +12,7 @@ public class FileEndTypeTest {
 
         // When
         byte[] testBytes = test.toBytes();
-        FileEndType convertType = test.fromBytes(testBytes);
+        FileEndType convertType = FileEndType.fromBytes(testBytes);
 
         // Then
         assertEquals(test,convertType);

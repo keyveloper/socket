@@ -13,7 +13,7 @@ public class RegisterIdTest {
 
         // When
         byte[] testBytes = test.toBytes();
-        MessageType convertedType = test.fromBytes(testBytes);
+        MessageType convertedType = RegisterIdType.fromBytes(testBytes);
 
         // Then
         assertEquals(test, convertedType);

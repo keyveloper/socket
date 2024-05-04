@@ -14,8 +14,7 @@ public class RegisterIdStatusTypeTest {
 
         // When
         byte[] testBytes = test.toBytes();
-        MessageType convertedType = test.fromBytes(testBytes);
-
+        MessageType convertedType = RegisterIdStatusType.fromBytes(testBytes);
         // Then
         assertEquals(test, convertedType);
     }

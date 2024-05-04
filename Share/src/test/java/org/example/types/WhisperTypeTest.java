@@ -14,7 +14,7 @@ public class WhisperTypeTest {
 
         // When
         byte[] testTypeByte = testType.toBytes();
-        MessageType convertedType = testType.fromBytes(testTypeByte);
+        MessageType convertedType = WhisperType.fromBytes(testTypeByte);
 
         // Then
         assertEquals(testType, convertedType);

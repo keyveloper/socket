@@ -16,24 +16,23 @@ public class MessageProcessor {
         byte[] body = message.getBody();
         return switch (message.getMessageTypeCode()) {
             // body -> decode -> MessageType
-            case REGISTER_ID ->  objectMapper.readValue(new String(body), RegisterIdType.class);
+            case REGISTER_ID ->  RegisterIdType.fromBytes(body);
 
-            case REGISTER_STATUS -> objectMapper.readValue(new String(body), RegisterIdStatusType.class);
+            case REGISTER_STATUS -> RegisterIdStatusType.fromBytes(body);
 
-            case WHISPER -> objectMapper.readValue(new String(body), WhisperType.class);
+            case WHISPER -> WhisperType.fromBytes(body);
 
-            case FILE -> objectMapper.readValue(new String(body), FileType.class);
+            case FILE -> FileType.fromBytes(body);
 
-            case FILE_END -> objectMapper.readValue(new String(body), FileEndType.class);
+            case FILE_END -> FileEndType.fromBytes(body);
 
-            case COMMENT -> objectMapper.readValue(new String(body), CommentType.class);
+            case COMMENT -> CommentType.fromBytes(body);
 
-            case NOTICE -> objectMapper.readValue(new String(body), NoticeType.class);
+            case NOTICE -> NoticeType.fromBytes(body);
 
-            case FIN -> objectMapper.readValue(new String(body), NoContentType.class);
+            case FIN -> NoContentType.fromBytes(body);
 
-            case CHANGE_ID -> objectMapper.readValue(new String(body), ChangeIdType.class);
-
+            case CHANGE_ID -> ChangeIdType.fromBytes(body);
 
             default -> null;
         };

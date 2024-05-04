@@ -10,17 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Data
 public class PacketMaker {
     public static byte[] makePacket(MessageTypeCode messageTypeCode, MessageType messageType) {
-        // why null
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            String typeJson = objectMapper.writeValueAsString(messageType);
-            byte[] typeBytes = typeJson.getBytes();
-            System.out.println("[converted Json]\n" + typeJson);
-
-            return addHeader(messageTypeCode, typeBytes);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return addHeader(messageTypeCode, messageType.toBytes());
         // body = byte[] => json -> byte
     }
     private static byte[] addHeader(MessageTypeCode messageTypeCode, byte[] body) {

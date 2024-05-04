@@ -30,7 +30,7 @@ public class FileSender {
             while ((bytesRead = fileInputStream.read(fileBuffer)) != -1) {
                 byte[] actualRead = Arrays.copyOf(fileBuffer, bytesRead);
 
-                FileType fileType = new FileType(sender, receiver, fileName, seq, actualRead);
+                FileType fileType = new FileType(sender, receiver, fileName, seq, actualRead, null);
                 seq += 1;
                 serverHandler.sendPacket(MessageTypeCode.FILE, fileType);
                 System.out.println("seq: " + seq + "file was sent!!\n fileLength: " + actualRead.length);
