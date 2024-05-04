@@ -2,19 +2,20 @@ package org.example;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Data;
+import org.example.types.FileStartInfo;
 import org.example.types.FileType;
 import org.example.types.MessageType;
 import org.example.types.MessageTypeCode;
 
 import java.util.HashMap;
-
+import java.util.UUID;
 
 
 @Data
 public class ServerHandler implements Runnable{
     private final Client client;
     private final ClientPacketSender clientPacketSender;
-    private final HashMap<String, FileSender> fileSenderHashMap = new HashMap<>();
+    private final HashMap<UUID, FileSender> fileSenderHashMap = new HashMap<>();
 
     @Override
     public void run() {
@@ -36,17 +37,10 @@ public class ServerHandler implements Runnable{
         byte[] packet = PacketMaker.makePacket(messageTypeCode, messageType);
         clientPacketSender.sendPacket(packet);
     }
-    public void sendFileStart(FileType fileType) {
-        // FileSenderHashMap = <Receiver, FileSender>
-        FileSender fileSender;
-        if (fileSenderHashMap.containsKey(fileType.getReceiver())) {
-            fileSender = fileSenderHashMap.get(fileType.getReceiver());
-        } else {
-            fileSender = new FileSender(fileType.getFileName(), fileType.getFilePath(), fileType.getSender(), this);
-            fileSender.setReceiver(fileType.getReceiver());
-            fileSenderHashMap.put(fileSender.getReceiver(), fileSender);
-        }
-        fileSender.sendFile();
+
+    public void setFileSender(FileStartInfo fileStartInfo) {
+        // FileSenderMap : {"fileId" : "FileSender"}
+        fileSenderHashMap.put(fileStartInfo.getFileId(), new FileSender(fileStartInfo.getFilePath(), this));
     }
 
     public void removeFileSender(String receiver) {

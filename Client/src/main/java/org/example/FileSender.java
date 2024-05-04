@@ -10,14 +10,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.UUID;
 
 @Data
 public class FileSender {
-    private final String fileName;
     private final String filePath;
-    private final String sender;
-    private String receiver;
     private final ServerHandler serverHandler;
+    private UUID tokenId;
 
     public void sendFile() {
 

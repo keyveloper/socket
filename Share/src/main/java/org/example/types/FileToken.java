@@ -9,12 +9,11 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 @Data
-@NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class FileType implements MessageType {
+@NoArgsConstructor(force = true)
+public class FileToken implements MessageType{
     private final UUID tokenId;
-    private final int seq;
-    private final byte[] fileByte;
+
     @Override
     public byte[] toBytes() {
         try {
@@ -25,12 +24,13 @@ public class FileType implements MessageType {
         }
     }
 
-    public static FileType fromBytes(byte[] bytes) {
+    public static FileToken fromBytes(byte[] bytes) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(new String(bytes), FileType.class);
+            return objectMapper.readValue(new String(bytes), FileToken.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
+
 }

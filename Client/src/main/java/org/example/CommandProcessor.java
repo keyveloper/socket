@@ -5,6 +5,7 @@ import org.example.types.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.UUID;
 
 @Data
 public class CommandProcessor {
@@ -44,20 +45,18 @@ public class CommandProcessor {
             int firstIdIndex = command.indexOf('"');
             int secondIdIndex = command.indexOf('"', firstIdIndex + 1);
             int filePathStartIndex = secondIdIndex + 1;
-            System.out.println("filePathStartIndex: " + filePathStartIndex);
-            int lastBackSlashIndex = command.lastIndexOf("\\");
-            int extensionStartIndex = command.lastIndexOf(".");
 
             // "/F "receiver" filePath "
             String receiverId = command.substring(firstIdIndex + 1, secondIdIndex);
-            System.out.println("receiverId: " + receiverId);
+            System.out.println("receiverId: " + receiverId + "\n");
             String filePath = command.substring(filePathStartIndex + 1);
-            System.out.println("filePath: " + filePath);
+            System.out.println("filePath: " + filePath + "\n");
 
-            String fileName = command.substring(lastBackSlashIndex + 1, extensionStartIndex);
-            FileType startType = new FileType(client.getClientId(), receiverId, fileName, -1, null, null);
-            startType.setFilePath(filePath);
-            return new ProcessedObject(MessageTypeCode.FILE, startType);
+            UUID fileId = UUID.randomUUID();
+            System.out.println("fileId: " + fileId + "\n");
+
+            FileStartInfo fileStartInfo = new FileStartInfo(client.getClientId(), receiverId, filePath, fileId);
+            return new ProcessedObject(MessageTypeCode.FILE, fileStartInfo);
 
         }
 

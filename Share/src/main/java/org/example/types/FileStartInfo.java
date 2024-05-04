@@ -11,10 +11,12 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class FileType implements MessageType {
-    private final UUID tokenId;
-    private final int seq;
-    private final byte[] fileByte;
+public class FileStartInfo implements MessageType{
+    private final String sender;
+    private final String receiver;
+    private final String filePath;
+    private final UUID fileId;
+
     @Override
     public byte[] toBytes() {
         try {
@@ -25,12 +27,13 @@ public class FileType implements MessageType {
         }
     }
 
-    public static FileType fromBytes(byte[] bytes) {
+    public static FileStartInfo fromBytes(byte[] bytes) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(new String(bytes), FileType.class);
+            return objectMapper.readValue(new String(bytes), FileStartInfo.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
+
 }

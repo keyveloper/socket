@@ -6,6 +6,8 @@ public enum MessageTypeCode {
     COMMENT,
     CHANGE_ID,
     WHISPER,
+    File_START,
+    File_Token,
     FILE,
     FILE_END,
     NOTICE,

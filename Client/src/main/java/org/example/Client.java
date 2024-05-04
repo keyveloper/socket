@@ -3,6 +3,7 @@ package org.example;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Getter;
 import lombok.Setter;
+import org.example.types.FileStartInfo;
 import org.example.types.FileType;
 import org.example.types.MessageTypeCode;
 import org.example.types.NoticeType;
@@ -52,7 +53,7 @@ public class Client implements Runnable {
         }
         // array:ost = [MessageTypeCode, messageType]
         if (processedObject.getMessageTypeCode() == MessageTypeCode.FILE) {
-            serverHandler.sendFileStart((FileType) processedObject.getMessageType());
+            serverHandler.setFileSender((FileStartInfo) processedObject.getMessageType());
             return;
         }
         if (processedObject.getMessageTypeCode() == MessageTypeCode.FIN) {
