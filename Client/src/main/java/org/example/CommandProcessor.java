@@ -56,7 +56,8 @@ public class CommandProcessor {
             System.out.println("fileId: " + fileId + "\n");
 
             FileStartInfo fileStartInfo = new FileStartInfo(client.getClientId(), receiverId, filePath, fileId);
-            return new ProcessedObject(MessageTypeCode.FILE, fileStartInfo);
+            System.out.println("fileStartInfo: " + fileStartInfo);
+            return new ProcessedObject(MessageTypeCode.File_START_INFO, fileStartInfo);
 
         }
 

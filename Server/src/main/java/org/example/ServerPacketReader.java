@@ -8,6 +8,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Arrays;
 
 @AllArgsConstructor
 public class ServerPacketReader implements PacketReader{
@@ -18,7 +19,9 @@ public class ServerPacketReader implements PacketReader{
         try {
             DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
             int bodyLength = dataInputStream.readInt();
+            System.out.println("read body Length!!" + bodyLength + "\n");
             MessageTypeCode messageTypeCode = MessageTypeCode.values()[dataInputStream.readInt()];
+            System.out.println("Message Type Code: " + messageTypeCode + "\n");
             if (messageTypeCode == MessageTypeCode.FIN) {
                 return null;
             }

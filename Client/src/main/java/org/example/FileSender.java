@@ -5,7 +5,6 @@ import org.example.types.FileEndType;
 import org.example.types.FileType;
 import org.example.types.MessageTypeCode;
 
-import javax.swing.plaf.synth.SynthUI;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -22,14 +21,13 @@ public class FileSender {
 
     public void sendFile() {
         try {
-            System.out.println("File read start {\n");
+            System.out.println("filePath: " + filePath + "\nFile read start {\n");
             FileInputStream fileInputStream = new FileInputStream(filePath);
-            byte[] fileBuffer = new byte[1024 * 1024]; // 1MB read per once
+            byte[] fileBuffer = new byte[1024 * 200]; // 1MB read per once
             int bytesRead;
             int seq = 0;
             while ((bytesRead = fileInputStream.read(fileBuffer)) != -1) {
                 byte[] actualRead = Arrays.copyOf(fileBuffer, bytesRead);
-
                 FileType fileType = new FileType(sender, tokenId, seq, actualRead);
                 seq += 1;
                 serverHandler.sendPacket(MessageTypeCode.FILE, fileType);

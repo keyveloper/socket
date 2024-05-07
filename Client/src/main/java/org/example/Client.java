@@ -46,7 +46,8 @@ public class Client implements Runnable {
             return;
         }
         // array:ost = [MessageTypeCode, messageType]
-        if (processedObject.getMessageTypeCode() == MessageTypeCode.FILE) {
+        if (processedObject.getMessageTypeCode() == MessageTypeCode.File_START_INFO) {
+            System.out.println("File Start Info received!");
             serverHandler.setFileSender((FileStartInfo) processedObject.getMessageType());
             return;
         }

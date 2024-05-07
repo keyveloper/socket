@@ -6,6 +6,7 @@ import org.example.types.FileStartInfo;
 import org.example.types.MessageType;
 import org.example.types.MessageTypeCode;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -37,10 +38,12 @@ public class ServerHandler implements Runnable{
     }
     public void setFileSender(FileStartInfo fileStartInfo) {
         // FileSenderMap : {"fileId" : "FileSender"}
+        System.out.println("set fileSaver!");
         fileSenderHashMap.put(fileStartInfo.getFileId(), new FileSender(client.getClientId(), fileStartInfo.getFileId(), fileStartInfo.getFilePath(), this));
         sendPacket(MessageTypeCode.File_START_INFO, fileStartInfo);
     }
     public void removeFileSender(UUID fileId) {
+        System.out.println("[in serverHandler]\nfileId: " + fileId + "sender was removed!!\n");
         fileSenderHashMap.remove(fileId);
     }
     // get old Id Receiver Sender

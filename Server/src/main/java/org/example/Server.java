@@ -33,21 +33,17 @@ public class Server {
                 handlerManger.register(clientSocket, clientHandler);
                 Thread thread = new Thread(clientHandler);
                 thread.start();
-                thread.wait();
                 if (handlerManger.checkEmpty()) {
                     shutDown(serverSocket);
                 }
             }
         } catch (IOException ex) {
             throw new RuntimeException(ex);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 
     public void service(Message message) throws IOException {
         MessageType messageType = MessageProcessor.makeMessageType(message);
-        System.out.println("In Server service method\n[converted MessageType]" + messageType);
         serviceGiver.service(message, messageType);
     }
 

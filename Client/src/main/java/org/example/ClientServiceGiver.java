@@ -49,7 +49,14 @@ public class ClientServiceGiver implements ServiceGiver{
     }
 
     private void setTokenId(UUID fileId, UUID tokenId) {
-        FileSender fileSender = serverHandler.getFileSenderHashMap().get(fileId);
+        System.out.println("file Token received!!\nToken: " + tokenId);
+        FileSender fileSender;
+        if (serverHandler.getFileSenderHashMap().containsKey(fileId)) {
+            fileSender = serverHandler.getFileSenderHashMap().get(fileId);
+        } else {
+            System.out.println("not valid Token Id");
+            return;
+        }
         fileSender.setTokenId(tokenId);
         fileSender.sendFile();
     }

@@ -58,6 +58,7 @@ public class ServerServiceGiver implements ServiceGiver{
     private void sendFileToken(FileStartInfo fileStartInfo, Socket sender) {
         FileToken fileToken = makeFileToken(fileStartInfo.getSender(), fileStartInfo.getReceiver(), fileStartInfo.getFileId());
         ClientHandler senderHandler = handlerManger.get(sender);
+        System.out.println("[send File Token]\n Token: " + fileToken);
         senderHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.File_Token, fileToken));
     }
 
@@ -94,7 +95,7 @@ public class ServerServiceGiver implements ServiceGiver{
     }
 
     private void sendFileEnd(FileEndType fileEndType) {
-        ClientHandler receiverHandler = handlerManger.get(fileTokenManger.getSender(fileEndType.getTokenId()));
+        ClientHandler receiverHandler = handlerManger.get(fileTokenManger.getReceiver(fileEndType.getTokenId()));
         receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_END, fileEndType));
     }
 
