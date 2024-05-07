@@ -97,6 +97,7 @@ public class ServerServiceGiver implements ServiceGiver{
     private void sendFileEnd(FileEndType fileEndType) {
         ClientHandler receiverHandler = handlerManger.get(fileTokenManger.getReceiver(fileEndType.getTokenId()));
         receiverHandler.sendPacket(PacketMaker.makePacket(MessageTypeCode.FILE_END, fileEndType));
+        fileTokenManger.remove(fileEndType.getTokenId());
     }
 
     private RegisterIdStatusType changeId(String newId, Socket socket) {

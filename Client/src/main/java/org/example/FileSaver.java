@@ -30,7 +30,7 @@ public class FileSaver {
     }
 
     public void save(int seq, byte[] fileBytes) {
-        long FILE_SEGMENT_SIZE = 1024 * 200;
+        long FILE_SEGMENT_SIZE = 1024 * 10;
         // seq, fileByte[]
         if (this.file == null) {
             System.out.println("set empty File!!");

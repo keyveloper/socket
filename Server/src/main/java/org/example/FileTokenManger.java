@@ -18,11 +18,6 @@ public class FileTokenManger {
         }
     }
 
-    public Socket getSender(UUID tokenId) {
-        synchronized (fileTokenLock) {
-            return fileTokenMap.get(tokenId).get("sender");
-        }
-    }
 
     public Socket getReceiver(UUID tokenID) {
         synchronized (fileTokenLock) {

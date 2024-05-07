@@ -23,7 +23,7 @@ public class FileSender {
         try {
             System.out.println("filePath: " + filePath + "\nFile read start {\n");
             FileInputStream fileInputStream = new FileInputStream(filePath);
-            byte[] fileBuffer = new byte[1024 * 200]; // 1MB read per once
+            byte[] fileBuffer = new byte[1024 * 10]; // 1MB read per once
             int bytesRead;
             int seq = 0;
             while ((bytesRead = fileInputStream.read(fileBuffer)) != -1) {
