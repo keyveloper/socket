@@ -16,7 +16,7 @@ public class CommandProcessor {
                 return null;
             }
             String id = command.substring(3);
-            return new ProcessedObject(MessageTypeCode.REGISTER_ID, new RegisterIdType(id));
+            return new ProcessedObject(MessageTypeCode.REGISTER_ID, )new RegisterIdType(id);
         }
 
         if (!isRegister) {

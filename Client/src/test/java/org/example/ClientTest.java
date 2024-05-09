@@ -40,7 +40,7 @@
             Socket mockClientSocket = mock(Socket.class);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             when(mockClientSocket.getOutputStream()).thenReturn(byteArrayOutputStream);
-            Client client = new Client(mockClientSocket);
+            Client client = new Client();
 
             MessageType clientSendMessageType = new RegisterIdType("myId");
 

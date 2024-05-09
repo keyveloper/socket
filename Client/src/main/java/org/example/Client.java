@@ -58,7 +58,7 @@ public class Client implements Runnable {
         serverHandler.sendPacket(processedObject.getMessageTypeCode(), processedObject.getMessageType());
     }
 
-    public void service(Message message) throws JsonProcessingException {
+    public void service(Message message)  {
         clientServiceGiver.service(message, MessageProcessor.makeMessageType(message));
     }
 
