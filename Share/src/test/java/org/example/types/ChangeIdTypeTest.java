@@ -14,10 +14,9 @@ public class ChangeIdTypeTest {
         // When
         byte[] changeIdTypeByte = testType.toBytes();
         ChangeIdType convertedType = (ChangeIdType) testType.fromBytes(changeIdTypeByte);
+
         // Then
-
         assertEquals(testType, convertedType);
-
     }
 
 }
